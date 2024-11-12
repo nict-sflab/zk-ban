@@ -1,4 +1,4 @@
-package zkban
+package snark
 
 import (
 	tw "github.com/consensys/gnark-crypto/ecc/twistededwards"
@@ -9,7 +9,7 @@ import (
 	"github.com/consensys/gnark/std/hash/mimc"
 )
 
-type AuthCircuit struct {
+type ProofCircuit struct {
 	UserPublicKey  frontend.Variable `gnark:"pk"`
 	Certificate    eddsa.Signature   `gnark:"cert"`
 	Nonce          frontend.Variable `gnark:"nonce"`
@@ -19,7 +19,7 @@ type AuthCircuit struct {
 	Hash           frontend.Variable `gnark:",public"`
 }
 
-func (circuit *AuthCircuit) Define(api frontend.API) error {
+func (circuit *ProofCircuit) Define(api frontend.API) error {
 	mimc1, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
