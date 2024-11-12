@@ -1,4 +1,4 @@
-package zkban
+package snark
 
 import (
 	"math/big"

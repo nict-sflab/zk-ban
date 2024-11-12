@@ -1,4 +1,4 @@
-package zkban
+package snark
 
 import (
 	tw "github.com/consensys/gnark-crypto/ecc/twistededwards"
