@@ -6,6 +6,8 @@ import (
 	"time"
 
 	zkban "github.com/akakou/zk-ban"
+	snark "github.com/akakou/zk-ban/snark"
+
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/backend/groth16"
@@ -20,7 +22,7 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	authCircuit := zkban.AuthCircuit{}
+	authCircuit := snark.AuthCircuit{}
 	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &authCircuit)
 	panicIfErr(err)
 
@@ -47,7 +49,7 @@ func main() {
 	proof, err := zkban.Prove(m, r, &usk)
 	panicIfErr(err)
 
-	assign := &zkban.AuthCircuit{
+	assign := &snark.AuthCircuit{
 		Nonce:         r,
 		UserSecretKey: usk.UserSecretKey,
 		Message:       m,
