@@ -4,8 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	zkban "github.com/akakou/zk-ban"
-
+	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/test"
@@ -14,12 +13,12 @@ import (
 func TestProofCircuit(t *testing.T) {
 	assert := test.NewAssert(t)
 
-	usk := zkban.UserSecretKey{UserSecretKey: big.NewInt(1)}
+	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
 	r := big.NewInt(2)
 	m := big.NewInt(3)
 	period := big.NewInt(2024)
 
-	gsk, gpk, err := zkban.RandomGroupKeyPair()
+	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
 	assert.NoError(err)
 
 	upk, err := usk.PublicKey(period)
@@ -28,7 +27,7 @@ func TestProofCircuit(t *testing.T) {
 	cert, err := gsk.IssuseCertificate(upk)
 	assert.NoError(err)
 
-	proof, err := zkban.Prove(m, r, &usk)
+	proof, err := zkbanw.ComputeProveWitness(m, r, &usk)
 	assert.NoError(err)
 
 	authCircuit := ProofCircuit{}
