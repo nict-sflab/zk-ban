@@ -5,13 +5,13 @@ import (
 	"github.com/consensys/gnark/std/hash/mimc"
 )
 
-type JoinCircuit struct {
+type CertificateRequestCircuit struct {
 	UserSecretKey frontend.Variable `gnark:"sk"`
 	UserPublicKey frontend.Variable `gnark:",public"`
 	Period        frontend.Variable `gnark:",public"`
 }
 
-func (circuit *JoinCircuit) Define(api frontend.API) error {
+func (circuit *CertificateRequestCircuit) Define(api frontend.API) error {
 	mimc, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
@@ -24,3 +24,4 @@ func (circuit *JoinCircuit) Define(api frontend.API) error {
 
 	return nil
 }
+

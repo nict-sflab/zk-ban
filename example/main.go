@@ -22,7 +22,7 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	authCircuit := snark.AuthCircuit{}
+	authCircuit := snark.ProofCircuit{}
 	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &authCircuit)
 	panicIfErr(err)
 
@@ -49,7 +49,7 @@ func main() {
 	proof, err := zkban.Prove(m, r, &usk)
 	panicIfErr(err)
 
-	assign := &snark.AuthCircuit{
+	assign := &snark.ProofCircuit{
 		Nonce:         r,
 		UserSecretKey: usk.UserSecretKey,
 		Message:       m,

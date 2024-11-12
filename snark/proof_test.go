@@ -11,7 +11,7 @@ import (
 	"github.com/consensys/gnark/test"
 )
 
-func TestAuth(t *testing.T) {
+func TestProofCircuit(t *testing.T) {
 	assert := test.NewAssert(t)
 
 	usk := zkban.UserSecretKey{UserSecretKey: big.NewInt(1)}
@@ -31,9 +31,9 @@ func TestAuth(t *testing.T) {
 	proof, err := zkban.Prove(m, r, &usk)
 	assert.NoError(err)
 
-	authCircuit := AuthCircuit{}
+	authCircuit := ProofCircuit{}
 
-	assign := &AuthCircuit{
+	assign := &ProofCircuit{
 		Nonce:         r,
 		UserSecretKey: usk.UserSecretKey,
 		Message:       m,
