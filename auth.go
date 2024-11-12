@@ -21,6 +21,10 @@ type AuthCircuit struct {
 
 func (circuit *AuthCircuit) Define(api frontend.API) error {
 	mimc1, err := mimc.NewMiMC(api)
+	if err != nil {
+		return err
+	}
+
 	mimc2, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
