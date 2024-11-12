@@ -1,34 +1,39 @@
 package zkban
 
 import (
+	"crypto/rand"
 	"math/big"
 
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
+	zkbanc "github.com/akakou/zk-ban/circuit"
+	zkbanw "github.com/akakou/zk-ban/witness"
+	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/constraint"
 )
 
-type Proof struct {
-	Hash []byte
+func max() *big.Int {
+	var i, e = big.NewInt(2), big.NewInt(32)
+	i.Exp(i, e, nil)
+
+	return i
 }
 
-func Prove(m, r *big.Int, usk *UserSecretKey) (*Proof, error) {
-	hasher := mimc.NewMiMC(mimc.WithByteOrder(fr.BigEndian))
-	_, err := hasher.Write(m.Bytes())
+func Prove(m *big.Int, usk *zkbanw.UserSecretKey, upk *zkbanw.UserPublicKey, cert *zkbanw.Certificate, gpk *zkbanw.GroupPublicKey, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, *zkbanw.Proof, error) {
+	r, err := rand.Int(rand.Reader, max())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	_, err = hasher.Write(r.Bytes())
+	h, err := zkbanw.ComputeProveWitness(m, r, usk)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	_, err = hasher.Write(usk.UserSecretKey.Bytes())
+	w := zkbanc.ProofWitness(m, r, usk.UserSecretKey, upk.UserPublicKey, h.Hash, cert.Signature, gpk)
+
+	proof, err := proveSNARK(w, pk, ccs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	h := hasher.Sum(nil)
-
-	return &Proof{Hash: h}, nil
+	return proof, h, nil
 }

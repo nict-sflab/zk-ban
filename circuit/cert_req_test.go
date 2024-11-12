@@ -4,8 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	zkban "github.com/akakou/zk-ban"
-
+	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/test"
 )
@@ -14,7 +13,7 @@ func TestJoin(t *testing.T) {
 	assert := test.NewAssert(t)
 	var joinCercuit CertificateRequestCircuit
 
-	usk := zkban.UserSecretKey{UserSecretKey: big.NewInt(1)}
+	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
 	period := big.NewInt(2024)
 
 	upk, err := usk.PublicKey(period)

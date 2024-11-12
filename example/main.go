@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"time"
 
-	zkban "github.com/akakou/zk-ban"
-	snark "github.com/akakou/zk-ban/snark"
+	zkbanc "github.com/akakou/zk-ban/circuit"
+	zkbanw "github.com/akakou/zk-ban/witness"
 
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
@@ -22,7 +22,7 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	authCircuit := snark.ProofCircuit{}
+	authCircuit := zkbanc.ProofCircuit{}
 	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &authCircuit)
 	panicIfErr(err)
 
@@ -30,12 +30,12 @@ func main() {
 	pk, vk, err := groth16.Setup(ccs)
 	panicIfErr(err)
 
-	usk := zkban.UserSecretKey{UserSecretKey: big.NewInt(1)}
+	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
 	r := big.NewInt(2)
 	m := big.NewInt(3)
 	period := big.NewInt(2024)
 
-	gsk, gpk, err := zkban.RandomGroupKeyPair()
+	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
 	panicIfErr(err)
 
 	upk, err := usk.PublicKey(period)
@@ -46,10 +46,10 @@ func main() {
 
 	t := time.Now()
 
-	proof, err := zkban.Prove(m, r, &usk)
+	proof, err := zkbanw.ComputeProveWitness(m, r, &usk)
 	panicIfErr(err)
 
-	assign := &snark.ProofCircuit{
+	assign := &zkbanc.ProofCircuit{
 		Nonce:         r,
 		UserSecretKey: usk.UserSecretKey,
 		Message:       m,

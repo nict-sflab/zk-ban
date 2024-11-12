@@ -1,7 +1,11 @@
 package snark
 
 import (
+	"math/big"
+
 	tw "github.com/consensys/gnark-crypto/ecc/twistededwards"
+	"github.com/consensys/gnark-crypto/signature"
+
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/signature/eddsa"
 
@@ -46,4 +50,19 @@ func (circuit *ProofCircuit) Define(api frontend.API) error {
 	api.AssertIsEqual(circuit.Hash, h)
 
 	return nil
+}
+
+func ProofWitness(m, r, usk *big.Int, upk, proof, cert []byte, gpk signature.PublicKey) *ProofCircuit {
+	assign := &ProofCircuit{
+		Nonce:         r,
+		UserSecretKey: usk,
+		Message:       m,
+		Hash:          proof,
+		UserPublicKey: upk,
+	}
+
+	assign.GroupPublicKey.Assign(tw.BN254, gpk.Bytes())
+	assign.Certificate.Assign(tw.BN254, cert)
+
+	return assign
 }

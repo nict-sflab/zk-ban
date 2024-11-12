@@ -24,4 +24,3 @@ func (circuit *CertificateRequestCircuit) Define(api frontend.API) error {
 
 	return nil
 }
-
