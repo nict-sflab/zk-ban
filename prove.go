@@ -23,7 +23,7 @@ func Prove(m *big.Int, usk *zkbanw.UserSecretKey, upk *zkbanw.UserPublicKey, cer
 		return nil, nil, err
 	}
 
-	h, err := zkbanw.ComputeProveWitness(m, r, usk)
+	h, err := zkbanw.ProveWitness(m, r, usk)
 	if err != nil {
 		return nil, nil, err
 	}

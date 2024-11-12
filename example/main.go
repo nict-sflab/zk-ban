@@ -46,7 +46,7 @@ func main() {
 
 	t := time.Now()
 
-	proof, err := zkbanw.ComputeProveWitness(m, r, &usk)
+	proof, err := zkbanw.ProveWitness(m, r, &usk)
 	panicIfErr(err)
 
 	assign := &zkbanc.ProofCircuit{

@@ -27,7 +27,7 @@ func TestProofCircuit(t *testing.T) {
 	cert, err := gsk.IssuseCertificate(upk)
 	assert.NoError(err)
 
-	proof, err := zkbanw.ComputeProveWitness(m, r, &usk)
+	proof, err := zkbanw.ProveWitness(m, r, &usk)
 	assert.NoError(err)
 
 	authCircuit := ProofCircuit{}
