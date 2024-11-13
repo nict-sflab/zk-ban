@@ -11,10 +11,10 @@ import (
 	"github.com/consensys/gnark/constraint"
 )
 
-func JoinRequest(period *big.Int, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, *zkbanw.UserSecretKey, error) {
+func JoinRequest(period *big.Int, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, *zkbanw.UserSecretKey, *zkbanw.UserPublicKey, error) {
 	u, err := rand.Int(rand.Reader, max())
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	usk := zkbanw.UserSecretKey{
@@ -23,15 +23,15 @@ func JoinRequest(period *big.Int, pk groth16.ProvingKey, ccs constraint.Constrai
 
 	upk, err := usk.PublicKey(period)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	witness := zkbanc.JoinRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
 
 	proof, pubWit, _, err := proveSNARK(witness, pk, ccs)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
-	return proof, pubWit, &usk, nil
+	return proof, pubWit, &usk, upk, nil
 }

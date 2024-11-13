@@ -24,7 +24,7 @@ func TestProofCircuit(t *testing.T) {
 	upk, err := usk.PublicKey(period)
 	assert.NoError(err)
 
-	cert, err := gsk.IssuseCertificate(upk)
+	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
 	proof, err := zkbanw.ProveWitness(m, r, &usk)

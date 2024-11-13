@@ -41,7 +41,7 @@ func main() {
 	upk, err := usk.PublicKey(period)
 	panicIfErr(err)
 
-	cert, err := gsk.IssuseCertificate(upk)
+	cert, err := gsk.IssueCertificate(upk)
 	panicIfErr(err)
 
 	t := time.Now()
