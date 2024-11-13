@@ -9,7 +9,6 @@ import (
 	snark "github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 
-	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
@@ -64,7 +63,7 @@ func main() {
 	signAssign.Certificate.Assign(twistededwards.BN254, cert.Signature)
 
 	// witness definition
-	signWit, err := frontend.NewWitness(signAssign, ecc.BN254.ScalarField())
+	signWit, err := frontend.NewWitness(signAssign, snark.EcCurve.ScalarField())
 	panicIfErr(err)
 
 	signWitPub, err := signWit.Public()
@@ -100,7 +99,7 @@ func main() {
 		Period:        period,
 	}, gpk)
 
-	syncWit, err := frontend.NewWitness(syncAssign, ecc.BN254.ScalarField())
+	syncWit, err := frontend.NewWitness(syncAssign, snark.EcCurve.ScalarField())
 	panicIfErr(err)
 
 	syncWitPub, err := syncWit.Public()
