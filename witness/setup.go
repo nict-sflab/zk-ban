@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 
-	"github.com/consensys/gnark-crypto/ecc/twistededwards"
+	"github.com/akakou/zk-ban/snark"
 	"github.com/consensys/gnark-crypto/signature"
 	"github.com/consensys/gnark-crypto/signature/eddsa"
 )
@@ -15,7 +15,7 @@ type GroupPublicKey struct{ signature.PublicKey }
 type GroupSecretKey struct{ signature.Signer }
 
 func RandomGroupKeyPair() (*GroupSecretKey, *GroupPublicKey, error) {
-	gsk, err := eddsa.New(twistededwards.BN254, rand.Reader)
+	gsk, err := eddsa.New(snark.TwistededwardsCurve, rand.Reader)
 	if err != nil {
 		return nil, nil, errors.Join(err)
 	}
