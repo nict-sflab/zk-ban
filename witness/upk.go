@@ -8,7 +8,7 @@ import (
 )
 
 type UserPublicKey struct {
-	UserPublicKey []byte
+	Buffer []byte
 }
 
 func (usk *UserSecretKey) PublicKey(period *big.Int) (*UserPublicKey, error) {
@@ -19,12 +19,12 @@ func (usk *UserSecretKey) PublicKey(period *big.Int) (*UserPublicKey, error) {
 		return nil, err
 	}
 
-	_, err = hasher.Write(usk.UserSecretKey.Bytes())
+	_, err = hasher.Write(usk.Number.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
 	pk := hasher.Sum(nil)
 
-	return &UserPublicKey{UserPublicKey: pk}, nil
+	return &UserPublicKey{Buffer: pk}, nil
 }

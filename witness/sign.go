@@ -29,7 +29,7 @@ func ProveWitness(m, r *big.Int, usk *UserSecretKey) (*Proof, error) {
 		return nil, err
 	}
 
-	_, err = hasher.Write(usk.UserSecretKey.Bytes())
+	_, err = hasher.Write(usk.Number.Bytes())
 	if err != nil {
 		return nil, err
 	}

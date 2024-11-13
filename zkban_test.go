@@ -46,7 +46,7 @@ func prepare(assert *test.Assert) TestParams {
 	period := big.NewInt(2024)
 
 	var usk = &zkbanw.UserSecretKey{
-		UserSecretKey: big.NewInt(100),
+		Number: big.NewInt(100),
 	}
 
 	upk, err := usk.PublicKey(period)

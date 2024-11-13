@@ -56,10 +56,10 @@ func (circuit *ProofCircuit) Define(api frontend.API) error {
 func ProofWitness(m, r *big.Int, proof []byte, signer *zkbanw.Signer, gpk signature.PublicKey) *ProofCircuit {
 	assign := &ProofCircuit{
 		Nonce:         r,
-		UserSecretKey: signer.UserSecretKey.UserSecretKey,
+		UserSecretKey: signer.UserSecretKey.Number,
 		Message:       m,
 		Hash:          proof,
-		UserPublicKey: signer.UserPublicKey.UserPublicKey,
+		UserPublicKey: signer.UserPublicKey.Buffer,
 	}
 
 	assign.GroupPublicKey.Assign(tw.BN254, gpk.Bytes())

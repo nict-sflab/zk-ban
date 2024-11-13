@@ -10,7 +10,7 @@ type Certificate struct {
 
 func (gsk *GroupSecretKey) IssueCertificate(upk *UserPublicKey) (*Certificate, error) {
 	hasher := hash.MIMC_BN254.New()
-	signature, err := gsk.Sign(upk.UserPublicKey, hasher)
+	signature, err := gsk.Sign(upk.Buffer, hasher)
 	if err != nil {
 		return nil, err
 	}

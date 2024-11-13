@@ -18,7 +18,7 @@ func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof
 	}
 
 	usk := zkbanw.UserSecretKey{
-		UserSecretKey: u,
+		Number: u,
 	}
 
 	upk, err := usk.PublicKey(period)
@@ -26,7 +26,7 @@ func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof
 		return nil, nil, nil, nil, err
 	}
 
-	witness := zkbanc.JoinRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
+	witness := zkbanc.JoinRequestWitness(usk.Number, upk.Buffer, period)
 
 	proof, pubWit, _, err := snark.ProveSNARK(witness, snarkProver)
 	if err != nil {

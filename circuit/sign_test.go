@@ -13,7 +13,7 @@ import (
 func TestProofCircuit(t *testing.T) {
 	assert := test.NewAssert(t)
 
-	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
+	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
 	r := big.NewInt(2)
 	m := big.NewInt(3)
 	period := big.NewInt(2024)
@@ -34,10 +34,10 @@ func TestProofCircuit(t *testing.T) {
 
 	assign := &ProofCircuit{
 		Nonce:         r,
-		UserSecretKey: usk.UserSecretKey,
+		UserSecretKey: usk.Number,
 		Message:       m,
 		Hash:          proof.Hash,
-		UserPublicKey: upk.UserPublicKey,
+		UserPublicKey: upk.Buffer,
 	}
 
 	assign.GroupPublicKey.Assign(twistededwards.BN254, gpk.Bytes())
