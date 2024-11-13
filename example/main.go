@@ -6,13 +6,13 @@ import (
 	"time"
 
 	zkbanc "github.com/akakou/zk-ban/circuit"
+	snark "github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/frontend/cs/r1cs"
 )
 
 func panicIfErr(err error) {
@@ -22,16 +22,14 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	signCircuit := zkbanc.SignCircuit{}
-	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &signCircuit)
+	signParams, err := snark.InitSNARK(&zkbanc.SignCircuit{})
 	panicIfErr(err)
 
-	// groth16 zkSNARK: Setup
-	pk, vk, err := groth16.Setup(ccs)
+	syncParams, err := snark.InitSNARK(&zkbanc.SyncCircuit{})
 	panicIfErr(err)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
-	r := big.NewInt(2)
+	nonce := big.NewInt(2)
 	bsn := big.NewInt(3)
 	m := big.NewInt(4)
 	period := big.NewInt(2024)
@@ -47,41 +45,74 @@ func main() {
 
 	t := time.Now()
 
-	commit, err := zkbanw.ComputeSignCommit(m, bsn, r, &usk)
+	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
 	panicIfErr(err)
 
-	assign := &zkbanc.SignCircuit{
-		Nonce:         r,
-		Basename:      bsn,
+	signAssign := &zkbanc.SignCircuit{
+		UserPublicKey: upk.Buffer,
+		Nonce:         nonce,
 		UserSecretKey: usk.Number,
+		Basename:      bsn,
 		Message:       m,
 		Commit1:       commit.Commit1,
 		Commit2:       commit.Commit2,
 		Commit3:       commit.Commit3,
-		UserPublicKey: upk.Buffer,
+		Period:        period,
 	}
 
-	assign.GroupPublicKey.Assign(twistededwards.BN254, gpk.Bytes())
-	assign.Certificate.Assign(twistededwards.BN254, cert.Signature)
+	signAssign.GroupPublicKey.Assign(twistededwards.BN254, gpk.Bytes())
+	signAssign.Certificate.Assign(twistededwards.BN254, cert.Signature)
 
 	// witness definition
-	witness, err := frontend.NewWitness(assign, ecc.BN254.ScalarField())
+	signWit, err := frontend.NewWitness(signAssign, ecc.BN254.ScalarField())
 	panicIfErr(err)
 
-	publicWitness, err := witness.Public()
+	signWitPub, err := signWit.Public()
 	panicIfErr(err)
 
 	// groth16: Prove & Verify
-	zkproof, err := groth16.Prove(ccs, pk, witness)
+	zkproof, err := groth16.Prove(signParams.ConstraintSystem, signParams.ProveKey, signWit)
 	panicIfErr(err)
-
-	fmt.Printf("Prove: %vms\n", time.Since(t))
+	fmt.Printf("Sign Prove: %vms\n", time.Since(t))
 
 	t = time.Now()
-	err = groth16.Verify(zkproof, vk, publicWitness)
-	fmt.Printf("Verify: %vms\n", time.Since(t))
-
+	err = groth16.Verify(zkproof, signParams.VerifyKey, signWitPub)
+	fmt.Printf("Sign Verify: %vms\n", time.Since(t))
 	panicIfErr(err)
 
+	commit2 := [zkbanc.RevocationListSize][]byte{}
+	commit3 := [zkbanc.RevocationListSize][]byte{}
+
+	for i := 0; i < zkbanc.RevocationListSize; i++ {
+		commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
+		panicIfErr(err)
+
+		commit2[i] = commit.Commit2
+		commit3[i] = commit.Commit3
+	}
+
+	t = time.Now()
+
+	syncAssign := zkbanc.SyncCircuitWitness(commit2, commit3, &zkbanw.Signer{
+		UserSecretKey: &usk,
+		UserPublicKey: upk,
+		Certificate:   cert,
+		Period:        period,
+	}, gpk)
+
+	syncWit, err := frontend.NewWitness(syncAssign, ecc.BN254.ScalarField())
+	panicIfErr(err)
+
+	syncWitPub, err := syncWit.Public()
+	panicIfErr(err)
+
+	syncProof, err := groth16.Prove(syncParams.ConstraintSystem, syncParams.ProveKey, syncWit)
+	panicIfErr(err)
+	fmt.Printf("Sync Prove: %vms\n", time.Since(t))
+
+	t = time.Now()
+	err = groth16.Verify(syncProof, syncParams.VerifyKey, syncWitPub)
+	fmt.Printf("Sync Verify: %vms\n", time.Since(t))
+	panicIfErr(err)
 	print("ok")
 }
