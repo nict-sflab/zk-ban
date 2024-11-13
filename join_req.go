@@ -9,10 +9,9 @@ import (
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
-	"github.com/consensys/gnark/constraint"
 )
 
-func JoinRequest(period *big.Int, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, *zkbanw.UserSecretKey, *zkbanw.UserPublicKey, error) {
+func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof, witness.Witness, *zkbanw.UserSecretKey, *zkbanw.UserPublicKey, error) {
 	u, err := rand.Int(rand.Reader, max())
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -29,7 +28,7 @@ func JoinRequest(period *big.Int, pk groth16.ProvingKey, ccs constraint.Constrai
 
 	witness := zkbanc.JoinRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
 
-	proof, pubWit, _, err := snark.ProveSNARK(witness, pk, ccs)
+	proof, pubWit, _, err := snark.ProveSNARK(witness, snarkProver)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

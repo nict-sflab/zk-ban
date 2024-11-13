@@ -11,44 +11,83 @@ import (
 	"github.com/consensys/gnark/test"
 )
 
-func TestAll(t *testing.T) {
-	assert := test.NewAssert(t)
+type TestParams struct {
+	gpk       *zkbanw.GroupPublicKey
+	gsk       *zkbanw.GroupSecretKey
+	joinSnark *snark.SnarkParams
+	signSnark *snark.SnarkParams
+	upk       *zkbanw.UserPublicKey
+	usk       *zkbanw.UserSecretKey
+	m         *big.Int
+	period    *big.Int
+	cert      *zkbanw.Certificate
+}
+
+func (params *TestParams) signer() *zkbanw.Signer {
+	signer := zkbanw.Signer{
+		UserSecretKey: params.usk,
+		UserPublicKey: params.upk,
+		Certificate:   params.cert,
+	}
+
+	return &signer
+}
+
+func prepare(assert *test.Assert) TestParams {
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
 	assert.NoError(err)
 
-	ccs, pk, vk, err := snark.InitSNARK(&zkbanc.JoinRequestCircuit{})
+	joinSnark, err := snark.InitSNARK(&zkbanc.JoinRequestCircuit{})
+	assert.NoError(err)
+
+	signSnark, err := snark.InitSNARK(&zkbanc.ProofCircuit{})
 	assert.NoError(err)
 
 	period := big.NewInt(2024)
 
-	var usk *zkbanw.UserSecretKey
-	var upk *zkbanw.UserPublicKey
+	var usk = &zkbanw.UserSecretKey{
+		UserSecretKey: big.NewInt(100),
+	}
 
-	t.Run("join req", func(t *testing.T) {
-		var proof groth16.Proof
-		proof, pubWit, _usk, _upk, err := JoinRequest(period, pk, ccs)
-		assert.NoError(err)
-
-		err = groth16.Verify(proof, vk, pubWit)
-		assert.NoError(err)
-
-		usk = _usk
-		upk = _upk
-	})
-
-	ccs, pk, vk, err = snark.InitSNARK(&zkbanc.ProofCircuit{})
-	assert.NoError(err)
-
-	cert, err := gsk.IssueCertificate(upk)
+	upk, err := usk.PublicKey(period)
 	assert.NoError(err)
 
 	m := big.NewInt(100)
 
-	t.Run("sign", func(t *testing.T) {
-		proof, pubWit, err := Sign(m, usk, upk, cert, gpk, pk, ccs)
+	cert, err := gsk.IssueCertificate(upk)
+	assert.NoError(err)
+
+	return TestParams{
+		gpk:       gpk,
+		gsk:       gsk,
+		usk:       usk,
+		upk:       upk,
+		joinSnark: joinSnark,
+		signSnark: signSnark,
+		m:         m,
+		period:    period,
+		cert:      cert,
+	}
+}
+
+func TestAll(t *testing.T) {
+	assert := test.NewAssert(t)
+	params := prepare(assert)
+
+	t.Run("join req", func(t *testing.T) {
+		var proof groth16.Proof
+		proof, pubWit, _, _, err := JoinRequest(params.period, params.joinSnark.Prover())
 		assert.NoError(err)
 
-		err = groth16.Verify(proof, vk, pubWit)
+		err = groth16.Verify(proof, params.joinSnark.VerifyKey, pubWit)
+		assert.NoError(err)
+	})
+
+	t.Run("sign", func(t *testing.T) {
+		proof, pubWit, err := Sign(params.m, params.signer(), params.gpk, params.signSnark.Prover())
+		assert.NoError(err)
+
+		err = groth16.Verify(proof, params.signSnark.VerifyKey, pubWit)
 		assert.NoError(err)
 	})
 }

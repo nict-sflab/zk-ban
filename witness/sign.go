@@ -11,6 +11,12 @@ type Proof struct {
 	Hash []byte
 }
 
+type Signer struct {
+	UserSecretKey *UserSecretKey
+	UserPublicKey *UserPublicKey
+	Certificate   *Certificate
+}
+
 func ProveWitness(m, r *big.Int, usk *UserSecretKey) (*Proof, error) {
 	hasher := mimc.NewMiMC(mimc.WithByteOrder(fr.BigEndian))
 	_, err := hasher.Write(m.Bytes())

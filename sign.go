@@ -9,7 +9,6 @@ import (
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
-	"github.com/consensys/gnark/constraint"
 )
 
 func max() *big.Int {
@@ -19,20 +18,20 @@ func max() *big.Int {
 	return i
 }
 
-func Sign(m *big.Int, usk *zkbanw.UserSecretKey, upk *zkbanw.UserPublicKey, cert *zkbanw.Certificate, gpk *zkbanw.GroupPublicKey, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, error) {
+func Sign(m *big.Int, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
 	r, err := rand.Int(rand.Reader, max())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	h, err := zkbanw.ProveWitness(m, r, usk)
+	h, err := zkbanw.ProveWitness(m, r, signer.UserSecretKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	w := zkbanc.ProofWitness(m, r, usk.UserSecretKey, upk.UserPublicKey, h.Hash, cert.Signature, gpk)
+	w := zkbanc.ProofWitness(m, r, h.Hash, signer, gpk)
 
-	proof, wit, _, err := snark.ProveSNARK(w, pk, ccs)
+	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {
 		return nil, nil, err
 	}

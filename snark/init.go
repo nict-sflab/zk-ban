@@ -3,23 +3,22 @@ package snark
 import (
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
-	"github.com/consensys/gnark/constraint"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/frontend/cs/r1cs"
 )
 
-func InitSNARK[T frontend.Circuit](w T) (constraint.ConstraintSystem, groth16.ProvingKey, groth16.VerifyingKey, error) {
+func InitSNARK[T frontend.Circuit](w T) (*SnarkParams, error) {
 	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, w)
 
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	pk, vk, err := groth16.Setup(ccs)
 
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	return ccs, pk, vk, nil
+	return &SnarkParams{ccs, pk, vk}, nil
 }

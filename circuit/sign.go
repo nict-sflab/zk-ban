@@ -9,6 +9,7 @@ import (
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/signature/eddsa"
 
+	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/hash/mimc"
 )
@@ -52,17 +53,17 @@ func (circuit *ProofCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func ProofWitness(m, r, usk *big.Int, upk, proof, cert []byte, gpk signature.PublicKey) *ProofCircuit {
+func ProofWitness(m, r *big.Int, proof []byte, signer *zkbanw.Signer, gpk signature.PublicKey) *ProofCircuit {
 	assign := &ProofCircuit{
 		Nonce:         r,
-		UserSecretKey: usk,
+		UserSecretKey: signer.UserSecretKey.UserSecretKey,
 		Message:       m,
 		Hash:          proof,
-		UserPublicKey: upk,
+		UserPublicKey: signer.UserPublicKey.UserPublicKey,
 	}
 
 	assign.GroupPublicKey.Assign(tw.BN254, gpk.Bytes())
-	assign.Certificate.Assign(tw.BN254, cert)
+	assign.Certificate.Assign(tw.BN254, signer.Certificate.Signature)
 
 	return assign
 }

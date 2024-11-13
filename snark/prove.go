@@ -4,11 +4,10 @@ import (
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
-	"github.com/consensys/gnark/constraint"
 	"github.com/consensys/gnark/frontend"
 )
 
-func ProveSNARK[T frontend.Circuit](w T, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, witness.Witness, error) {
+func ProveSNARK[T frontend.Circuit](w T, prover *SnarkProver) (groth16.Proof, witness.Witness, witness.Witness, error) {
 	witness, err := frontend.NewWitness(w, ecc.BN254.ScalarField())
 	if err != nil {
 		return nil, nil, nil, err
@@ -19,7 +18,7 @@ func ProveSNARK[T frontend.Circuit](w T, pk groth16.ProvingKey, ccs constraint.C
 		return nil, nil, nil, err
 	}
 
-	proof, err := groth16.Prove(ccs, pk, witness)
+	proof, err := groth16.Prove(prover.ConstraintSystem, prover.ProveKey, witness)
 	if err != nil {
 		return nil, nil, nil, err
 	}
