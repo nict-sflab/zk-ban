@@ -1,9 +1,14 @@
 package snark
 
 import (
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/constraint"
 )
+
+var EcCurve = ecc.BN254
+var TwistededwardsCurve = twistededwards.BN254
 
 type SnarkParams struct {
 	ConstraintSystem constraint.ConstraintSystem

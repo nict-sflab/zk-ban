@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
-	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/test"
@@ -50,5 +50,5 @@ func TestSync(t *testing.T) {
 	assign.GroupPublicKey.Assign(twistededwards.BN254, gpk.Bytes())
 	assign.Certificate.Assign(twistededwards.BN254, cert.Signature)
 
-	assert.ProverSucceeded(&SyncCircuit{}, assign, test.WithCurves(ecc.BN254))
+	assert.ProverSucceeded(&SyncCircuit{}, assign, test.WithCurves(snark.EcCurve))
 }

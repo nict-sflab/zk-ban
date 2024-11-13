@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
-	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/test"
 )
 
@@ -25,5 +25,5 @@ func TestJoinReq(t *testing.T) {
 		Period:        period,
 	}
 
-	assert.ProverSucceeded(&joinCercuit, assign, test.WithCurves(ecc.BN254))
+	assert.ProverSucceeded(&joinCercuit, assign, test.WithCurves(snark.EcCurve))
 }
