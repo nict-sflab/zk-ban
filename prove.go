@@ -31,7 +31,7 @@ func Prove(m *big.Int, usk *zkbanw.UserSecretKey, upk *zkbanw.UserPublicKey, cer
 
 	w := zkbanc.ProofWitness(m, r, usk.UserSecretKey, upk.UserPublicKey, h.Hash, cert.Signature, gpk)
 
-	proof, wit, err := proveSNARK(w, pk, ccs)
+	proof, wit, _, err := proveSNARK(w, pk, ccs)
 	if err != nil {
 		return nil, nil, err
 	}

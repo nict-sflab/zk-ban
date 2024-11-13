@@ -18,15 +18,10 @@ func CertificateRequest(period *big.Int, usk *zkbanw.UserSecretKey, pk groth16.P
 
 	witness := zkbanc.CertificateRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
 
-	snark, wit, err := proveSNARK(witness, pk, ccs)
+	snark, pubWit, _, err := proveSNARK(witness, pk, ccs)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	publicWit, err := wit.Public()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return snark, publicWit, nil
+	return snark, pubWit, nil
 }
