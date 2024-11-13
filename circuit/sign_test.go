@@ -14,8 +14,9 @@ func TestSignCircuit(t *testing.T) {
 	assert := test.NewAssert(t)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
-	r := big.NewInt(2)
+	nonce := big.NewInt(2)
 	m := big.NewInt(3)
+	bsn := big.NewInt(4)
 	period := big.NewInt(2024)
 
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
@@ -27,19 +28,21 @@ func TestSignCircuit(t *testing.T) {
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
-	commit, err := zkbanw.ComputeSignCommit(m, big.NewInt(1), r, &usk)
+	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
 	assert.NoError(err)
 
 	authCircuit := SignCircuit{}
 
 	assign := &SignCircuit{
-		Nonce:         r,
+		UserPublicKey: upk.Buffer,
+		Nonce:         nonce,
 		UserSecretKey: usk.Number,
+		Basename:      bsn,
 		Message:       m,
 		Commit1:       commit.Commit1,
-		Commit2:       commit.Commit1,
-		Commit3:       commit.Commit1,
-		UserPublicKey: upk.Buffer,
+		Commit2:       commit.Commit2,
+		Commit3:       commit.Commit3,
+		Period:        period,
 	}
 
 	assign.GroupPublicKey.Assign(twistededwards.BN254, gpk.Bytes())

@@ -26,7 +26,7 @@ func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof
 		return nil, nil, nil, nil, err
 	}
 
-	witness := zkbanc.JoinRequestWitness(usk.Number, upk.Buffer, period)
+	witness := zkbanc.JoinRequestWitness(period, usk.Number, upk.Buffer)
 
 	proof, pubWit, _, err := snark.ProveSNARK(witness, snarkProver)
 	if err != nil {

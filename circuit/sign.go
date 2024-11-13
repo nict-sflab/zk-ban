@@ -6,12 +6,10 @@ import (
 	tw "github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark-crypto/signature"
 
-	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/signature/eddsa"
 
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/std/hash/mimc"
 )
 
 type SignCircuit struct {
@@ -26,20 +24,18 @@ type SignCircuit struct {
 	Commit1        frontend.Variable `gnark:",public"`
 	Commit2        frontend.Variable `gnark:",public"`
 	Commit3        frontend.Variable `gnark:",public"`
+	Period         frontend.Variable `gnark:",public"`
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
-	mimc0, err := mimc.NewMiMC(api)
-	if err != nil {
-		return err
-	}
+	err := auth(
+		api,
+		circuit.Period,
+		circuit.UserSecretKey,
+		circuit.UserPublicKey,
+		circuit.Certificate,
+		circuit.GroupPublicKey)
 
-	curve, err := twistededwards.NewEdCurve(api, tw.BN254)
-	if err != nil {
-		return err
-	}
-
-	err = eddsa.Verify(curve, circuit.Certificate, circuit.UserPublicKey, circuit.GroupPublicKey, &mimc0)
 	if err != nil {
 		return err
 	}
@@ -75,6 +71,7 @@ func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *z
 		Commit2:       commit.Commit2,
 		Commit3:       commit.Commit3,
 		Basename:      bsn,
+		Period:        signer.Period,
 		UserPublicKey: signer.UserPublicKey.Buffer,
 	}
 
