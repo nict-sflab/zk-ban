@@ -2,13 +2,12 @@ package zkban
 
 import (
 	"math/big"
-
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
 )
 
 type SignCommit struct {
-	Buffer []byte
+	Commit1 []byte
+	Commit2 []byte
+	Commit3 []byte
 }
 
 type Signer struct {
@@ -17,24 +16,20 @@ type Signer struct {
 	Certificate   *Certificate
 }
 
-func ComputeSignCommit(m, r *big.Int, usk *UserSecretKey) (*SignCommit, error) {
-	hasher := mimc.NewMiMC(mimc.WithByteOrder(fr.BigEndian))
-	_, err := hasher.Write(m.Bytes())
+func ComputeSignCommit(m, bsn, nonce *big.Int, usk *UserSecretKey) (*SignCommit, error) {
+	commit1, err := mimcHash(bsn.Bytes(), usk.Number.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	commit2, err := mimcHash(m.Bytes(), nonce.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = hasher.Write(r.Bytes())
+	commit3, err := mimcHash(commit2, usk.Number.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = hasher.Write(usk.Number.Bytes())
-	if err != nil {
-		return nil, err
-	}
-
-	h := hasher.Sum(nil)
-
-	return &SignCommit{Buffer: h}, nil
+	return &SignCommit{Commit1: commit1, Commit2: commit2, Commit3: commit3}, nil
 }

@@ -18,18 +18,18 @@ func max() *big.Int {
 	return i
 }
 
-func Sign(m *big.Int, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
-	r, err := rand.Int(rand.Reader, max())
+func Sign(m, bsn *big.Int, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
+	nonce, err := rand.Int(rand.Reader, max())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	h, err := zkbanw.ComputeSignCommit(m, r, signer.UserSecretKey)
+	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, signer.UserSecretKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	w := zkbanc.NewSignWitness(m, r, h.Buffer, signer, gpk)
+	w := zkbanc.NewSignWitness(m, bsn, nonce, commit, signer, gpk)
 
 	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {

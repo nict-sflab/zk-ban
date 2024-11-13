@@ -15,22 +15,21 @@ import (
 )
 
 type SignCircuit struct {
-	UserPublicKey  frontend.Variable `gnark:"pk"`
-	Certificate    eddsa.Signature   `gnark:"cert"`
-	Nonce          frontend.Variable `gnark:"nonce"`
+	UserPublicKey frontend.Variable `gnark:"pk"`
+	Certificate   eddsa.Signature   `gnark:"cert"`
+	Nonce         frontend.Variable `gnark:"nonce"`
+
 	UserSecretKey  frontend.Variable `gnark:"sk"`
 	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
+	Basename       frontend.Variable `gnark:",public"`
 	Message        frontend.Variable `gnark:",public"`
-	Commit         frontend.Variable `gnark:",public"`
+	Commit1        frontend.Variable `gnark:",public"`
+	Commit2        frontend.Variable `gnark:",public"`
+	Commit3        frontend.Variable `gnark:",public"`
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
-	mimc1, err := mimc.NewMiMC(api)
-	if err != nil {
-		return err
-	}
-
-	mimc2, err := mimc.NewMiMC(api)
+	mimc0, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
 	}
@@ -40,25 +39,42 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	mimc1.Write(circuit.Message, circuit.Nonce, circuit.UserSecretKey)
-	h := mimc1.Sum()
-
-	err = eddsa.Verify(curve, circuit.Certificate, circuit.UserPublicKey, circuit.GroupPublicKey, &mimc2)
+	err = eddsa.Verify(curve, circuit.Certificate, circuit.UserPublicKey, circuit.GroupPublicKey, &mimc0)
 	if err != nil {
 		return err
 	}
 
-	api.AssertIsEqual(circuit.Commit, h)
+	commit1, err := mimcHash(api, circuit.Basename, circuit.UserSecretKey)
+	if err != nil {
+		return err
+	}
+
+	commit2, err := mimcHash(api, circuit.Message, circuit.Nonce)
+	if err != nil {
+		return err
+	}
+
+	commit3, err := mimcHash(api, commit2, circuit.UserSecretKey)
+	if err != nil {
+		return err
+	}
+
+	api.AssertIsEqual(circuit.Commit1, commit1)
+	api.AssertIsEqual(circuit.Commit2, commit2)
+	api.AssertIsEqual(circuit.Commit3, commit3)
 
 	return nil
 }
 
-func NewSignWitness(m, r *big.Int, proof []byte, signer *zkbanw.Signer, gpk signature.PublicKey) *SignCircuit {
+func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk signature.PublicKey) *SignCircuit {
 	assign := &SignCircuit{
-		Nonce:         r,
+		Nonce:         nonce,
 		UserSecretKey: signer.UserSecretKey.Number,
 		Message:       m,
-		Commit:        proof,
+		Commit1:       commit.Commit1,
+		Commit2:       commit.Commit2,
+		Commit3:       commit.Commit3,
+		Basename:      bsn,
 		UserPublicKey: signer.UserPublicKey.Buffer,
 	}
 
