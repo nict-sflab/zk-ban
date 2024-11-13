@@ -1,4 +1,4 @@
-package snark
+package circuit
 
 import (
 	"math/big"
