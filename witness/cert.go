@@ -1,15 +1,13 @@
 package witness
 
-import (
-	"github.com/consensys/gnark-crypto/hash"
-)
+import "github.com/akakou/zk-ban/snark"
 
 type Certificate struct {
 	Signature []byte
 }
 
 func (gsk *GroupSecretKey) IssueCertificate(upk *UserPublicKey) (*Certificate, error) {
-	hasher := hash.MIMC_BN254.New()
+	hasher := snark.HashAlg.New()
 	signature, err := gsk.Sign(upk.Buffer, hasher)
 	if err != nil {
 		return nil, err
