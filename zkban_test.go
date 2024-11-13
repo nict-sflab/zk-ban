@@ -5,11 +5,9 @@ import (
 	"testing"
 
 	zkbanc "github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
-	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
-	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/frontend/cs/r1cs"
 	"github.com/consensys/gnark/test"
 )
 
@@ -18,11 +16,7 @@ func TestAll(t *testing.T) {
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
 	assert.NoError(err)
 
-	joinReqCircuit := zkbanc.JoinRequestCircuit{}
-	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &joinReqCircuit)
-	assert.NoError(err)
-
-	pk, vk, err := groth16.Setup(ccs)
+	ccs, pk, vk, err := snark.InitSNARK(&zkbanc.JoinRequestCircuit{})
 	assert.NoError(err)
 
 	period := big.NewInt(2024)
@@ -42,17 +36,13 @@ func TestAll(t *testing.T) {
 		upk = _upk
 	})
 
-	signCircuit := zkbanc.ProofCircuit{}
-	ccs, err = frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &signCircuit)
+	ccs, pk, vk, err = snark.InitSNARK(&zkbanc.ProofCircuit{})
 	assert.NoError(err)
-
-	pk, vk, err = groth16.Setup(ccs)
-	assert.NoError(err)
-
-	m := big.NewInt(100)
 
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
+
+	m := big.NewInt(100)
 
 	t.Run("sign", func(t *testing.T) {
 		proof, pubWit, err := Sign(m, usk, upk, cert, gpk, pk, ccs)

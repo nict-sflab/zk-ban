@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	zkbanc "github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
@@ -31,7 +32,7 @@ func Sign(m *big.Int, usk *zkbanw.UserSecretKey, upk *zkbanw.UserPublicKey, cert
 
 	w := zkbanc.ProofWitness(m, r, usk.UserSecretKey, upk.UserPublicKey, h.Hash, cert.Signature, gpk)
 
-	proof, wit, _, err := proveSNARK(w, pk, ccs)
+	proof, wit, _, err := snark.ProveSNARK(w, pk, ccs)
 	if err != nil {
 		return nil, nil, err
 	}

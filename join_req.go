@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	zkbanc "github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
@@ -28,7 +29,7 @@ func JoinRequest(period *big.Int, pk groth16.ProvingKey, ccs constraint.Constrai
 
 	witness := zkbanc.JoinRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
 
-	proof, pubWit, _, err := proveSNARK(witness, pk, ccs)
+	proof, pubWit, _, err := snark.ProveSNARK(witness, pk, ccs)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

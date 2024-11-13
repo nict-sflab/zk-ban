@@ -1,4 +1,4 @@
-package zkban
+package snark
 
 import (
 	"github.com/consensys/gnark-crypto/ecc"
@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-func proveSNARK[T frontend.Circuit](w T, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, witness.Witness, error) {
+func ProveSNARK[T frontend.Circuit](w T, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, witness.Witness, error) {
 	witness, err := frontend.NewWitness(w, ecc.BN254.ScalarField())
 	if err != nil {
 		return nil, nil, nil, err
