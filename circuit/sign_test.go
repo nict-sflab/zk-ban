@@ -36,7 +36,7 @@ func TestSignCircuit(t *testing.T) {
 		Nonce:         r,
 		UserSecretKey: usk.Number,
 		Message:       m,
-		Hash:          proof.Buffer,
+		Commit:        proof.Buffer,
 		UserPublicKey: upk.Buffer,
 	}
 
