@@ -8,9 +8,9 @@ type Certificate struct {
 	Signature []byte
 }
 
-func (gsk *GroupSecretKey) IssueCertificate(pk *UserPublicKey) (*Certificate, error) {
+func (gsk *GroupSecretKey) IssueCertificate(upk *UserPublicKey) (*Certificate, error) {
 	hasher := hash.MIMC_BN254.New()
-	signature, err := gsk.Sign(pk.UserPublicKey, hasher)
+	signature, err := gsk.Sign(upk.Buffer, hasher)
 	if err != nil {
 		return nil, err
 	}

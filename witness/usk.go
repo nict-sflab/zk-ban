@@ -2,4 +2,4 @@ package zkban
 
 import "math/big"
 
-type UserSecretKey struct{ UserSecretKey *big.Int }
+type UserSecretKey struct{ Number *big.Int }

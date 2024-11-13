@@ -7,11 +7,17 @@ import (
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
 )
 
-type Proof struct {
-	Hash []byte
+type SignCommit struct {
+	Buffer []byte
 }
 
-func ProveWitness(m, r *big.Int, usk *UserSecretKey) (*Proof, error) {
+type Signer struct {
+	UserSecretKey *UserSecretKey
+	UserPublicKey *UserPublicKey
+	Certificate   *Certificate
+}
+
+func ComputeSignCommit(m, r *big.Int, usk *UserSecretKey) (*SignCommit, error) {
 	hasher := mimc.NewMiMC(mimc.WithByteOrder(fr.BigEndian))
 	_, err := hasher.Write(m.Bytes())
 	if err != nil {
@@ -23,12 +29,12 @@ func ProveWitness(m, r *big.Int, usk *UserSecretKey) (*Proof, error) {
 		return nil, err
 	}
 
-	_, err = hasher.Write(usk.UserSecretKey.Bytes())
+	_, err = hasher.Write(usk.Number.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
 	h := hasher.Sum(nil)
 
-	return &Proof{Hash: h}, nil
+	return &SignCommit{Buffer: h}, nil
 }

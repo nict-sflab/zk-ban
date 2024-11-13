@@ -9,19 +9,19 @@ import (
 	"github.com/consensys/gnark/test"
 )
 
-func TestJoin(t *testing.T) {
+func TestJoinReq(t *testing.T) {
 	assert := test.NewAssert(t)
 	var joinCercuit JoinRequestCircuit
 
-	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
+	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
 	period := big.NewInt(2024)
 
 	upk, err := usk.PublicKey(period)
 	assert.NoError(err)
 
 	assign := &JoinRequestCircuit{
-		UserSecretKey: usk.UserSecretKey,
-		UserPublicKey: upk.UserPublicKey,
+		UserSecretKey: usk.Number,
+		UserPublicKey: upk.Buffer,
 		Period:        period,
 	}
 

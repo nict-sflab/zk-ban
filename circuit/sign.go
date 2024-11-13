@@ -9,21 +9,22 @@ import (
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/signature/eddsa"
 
+	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/hash/mimc"
 )
 
-type ProofCircuit struct {
+type SignCircuit struct {
 	UserPublicKey  frontend.Variable `gnark:"pk"`
 	Certificate    eddsa.Signature   `gnark:"cert"`
 	Nonce          frontend.Variable `gnark:"nonce"`
 	UserSecretKey  frontend.Variable `gnark:"sk"`
 	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
 	Message        frontend.Variable `gnark:",public"`
-	Hash           frontend.Variable `gnark:",public"`
+	Commit         frontend.Variable `gnark:",public"`
 }
 
-func (circuit *ProofCircuit) Define(api frontend.API) error {
+func (circuit *SignCircuit) Define(api frontend.API) error {
 	mimc1, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
@@ -47,22 +48,22 @@ func (circuit *ProofCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	api.AssertIsEqual(circuit.Hash, h)
+	api.AssertIsEqual(circuit.Commit, h)
 
 	return nil
 }
 
-func ProofWitness(m, r, usk *big.Int, upk, proof, cert []byte, gpk signature.PublicKey) *ProofCircuit {
-	assign := &ProofCircuit{
+func NewSignWitness(m, r *big.Int, proof []byte, signer *zkbanw.Signer, gpk signature.PublicKey) *SignCircuit {
+	assign := &SignCircuit{
 		Nonce:         r,
-		UserSecretKey: usk,
+		UserSecretKey: signer.UserSecretKey.Number,
 		Message:       m,
-		Hash:          proof,
-		UserPublicKey: upk,
+		Commit:        proof,
+		UserPublicKey: signer.UserPublicKey.Buffer,
 	}
 
 	assign.GroupPublicKey.Assign(tw.BN254, gpk.Bytes())
-	assign.Certificate.Assign(tw.BN254, cert)
+	assign.Certificate.Assign(tw.BN254, signer.Certificate.Signature)
 
 	return assign
 }
