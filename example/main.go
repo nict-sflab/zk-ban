@@ -32,7 +32,8 @@ func main() {
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
 	r := big.NewInt(2)
-	m := big.NewInt(3)
+	bsn := big.NewInt(3)
+	m := big.NewInt(4)
 	period := big.NewInt(2024)
 
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
@@ -46,14 +47,17 @@ func main() {
 
 	t := time.Now()
 
-	commit, err := zkbanw.ComputeSignCommit(m, r, &usk)
+	commit, err := zkbanw.ComputeSignCommit(m, bsn, r, &usk)
 	panicIfErr(err)
 
 	assign := &zkbanc.SignCircuit{
 		Nonce:         r,
+		Basename:      bsn,
 		UserSecretKey: usk.Number,
 		Message:       m,
-		Commit:        commit.Buffer,
+		Commit1:       commit.Commit1,
+		Commit2:       commit.Commit2,
+		Commit3:       commit.Commit3,
 		UserPublicKey: upk.Buffer,
 	}
 

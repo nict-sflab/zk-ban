@@ -20,6 +20,7 @@ type TestParams struct {
 	usk       *zkbanw.UserSecretKey
 	m         *big.Int
 	period    *big.Int
+	bsn       *big.Int
 	cert      *zkbanw.Certificate
 }
 
@@ -53,6 +54,7 @@ func prepare(assert *test.Assert) TestParams {
 	assert.NoError(err)
 
 	m := big.NewInt(100)
+	bsn := big.NewInt(100)
 
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
@@ -65,6 +67,7 @@ func prepare(assert *test.Assert) TestParams {
 		joinSnark: joinSnark,
 		signSnark: signSnark,
 		m:         m,
+		bsn:       bsn,
 		period:    period,
 		cert:      cert,
 	}
@@ -84,7 +87,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("sign", func(t *testing.T) {
-		proof, pubWit, err := Sign(params.m, params.signer(), params.gpk, params.signSnark.Prover())
+		proof, pubWit, err := Sign(params.m, params.bsn, params.signer(), params.gpk, params.signSnark.Prover())
 		assert.NoError(err)
 
 		err = groth16.Verify(proof, params.signSnark.VerifyKey, pubWit)

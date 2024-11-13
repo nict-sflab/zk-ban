@@ -27,7 +27,7 @@ func TestSignCircuit(t *testing.T) {
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
-	proof, err := zkbanw.ComputeSignCommit(m, r, &usk)
+	commit, err := zkbanw.ComputeSignCommit(m, big.NewInt(1), r, &usk)
 	assert.NoError(err)
 
 	authCircuit := SignCircuit{}
@@ -36,7 +36,9 @@ func TestSignCircuit(t *testing.T) {
 		Nonce:         r,
 		UserSecretKey: usk.Number,
 		Message:       m,
-		Commit:        proof.Buffer,
+		Commit1:       commit.Commit1,
+		Commit2:       commit.Commit1,
+		Commit3:       commit.Commit1,
 		UserPublicKey: upk.Buffer,
 	}
 
