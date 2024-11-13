@@ -24,12 +24,12 @@ func Sign(m *big.Int, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover 
 		return nil, nil, err
 	}
 
-	h, err := zkbanw.ProveWitness(m, r, signer.UserSecretKey)
+	h, err := zkbanw.ComputeSignCommit(m, r, signer.UserSecretKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	w := zkbanc.ProofWitness(m, r, h.Hash, signer, gpk)
+	w := zkbanc.NewSignWitness(m, r, h.Buffer, signer, gpk)
 
 	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {

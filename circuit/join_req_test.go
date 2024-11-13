@@ -9,7 +9,7 @@ import (
 	"github.com/consensys/gnark/test"
 )
 
-func TestJoin(t *testing.T) {
+func TestJoinReq(t *testing.T) {
 	assert := test.NewAssert(t)
 	var joinCercuit JoinRequestCircuit
 

@@ -22,15 +22,15 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	authCircuit := zkbanc.ProofCircuit{}
-	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &authCircuit)
+	signCircuit := zkbanc.SignCircuit{}
+	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &signCircuit)
 	panicIfErr(err)
 
 	// groth16 zkSNARK: Setup
 	pk, vk, err := groth16.Setup(ccs)
 	panicIfErr(err)
 
-	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
+	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
 	r := big.NewInt(2)
 	m := big.NewInt(3)
 	period := big.NewInt(2024)
@@ -46,15 +46,15 @@ func main() {
 
 	t := time.Now()
 
-	proof, err := zkbanw.ProveWitness(m, r, &usk)
+	commit, err := zkbanw.ComputeSignCommit(m, r, &usk)
 	panicIfErr(err)
 
-	assign := &zkbanc.ProofCircuit{
+	assign := &zkbanc.SignCircuit{
 		Nonce:         r,
-		UserSecretKey: usk.UserSecretKey,
+		UserSecretKey: usk.Number,
 		Message:       m,
-		Hash:          proof.Hash,
-		UserPublicKey: upk.UserPublicKey,
+		Commit:        commit.Buffer,
+		UserPublicKey: upk.Buffer,
 	}
 
 	assign.GroupPublicKey.Assign(twistededwards.BN254, gpk.Bytes())

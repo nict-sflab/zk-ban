@@ -40,7 +40,7 @@ func prepare(assert *test.Assert) TestParams {
 	joinSnark, err := snark.InitSNARK(&zkbanc.JoinRequestCircuit{})
 	assert.NoError(err)
 
-	signSnark, err := snark.InitSNARK(&zkbanc.ProofCircuit{})
+	signSnark, err := snark.InitSNARK(&zkbanc.SignCircuit{})
 	assert.NoError(err)
 
 	period := big.NewInt(2024)

@@ -10,7 +10,7 @@ import (
 	"github.com/consensys/gnark/test"
 )
 
-func TestProofCircuit(t *testing.T) {
+func TestSignCircuit(t *testing.T) {
 	assert := test.NewAssert(t)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
@@ -27,16 +27,16 @@ func TestProofCircuit(t *testing.T) {
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
-	proof, err := zkbanw.ProveWitness(m, r, &usk)
+	proof, err := zkbanw.ComputeSignCommit(m, r, &usk)
 	assert.NoError(err)
 
-	authCircuit := ProofCircuit{}
+	authCircuit := SignCircuit{}
 
-	assign := &ProofCircuit{
+	assign := &SignCircuit{
 		Nonce:         r,
 		UserSecretKey: usk.Number,
 		Message:       m,
-		Hash:          proof.Hash,
+		Hash:          proof.Buffer,
 		UserPublicKey: upk.Buffer,
 	}
 
