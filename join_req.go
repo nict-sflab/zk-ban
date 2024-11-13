@@ -1,6 +1,7 @@
 package zkban
 
 import (
+	"crypto/rand"
 	"math/big"
 
 	zkbanc "github.com/akakou/zk-ban/circuit"
@@ -10,18 +11,27 @@ import (
 	"github.com/consensys/gnark/constraint"
 )
 
-func JoinRequest(period *big.Int, usk *zkbanw.UserSecretKey, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, error) {
+func JoinRequest(period *big.Int, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, *zkbanw.UserSecretKey, error) {
+	u, err := rand.Int(rand.Reader, max())
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	usk := zkbanw.UserSecretKey{
+		UserSecretKey: u,
+	}
+
 	upk, err := usk.PublicKey(period)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	witness := zkbanc.JoinRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
 
-	snark, pubWit, _, err := proveSNARK(witness, pk, ccs)
+	proof, pubWit, _, err := proveSNARK(witness, pk, ccs)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	return snark, pubWit, nil
+	return proof, pubWit, &usk, nil
 }

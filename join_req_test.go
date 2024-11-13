@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	zkbanc "github.com/akakou/zk-ban/circuit"
-	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
@@ -24,9 +23,8 @@ func TestJoinRequest(t *testing.T) {
 	pk, vk, err := groth16.Setup(ccs)
 	assert.NoError(err)
 
-	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
 	period := big.NewInt(2024)
-	proof, pubWit, err := JoinRequest(period, &usk, pk, ccs)
+	proof, pubWit, _, err := JoinRequest(period, pk, ccs)
 	assert.NoError(err)
 
 	err = groth16.Verify(proof, vk, pubWit)
