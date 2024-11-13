@@ -1,6 +1,8 @@
 package snark
 
 import (
+	"math/big"
+
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/hash/mimc"
 )
@@ -23,4 +25,14 @@ func (circuit *CertificateRequestCircuit) Define(api frontend.API) error {
 	api.AssertIsEqual(circuit.UserPublicKey, h)
 
 	return nil
+}
+
+func CertificateRequestWitness(usk *big.Int, upk []byte, period *big.Int) *CertificateRequestCircuit {
+	assign := &CertificateRequestCircuit{
+		UserSecretKey: usk,
+		UserPublicKey: upk,
+		Period:        period,
+	}
+
+	return assign
 }

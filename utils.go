@@ -3,20 +3,21 @@ package zkban
 import (
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/constraint"
 	"github.com/consensys/gnark/frontend"
 )
 
-func proveSNARK[T frontend.Circuit](w T, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, error) {
+func proveSNARK[T frontend.Circuit](w T, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, error) {
 	witness, err := frontend.NewWitness(w, ecc.BN254.ScalarField())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	proof, err := groth16.Prove(ccs, pk, witness)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return proof, nil
+	return proof, witness, nil
 }
