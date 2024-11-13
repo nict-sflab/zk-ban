@@ -13,10 +13,10 @@ import (
 	"github.com/consensys/gnark/test"
 )
 
-func TestCertReq(t *testing.T) {
+func TestJoinRequest(t *testing.T) {
 	assert := test.NewAssert(t)
 
-	joinReqCircuit := zkbanc.CertificateRequestCircuit{}
+	joinReqCircuit := zkbanc.JoinRequestCircuit{}
 	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &joinReqCircuit)
 
 	assert.NoError(err)
@@ -26,7 +26,7 @@ func TestCertReq(t *testing.T) {
 
 	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
 	period := big.NewInt(2024)
-	proof, pubWit, err := CertificateRequest(period, &usk, pk, ccs)
+	proof, pubWit, err := JoinRequest(period, &usk, pk, ccs)
 	assert.NoError(err)
 
 	err = groth16.Verify(proof, vk, pubWit)

@@ -10,13 +10,13 @@ import (
 	"github.com/consensys/gnark/constraint"
 )
 
-func CertificateRequest(period *big.Int, usk *zkbanw.UserSecretKey, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, error) {
+func JoinRequest(period *big.Int, usk *zkbanw.UserSecretKey, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, error) {
 	upk, err := usk.PublicKey(period)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	witness := zkbanc.CertificateRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
+	witness := zkbanc.JoinRequestWitness(usk.UserSecretKey, upk.UserPublicKey, period)
 
 	snark, pubWit, _, err := proveSNARK(witness, pk, ccs)
 	if err != nil {

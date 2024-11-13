@@ -18,7 +18,7 @@ func max() *big.Int {
 	return i
 }
 
-func Prove(m *big.Int, usk *zkbanw.UserSecretKey, upk *zkbanw.UserPublicKey, cert *zkbanw.Certificate, gpk *zkbanw.GroupPublicKey, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, error) {
+func Sign(m *big.Int, usk *zkbanw.UserSecretKey, upk *zkbanw.UserPublicKey, cert *zkbanw.Certificate, gpk *zkbanw.GroupPublicKey, pk groth16.ProvingKey, ccs constraint.ConstraintSystem) (groth16.Proof, witness.Witness, error) {
 	r, err := rand.Int(rand.Reader, max())
 	if err != nil {
 		return nil, nil, err
