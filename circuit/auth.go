@@ -1,9 +1,9 @@
 package circuit
 
 import (
+	"github.com/akakou/zk-ban/snark"
 	"github.com/consensys/gnark/std/signature/eddsa"
 
-	tw "github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/hash/mimc"
@@ -40,7 +40,7 @@ func certAuth(api frontend.API, upk frontend.Variable, cert eddsa.Signature, gpk
 		return err
 	}
 
-	curve, err := twistededwards.NewEdCurve(api, tw.BN254)
+	curve, err := twistededwards.NewEdCurve(api, snark.TwistededwardsCurve)
 	if err != nil {
 		return err
 	}

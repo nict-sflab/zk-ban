@@ -3,11 +3,11 @@ package circuit
 import (
 	"math/big"
 
-	tw "github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark-crypto/signature"
 
 	"github.com/consensys/gnark/std/signature/eddsa"
 
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
 )
@@ -75,8 +75,8 @@ func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *z
 		UserPublicKey: signer.UserPublicKey.Buffer,
 	}
 
-	assign.GroupPublicKey.Assign(tw.BN254, gpk.Bytes())
-	assign.Certificate.Assign(tw.BN254, signer.Certificate.Signature)
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
+	assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
 
 	return assign
 }

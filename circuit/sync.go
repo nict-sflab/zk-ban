@@ -1,8 +1,8 @@
 package circuit
 
 import (
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
-	tw "github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark-crypto/signature"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/signature/eddsa"
@@ -46,8 +46,8 @@ func SyncCircuitWitness(commit2, commit3 [RevocationListSize][]byte, signer *zkb
 		Period:        signer.Period,
 	}
 
-	assign.GroupPublicKey.Assign(tw.BN254, gpk.Bytes())
-	assign.Certificate.Assign(tw.BN254, signer.Certificate.Signature)
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
+	assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
 
 	for i := 0; i < RevocationListSize; i++ {
 		assign.Commit2[i] = commit2[i]

@@ -6,7 +6,6 @@ import (
 
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
-	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/test"
 )
 
@@ -45,8 +44,8 @@ func TestSignCircuit(t *testing.T) {
 		Period:        period,
 	}
 
-	assign.GroupPublicKey.Assign(twistededwards.BN254, gpk.Bytes())
-	assign.Certificate.Assign(twistededwards.BN254, cert.Signature)
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
+	assign.Certificate.Assign(snark.TwistededwardsCurve, cert.Signature)
 
 	assert.ProverSucceeded(&authCircuit, assign, test.WithCurves(snark.EcCurve))
 }
