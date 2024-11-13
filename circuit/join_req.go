@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/std/hash/mimc"
 )
 
 type JoinRequestCircuit struct {
@@ -14,20 +13,15 @@ type JoinRequestCircuit struct {
 }
 
 func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
-	mimc, err := mimc.NewMiMC(api)
+	err := pubKeyAuth(api, circuit.Period, circuit.UserSecretKey, circuit.UserPublicKey)
+
 	if err != nil {
 		return err
 	}
-
-	mimc.Write(circuit.Period, circuit.UserSecretKey)
-	h := mimc.Sum()
-
-	api.AssertIsEqual(circuit.UserPublicKey, h)
-
 	return nil
 }
 
-func JoinRequestWitness(usk *big.Int, upk []byte, period *big.Int) *JoinRequestCircuit {
+func JoinRequestWitness(period *big.Int, usk *big.Int, upk []byte) *JoinRequestCircuit {
 	assign := &JoinRequestCircuit{
 		UserSecretKey: usk,
 		UserPublicKey: upk,

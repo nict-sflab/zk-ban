@@ -14,6 +14,7 @@ type Signer struct {
 	UserSecretKey *UserSecretKey
 	UserPublicKey *UserPublicKey
 	Certificate   *Certificate
+	Period        *big.Int
 }
 
 func ComputeSignCommit(m, bsn, nonce *big.Int, usk *UserSecretKey) (*SignCommit, error) {
@@ -21,6 +22,7 @@ func ComputeSignCommit(m, bsn, nonce *big.Int, usk *UserSecretKey) (*SignCommit,
 	if err != nil {
 		return nil, err
 	}
+
 	commit2, err := mimcHash(m.Bytes(), nonce.Bytes())
 	if err != nil {
 		return nil, err
