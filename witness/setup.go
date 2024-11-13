@@ -1,4 +1,4 @@
-package zkban
+package witness
 
 import (
 	"crypto/rand"

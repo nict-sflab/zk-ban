@@ -1,4 +1,4 @@
-package zkban
+package witness
 
 import (
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
