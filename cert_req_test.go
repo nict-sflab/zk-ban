@@ -1,0 +1,34 @@
+package zkban
+
+import (
+	"math/big"
+	"testing"
+
+	zkbanc "github.com/akakou/zk-ban/circuit"
+	zkbanw "github.com/akakou/zk-ban/witness"
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/frontend"
+	"github.com/consensys/gnark/frontend/cs/r1cs"
+	"github.com/consensys/gnark/test"
+)
+
+func TestCertReq(t *testing.T) {
+	assert := test.NewAssert(t)
+
+	joinReqCircuit := zkbanc.CertificateRequestCircuit{}
+	ccs, err := frontend.Compile(ecc.BN254.ScalarField(), r1cs.NewBuilder, &joinReqCircuit)
+
+	assert.NoError(err)
+
+	pk, vk, err := groth16.Setup(ccs)
+	assert.NoError(err)
+
+	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
+	period := big.NewInt(2024)
+	proof, pubWit, err := CertificateRequest(period, &usk, pk, ccs)
+	assert.NoError(err)
+
+	err = groth16.Verify(proof, vk, pubWit)
+	assert.NoError(err)
+}
