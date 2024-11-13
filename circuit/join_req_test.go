@@ -11,7 +11,7 @@ import (
 
 func TestJoin(t *testing.T) {
 	assert := test.NewAssert(t)
-	var joinCercuit CertificateRequestCircuit
+	var joinCercuit JoinRequestCircuit
 
 	usk := zkbanw.UserSecretKey{UserSecretKey: big.NewInt(1)}
 	period := big.NewInt(2024)
@@ -19,7 +19,7 @@ func TestJoin(t *testing.T) {
 	upk, err := usk.PublicKey(period)
 	assert.NoError(err)
 
-	assign := &CertificateRequestCircuit{
+	assign := &JoinRequestCircuit{
 		UserSecretKey: usk.UserSecretKey,
 		UserPublicKey: upk.UserPublicKey,
 		Period:        period,
