@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-const RevocationListSize = 2
+const RevocationListSize = 1000
 
 type SyncCircuit struct {
 	UserSecretKey frontend.Variable `gnark:"sk"`
@@ -39,10 +39,10 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func SyncCircuitWitness(commit2, commit3 [][]byte, signer *zkbanw.Signer, gpk signature.PublicKey) *JoinRequestCircuit {
+func SyncCircuitWitness(commit2, commit3 [RevocationListSize][]byte, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
 	assign := &SyncCircuit{
-		UserSecretKey: signer.UserSecretKey,
-		UserPublicKey: signer.UserPublicKey,
+		UserSecretKey: signer.UserSecretKey.Number,
+		UserPublicKey: signer.UserPublicKey.Buffer,
 		Period:        signer.Period,
 	}
 
@@ -54,5 +54,5 @@ func SyncCircuitWitness(commit2, commit3 [][]byte, signer *zkbanw.Signer, gpk si
 		assign.Commit3[i] = commit3[i]
 	}
 
-	return nil
+	return assign
 }
