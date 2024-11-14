@@ -3,17 +3,16 @@ package witness
 import (
 	"math/big"
 
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
+	"github.com/akakou/zk-ban/snark"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 )
 
 type hashT = func(data ...*big.Int) ([]byte, error)
 
-var hash = poseidonHash
+var hash = mimcHash
 
 func mimcHash(data ...*big.Int) (*big.Int, error) {
-	hasher := mimc.NewMiMC(mimc.WithByteOrder(fr.BigEndian))
+	hasher := snark.NewMIMC(snark.MimcWithByteOrder(snark.MimcFrBigEndian))
 
 	for _, d := range data {
 		_, err := hasher.Write(d.Bytes())

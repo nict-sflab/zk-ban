@@ -10,7 +10,7 @@ import (
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-const RevocationListSize = 1000
+const RevocationListSize = 100
 
 type SyncCircuit struct {
 	UserSecretKey frontend.Variable `gnark:"sk"`
