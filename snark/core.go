@@ -2,6 +2,8 @@ package snark
 
 import (
 	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark-crypto/hash"
 	"github.com/consensys/gnark/backend/groth16"
@@ -11,6 +13,10 @@ import (
 var EcCurve = ecc.BN254
 var TwistededwardsCurve = twistededwards.BN254
 var HashAlg = hash.MIMC_BN254
+
+var NewMIMC = mimc.NewMiMC
+var MimcWithByteOrder = mimc.WithByteOrder
+var MimcFrBigEndian = fr.BigEndian
 
 type SnarkParams struct {
 	ConstraintSystem constraint.ConstraintSystem

@@ -24,7 +24,7 @@ func auth(api frontend.API, period, usk, upk frontend.Variable, cert eddsa.Signa
 }
 
 func pubKeyAuth(api frontend.API, period, usk, upk frontend.Variable) error {
-	upk_dash, err := mimcHash(api, period, usk)
+	upk_dash, err := hash(api, period, usk)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func pubKeyAuth(api frontend.API, period, usk, upk frontend.Variable) error {
 }
 
 func certAuth(api frontend.API, upk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
-	mimc0, err := mimc.NewMiMC(api)
+	mimc, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func certAuth(api frontend.API, upk frontend.Variable, cert eddsa.Signature, gpk
 		return err
 	}
 
-	err = eddsa.Verify(curve, cert, upk, gpk, &mimc0)
+	err = eddsa.Verify(curve, cert, upk, gpk, &mimc)
 	if err != nil {
 		return err
 	}

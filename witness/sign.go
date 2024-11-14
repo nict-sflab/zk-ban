@@ -5,9 +5,9 @@ import (
 )
 
 type SignCommit struct {
-	Commit1 []byte
-	Commit2 []byte
-	Commit3 []byte
+	Commit1 *big.Int
+	Commit2 *big.Int
+	Commit3 *big.Int
 }
 
 type Signer struct {
@@ -18,17 +18,17 @@ type Signer struct {
 }
 
 func ComputeSignCommit(m, bsn, nonce *big.Int, usk *UserSecretKey) (*SignCommit, error) {
-	commit1, err := mimcHash(bsn.Bytes(), usk.Number.Bytes())
+	commit1, err := hash(bsn, usk.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := mimcHash(m.Bytes(), nonce.Bytes())
+	commit2, err := hash(m, nonce)
 	if err != nil {
 		return nil, err
 	}
 
-	commit3, err := mimcHash(commit2, usk.Number.Bytes())
+	commit3, err := hash(commit2, usk.Number)
 	if err != nil {
 		return nil, err
 	}

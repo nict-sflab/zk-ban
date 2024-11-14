@@ -21,7 +21,7 @@ func TestJoinReq(t *testing.T) {
 
 	assign := &JoinRequestCircuit{
 		UserSecretKey: usk.Number,
-		UserPublicKey: upk.Buffer,
+		UserPublicKey: upk.Number,
 		Period:        period,
 	}
 
