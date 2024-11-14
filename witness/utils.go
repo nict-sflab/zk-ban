@@ -9,7 +9,7 @@ import (
 
 type hashT = func(data ...*big.Int) ([]byte, error)
 
-var hash = mimcHash
+var hash = poseidonHash
 
 func mimcHash(data ...*big.Int) (*big.Int, error) {
 	hasher := snark.NewMIMC(snark.MimcWithByteOrder(snark.MimcFrBigEndian))
