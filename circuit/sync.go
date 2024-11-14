@@ -1,6 +1,8 @@
 package circuit
 
 import (
+	"math/big"
+
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/signature"
@@ -39,10 +41,10 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func SyncCircuitWitness(commit2, commit3 [RevocationListSize][]byte, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
+func SyncCircuitWitness(commit2, commit3 [RevocationListSize]*big.Int, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
 	assign := &SyncCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
-		UserPublicKey: signer.UserPublicKey.Buffer,
+		UserPublicKey: signer.UserPublicKey.Number,
 		Period:        signer.Period,
 	}
 

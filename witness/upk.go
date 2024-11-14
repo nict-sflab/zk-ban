@@ -2,29 +2,18 @@ package witness
 
 import (
 	"math/big"
-
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
 )
 
 type UserPublicKey struct {
-	Buffer []byte
+	Number *big.Int
 }
 
 func (usk *UserSecretKey) PublicKey(period *big.Int) (*UserPublicKey, error) {
-	hasher := mimc.NewMiMC(mimc.WithByteOrder(fr.BigEndian))
+	hash, err := hash(period, usk.Number)
 
-	_, err := hasher.Write(period.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = hasher.Write(usk.Number.Bytes())
-	if err != nil {
-		return nil, err
-	}
-
-	pk := hasher.Sum(nil)
-
-	return &UserPublicKey{Buffer: pk}, nil
+	return &UserPublicKey{Number: hash}, nil
 }

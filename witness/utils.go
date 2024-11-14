@@ -1,37 +1,43 @@
 package witness
 
 import (
+	"math/big"
+
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 )
 
-type hashT = func(data ...[]byte) ([]byte, error)
+type hashT = func(data ...*big.Int) ([]byte, error)
 
-var hash = mimcHash
+var hash = poseidonHash
 
-func mimcHash(data ...[]byte) ([]byte, error) {
+func mimcHash(data ...*big.Int) (*big.Int, error) {
 	hasher := mimc.NewMiMC(mimc.WithByteOrder(fr.BigEndian))
 
 	for _, d := range data {
-		_, err := hasher.Write(d)
+		_, err := hasher.Write(d.Bytes())
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return hasher.Sum(nil), nil
+	h := hasher.Sum(nil)
+
+	i := big.NewInt(0)
+	i.SetBytes(h)
+
+	return i, nil
 }
 
-func poseidonHash(data ...[]byte) ([]byte, error) {
-	buf := []byte{}
+func poseidonHash(data ...*big.Int) (*big.Int, error) {
+	// fmt.Print("witness:", data, "\n")
+	hash, err := poseidon.Hash(data)
 
-	for _, b := range data {
-		buf = append(buf, b...)
-	}
-	h, err := poseidon.HashBytes(buf)
 	if err != nil {
 		return nil, err
 	}
-	return h.Bytes(), nil
+
+	return hash, nil
+
 }

@@ -72,7 +72,7 @@ func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *z
 		Commit3:       commit.Commit3,
 		Basename:      bsn,
 		Period:        signer.Period,
-		UserPublicKey: signer.UserPublicKey.Buffer,
+		UserPublicKey: signer.UserPublicKey.Number,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())

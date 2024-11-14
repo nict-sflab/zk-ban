@@ -47,7 +47,7 @@ func main() {
 	panicIfErr(err)
 
 	signAssign := &zkbanc.SignCircuit{
-		UserPublicKey: upk.Buffer,
+		UserPublicKey: upk.Number,
 		Nonce:         nonce,
 		UserSecretKey: usk.Number,
 		Basename:      bsn,
@@ -78,8 +78,8 @@ func main() {
 	fmt.Printf("Sign Verify: %vms\n", time.Since(t))
 	panicIfErr(err)
 
-	commit2 := [zkbanc.RevocationListSize][]byte{}
-	commit3 := [zkbanc.RevocationListSize][]byte{}
+	commit2 := [zkbanc.RevocationListSize]*big.Int{}
+	commit3 := [zkbanc.RevocationListSize]*big.Int{}
 
 	for i := 0; i < zkbanc.RevocationListSize; i++ {
 		commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
