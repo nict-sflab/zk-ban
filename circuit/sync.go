@@ -28,7 +28,7 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	}
 
 	for i := 0; i < RevocationListSize; i++ {
-		commit3, err := mimcHash(api, circuit.Commit2[i], circuit.UserSecretKey)
+		commit3, err := hash(api, circuit.Commit2[i], circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}

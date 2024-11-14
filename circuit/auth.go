@@ -24,7 +24,7 @@ func auth(api frontend.API, period, usk, upk frontend.Variable, cert eddsa.Signa
 }
 
 func pubKeyAuth(api frontend.API, period, usk, upk frontend.Variable) error {
-	upk_dash, err := mimcHash(api, period, usk)
+	upk_dash, err := hash(api, period, usk)
 	if err != nil {
 		return err
 	}

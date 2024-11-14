@@ -18,17 +18,17 @@ type Signer struct {
 }
 
 func ComputeSignCommit(m, bsn, nonce *big.Int, usk *UserSecretKey) (*SignCommit, error) {
-	commit1, err := mimcHash(bsn.Bytes(), usk.Number.Bytes())
+	commit1, err := hash(bsn.Bytes(), usk.Number.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := mimcHash(m.Bytes(), nonce.Bytes())
+	commit2, err := hash(m.Bytes(), nonce.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	commit3, err := mimcHash(commit2, usk.Number.Bytes())
+	commit3, err := hash(commit2, usk.Number.Bytes())
 	if err != nil {
 		return nil, err
 	}

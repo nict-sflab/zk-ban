@@ -40,17 +40,17 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	commit1, err := mimcHash(api, circuit.Basename, circuit.UserSecretKey)
+	commit1, err := hash(api, circuit.Basename, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
-	commit2, err := mimcHash(api, circuit.Message, circuit.Nonce)
+	commit2, err := hash(api, circuit.Message, circuit.Nonce)
 	if err != nil {
 		return err
 	}
 
-	commit3, err := mimcHash(api, commit2, circuit.UserSecretKey)
+	commit3, err := hash(api, commit2, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
