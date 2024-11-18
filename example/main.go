@@ -31,6 +31,7 @@ func main() {
 	bsn := big.NewInt(3)
 	m := big.NewInt(4)
 	period := big.NewInt(2024)
+	dummy_usk := zkbanw.UserSecretKey{Number: big.NewInt(5)}
 
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
 	panicIfErr(err)
@@ -44,6 +45,9 @@ func main() {
 	t := time.Now()
 
 	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
+	panicIfErr(err)
+
+	dummy_commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &dummy_usk)
 	panicIfErr(err)
 
 	signAssign := &zkbanc.SignCircuit{
@@ -82,11 +86,8 @@ func main() {
 	commit3 := [zkbanc.RevocationListSize]*big.Int{}
 
 	for i := 0; i < zkbanc.RevocationListSize; i++ {
-		commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
-		panicIfErr(err)
-
-		commit2[i] = commit.Commit2
-		commit3[i] = commit.Commit3
+		commit2[i] = dummy_commit.Commit2
+		commit3[i] = dummy_commit.Commit3
 	}
 
 	t = time.Now()
