@@ -8,8 +8,15 @@ import (
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/test"
 )
+
+func panicIfErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
 
 type TestParams struct {
 	gpk       *zkbanw.GroupPublicKey
@@ -35,15 +42,15 @@ func (params *TestParams) signer() *zkbanw.Signer {
 	return &signer
 }
 
-func prepare(assert *test.Assert) TestParams {
+func prepare() TestParams {
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
-	assert.NoError(err)
+	panicIfErr(err)
 
 	joinSnark, err := snark.InitSNARK(&zkbanc.JoinRequestCircuit{})
-	assert.NoError(err)
+	panicIfErr(err)
 
 	signSnark, err := snark.InitSNARK(&zkbanc.SignCircuit{})
-	assert.NoError(err)
+	panicIfErr(err)
 
 	period := big.NewInt(2024)
 
@@ -52,13 +59,13 @@ func prepare(assert *test.Assert) TestParams {
 	}
 
 	upk, err := usk.PublicKey(period)
-	assert.NoError(err)
+	panicIfErr(err)
 
 	m := big.NewInt(100)
 	bsn := big.NewInt(100)
 
 	cert, err := gsk.IssueCertificate(upk)
-	assert.NoError(err)
+	panicIfErr(err)
 
 	return TestParams{
 		gpk:       gpk,
@@ -76,7 +83,7 @@ func prepare(assert *test.Assert) TestParams {
 
 func TestAll(t *testing.T) {
 	assert := test.NewAssert(t)
-	params := prepare(assert)
+	params := prepare()
 
 	t.Run("join req", func(t *testing.T) {
 		var proof groth16.Proof
@@ -93,5 +100,50 @@ func TestAll(t *testing.T) {
 
 		err = groth16.Verify(proof, params.signSnark.VerifyKey, pubWit)
 		assert.NoError(err)
+	})
+}
+
+func BenchmarkAll(t *testing.B) {
+	// assert := test.NewAssert(t.(*testing.T))
+	params := prepare()
+
+	var proof groth16.Proof
+	var pubWit witness.Witness
+	var err error
+
+	t.Run("join req", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			proof, pubWit, _, _, err = JoinRequest(params.period, params.joinSnark.Prover())
+			panicIfErr(err)
+		}
+	})
+
+	t.Run("verify join req", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			err = groth16.Verify(proof, params.joinSnark.VerifyKey, pubWit)
+			panicIfErr(err)
+		}
+	})
+
+	t.Run("sign", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			proof, pubWit, err = Sign(params.m, params.bsn, params.signer(), params.gpk, params.signSnark.Prover())
+			panicIfErr(err)
+		}
+	})
+
+	t.Run("verify", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			err = groth16.Verify(proof, params.signSnark.VerifyKey, pubWit)
+			panicIfErr(err)
+		}
 	})
 }
