@@ -82,15 +82,12 @@ func main() {
 	fmt.Printf("Sign Verify: %vms\n", time.Since(t))
 	panicIfErr(err)
 
-	commit2 := [zkbanc.RevocationListSize]*big.Int{}
+	commit2 := dummy_commit.Commit2
 	commit3 := [zkbanc.RevocationListSize]*big.Int{}
 
 	for i := 0; i < zkbanc.RevocationListSize; i++ {
-		commit2[i] = dummy_commit.Commit2
 		commit3[i] = dummy_commit.Commit3
 	}
-
-	t = time.Now()
 
 	syncAssign := zkbanc.SyncCircuitWitness(commit2, commit3, &zkbanw.Signer{
 		UserSecretKey: &usk,
@@ -105,13 +102,14 @@ func main() {
 	syncWitPub, err := syncWit.Public()
 	panicIfErr(err)
 
+	t = time.Now()
 	syncProof, err := groth16.Prove(syncParams.ConstraintSystem, syncParams.ProveKey, syncWit)
 	panicIfErr(err)
-	fmt.Printf("Sync Prove: %vms\n", time.Since(t))
+	fmt.Printf("Sync Prove: %v\n", time.Since(t))
 
 	t = time.Now()
 	err = groth16.Verify(syncProof, syncParams.VerifyKey, syncWitPub)
-	fmt.Printf("Sync Verify: %vms\n", time.Since(t))
+	fmt.Printf("Sync Verify: %v\n", time.Since(t))
 	panicIfErr(err)
 	print("ok")
 }
