@@ -104,7 +104,6 @@ func TestAll(t *testing.T) {
 }
 
 func BenchmarkAll(t *testing.B) {
-	// assert := test.NewAssert(t.(*testing.T))
 	params := prepare()
 
 	var proof groth16.Proof
