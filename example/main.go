@@ -89,7 +89,7 @@ func main() {
 		commit3[i] = dummy_commit.Commit3
 	}
 
-	syncAssign := zkbanc.SyncCircuitWitness(commit2, commit3, &zkbanw.Signer{
+	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, commit3, &zkbanw.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
 		Certificate:   cert,

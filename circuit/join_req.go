@@ -21,7 +21,7 @@ func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func JoinRequestWitness(period, usk, upk *big.Int) *JoinRequestCircuit {
+func NewJoinRequestWitness(period, usk, upk *big.Int) *JoinRequestCircuit {
 	assign := &JoinRequestCircuit{
 		UserSecretKey: usk,
 		UserPublicKey: upk,

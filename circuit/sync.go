@@ -41,7 +41,7 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func SyncCircuitWitness(commit2 *big.Int, commit3 [RevocationListSize]*big.Int, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
+func NewSyncCircuitWitness(commit2 *big.Int, commit3 [RevocationListSize]*big.Int, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
 	assign := &SyncCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		UserPublicKey: signer.UserPublicKey.Number,
