@@ -28,21 +28,20 @@ func TestSync(t *testing.T) {
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
+	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
+	if err != nil {
+		assert.NoError(err)
+	}
+
 	assign := &SyncCircuit{
 		UserSecretKey: usk.Number,
 		UserPublicKey: upk.Number,
 		Period:        period,
-		Commit2:       [RevocationListSize]frontend.Variable{},
+		Commit2:       commit.Commit2,
 		Commit3:       [RevocationListSize]frontend.Variable{},
 	}
 
 	for i := 0; i < RevocationListSize; i++ {
-		commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
-		if err != nil {
-			assert.NoError(err)
-		}
-
-		assign.Commit2[i] = commit.Commit2
 		assign.Commit3[i] = commit.Commit3
 	}
 
