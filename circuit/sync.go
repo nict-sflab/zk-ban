@@ -17,10 +17,10 @@ type SyncCircuit struct {
 	UserPublicKey frontend.Variable `gnark:"pk"`
 	Certificate   eddsa.Signature   `gnark:"cert"`
 	Period        frontend.Variable `gnark:",public"`
+	Basename      frontend.Variable `gnark:",public"`
 
 	GroupPublicKey eddsa.PublicKey                       `gnark:",public"`
-	Commit2        frontend.Variable                     `gnark:",public"`
-	Commit3        [RevocationListSize]frontend.Variable `gnark:",public"`
+	Commit         [RevocationListSize]frontend.Variable `gnark:",public"`
 }
 
 func (circuit *SyncCircuit) Define(api frontend.API) error {
@@ -29,31 +29,31 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	commit3, err := hash(api, circuit.Commit2, circuit.UserSecretKey)
+	commit3, err := hash(api, circuit.Period, circuit.Basename)
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < RevocationListSize; i++ {
-		api.AssertIsDifferent(commit3, circuit.Commit3[i])
+		api.AssertIsDifferent(commit3, circuit.Commit[i])
 	}
 
 	return nil
 }
 
-func NewSyncCircuitWitness(commit2 *big.Int, commit3 [RevocationListSize]*big.Int, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
+func NewSyncCircuitWitness(commit [RevocationListSize]*big.Int, bsn *big.Int, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
 	assign := &SyncCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		UserPublicKey: signer.UserPublicKey.Number,
 		Period:        signer.Period,
-		Commit2:       commit2,
+		Basename:      bsn,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
 
 	for i := 0; i < RevocationListSize; i++ {
-		assign.Commit3[i] = commit3[i]
+		assign.Commit[i] = commit[i]
 	}
 
 	return assign

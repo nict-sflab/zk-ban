@@ -40,7 +40,6 @@ func TestSignCircuit(t *testing.T) {
 		Message:       m,
 		Commit1:       commit.Commit1,
 		Commit2:       commit.Commit2,
-		Commit3:       commit.Commit3,
 		Period:        period,
 	}
 
