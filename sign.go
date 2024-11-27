@@ -24,7 +24,7 @@ func Sign(m, bsn *big.Int, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, pr
 		return nil, nil, err
 	}
 
-	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, signer.UserSecretKey)
+	commit, err := zkbanw.ComputeSignCommit(m, bsn, signer.Period, signer.UserSecretKey)
 	if err != nil {
 		return nil, nil, err
 	}

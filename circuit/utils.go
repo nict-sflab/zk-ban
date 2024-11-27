@@ -26,7 +26,6 @@ func mimcHash(api frontend.API, data ...frontend.Variable) (frontend.Variable, e
 }
 
 func poseidonHash(api frontend.API, data ...frontend.Variable) (frontend.Variable, error) {
-	// fmt.Print("circuit:", data, "\n")
 	commit := poseidon.Hash(api, data...)
 	return commit, nil
 }

@@ -30,7 +30,6 @@ func mimcHash(data ...*big.Int) (*big.Int, error) {
 }
 
 func poseidonHash(data ...*big.Int) (*big.Int, error) {
-	// fmt.Print("witness:", data, "\n")
 	hash, err := poseidon.Hash(data)
 
 	if err != nil {

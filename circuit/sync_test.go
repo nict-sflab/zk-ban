@@ -37,12 +37,12 @@ func TestSync(t *testing.T) {
 		UserSecretKey: usk.Number,
 		UserPublicKey: upk.Number,
 		Period:        period,
-		Commit2:       commit.Commit2,
-		Commit3:       [RevocationListSize]frontend.Variable{},
+		Basename:      bsn,
+		Commit:        [RevocationListSize]frontend.Variable{},
 	}
 
 	for i := 0; i < RevocationListSize; i++ {
-		assign.Commit3[i] = commit.Commit3
+		assign.Commit[i] = commit.Commit2
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())

@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"time"
 
+	zkban "github.com/akakou/zk-ban"
 	zkbanc "github.com/akakou/zk-ban/circuit"
 	snark "github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
@@ -27,11 +28,9 @@ func main() {
 	panicIfErr(err)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
-	nonce := big.NewInt(2)
 	bsn := big.NewInt(3)
 	m := big.NewInt(4)
 	period := big.NewInt(2024)
-	dummy_usk := zkbanw.UserSecretKey{Number: big.NewInt(5)}
 
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
 	panicIfErr(err)
@@ -44,52 +43,32 @@ func main() {
 
 	t := time.Now()
 
-	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
-	panicIfErr(err)
-
-	dummy_commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &dummy_usk)
-	panicIfErr(err)
-
-	signAssign := &zkbanc.SignCircuit{
-		UserPublicKey: upk.Number,
-		Nonce:         nonce,
-		UserSecretKey: usk.Number,
-		Basename:      bsn,
-		Message:       m,
-		Commit1:       commit.Commit1,
-		Commit2:       commit.Commit2,
-		Commit3:       commit.Commit3,
+	signer := &zkbanw.Signer{
+		UserSecretKey: &usk,
+		UserPublicKey: upk,
+		Certificate:   cert,
 		Period:        period,
 	}
 
-	signAssign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	signAssign.Certificate.Assign(snark.TwistededwardsCurve, cert.Signature)
-
-	// witness definition
-	signWit, err := frontend.NewWitness(signAssign, snark.EcCurve.ScalarField())
+	signProof, witness, err := zkban.Sign(m, bsn, signer, gpk, signParams.Prover())
 	panicIfErr(err)
 
-	signWitPub, err := signWit.Public()
-	panicIfErr(err)
-
-	// groth16: Prove & Verify
-	zkproof, err := groth16.Prove(signParams.ConstraintSystem, signParams.ProveKey, signWit)
+	signWitPub, err := witness.Public()
 	panicIfErr(err)
 	fmt.Printf("Sign Prove: %vms\n", time.Since(t))
 
 	t = time.Now()
-	err = groth16.Verify(zkproof, signParams.VerifyKey, signWitPub)
+	err = groth16.Verify(signProof, signParams.VerifyKey, signWitPub)
 	fmt.Printf("Sign Verify: %vms\n", time.Since(t))
 	panicIfErr(err)
 
-	commit2 := dummy_commit.Commit2
-	commit3 := [zkbanc.RevocationListSize]*big.Int{}
+	commit2 := [zkbanc.RevocationListSize]*big.Int{}
 
 	for i := 0; i < zkbanc.RevocationListSize; i++ {
-		commit3[i] = dummy_commit.Commit3
+		commit2[i] = big.NewInt(1000000)
 	}
 
-	syncAssign := zkbanc.SyncCircuitWitness(commit2, commit3, &zkbanw.Signer{
+	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, bsn, &zkbanw.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
 		Certificate:   cert,
