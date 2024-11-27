@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"time"
 
-	zkban "github.com/akakou/zk-ban"
 	zkbanc "github.com/akakou/zk-ban/circuit"
 	snark "github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
@@ -21,58 +20,65 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	signParams, err := snark.InitSNARK(&zkbanc.SignCircuit{})
-	panicIfErr(err)
+	// signParams, err := snark.InitSNARK(&zkbanc.SignCircuit{})
+	// panicIfErr(err)
 
 	syncParams, err := snark.InitSNARK(&zkbanc.SyncCircuit{})
 	panicIfErr(err)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
 	bsn := big.NewInt(3)
-	m := big.NewInt(4)
-	period := big.NewInt(2024)
+	// m := big.NewInt(4)
+	period := [zkbanc.PeriodSize]*big.Int{}
+	for i := 0; i < zkbanc.PeriodSize; i++ {
+		period[i] = big.NewInt(int64(i + 1))
+	}
+
+	p := big.NewInt(int64(10))
 
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
 	panicIfErr(err)
 
-	upk, err := usk.PublicKey(period)
+	upk, err := usk.PublicKey(p)
 	panicIfErr(err)
 
 	cert, err := gsk.IssueCertificate(upk)
 	panicIfErr(err)
 
-	t := time.Now()
+	// t := time.Now()
 
-	signer := &zkbanw.Signer{
+	// signer := &zkbanw.Signer{
+	// 	UserSecretKey: &usk,
+	// 	UserPublicKey: upk,
+	// 	Certificate:   cert,
+	// 	Period:        p,
+	// }
+
+	// signProof, witness, err := zkban.Sign(m, bsn, signer, gpk, signParams.Prover())
+	// panicIfErr(err)
+
+	// signWitPub, err := witness.Public()
+	// panicIfErr(err)
+	// fmt.Printf("Sign Prove: %vms\n", time.Since(t))
+
+	// t = time.Now()
+	// err = groth16.Verify(signProof, signParams.VerifyKey, signWitPub)
+	// fmt.Printf("Sign Verify: %vms\n", time.Since(t))
+	// panicIfErr(err)
+
+	commit2 := [zkbanc.PeriodSize][zkbanc.RevocationListSize]*big.Int{}
+
+	for i := 0; i < zkbanc.PeriodSize; i++ {
+		for j := 0; j < zkbanc.RevocationListSize; j++ {
+			commit2[i][j] = big.NewInt(1000000)
+		}
+	}
+
+	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, bsn, period, &zkbanw.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
 		Certificate:   cert,
-		Period:        period,
-	}
-
-	signProof, witness, err := zkban.Sign(m, bsn, signer, gpk, signParams.Prover())
-	panicIfErr(err)
-
-	signWitPub, err := witness.Public()
-	panicIfErr(err)
-	fmt.Printf("Sign Prove: %vms\n", time.Since(t))
-
-	t = time.Now()
-	err = groth16.Verify(signProof, signParams.VerifyKey, signWitPub)
-	fmt.Printf("Sign Verify: %vms\n", time.Since(t))
-	panicIfErr(err)
-
-	commit2 := [zkbanc.RevocationListSize]*big.Int{}
-
-	for i := 0; i < zkbanc.RevocationListSize; i++ {
-		commit2[i] = big.NewInt(1000000)
-	}
-
-	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, bsn, &zkbanw.Signer{
-		UserSecretKey: &usk,
-		UserPublicKey: upk,
-		Certificate:   cert,
-		Period:        period,
+		// Period:        period[0],
 	}, gpk)
 
 	syncWit, err := frontend.NewWitness(syncAssign, snark.EcCurve.ScalarField())
@@ -81,7 +87,7 @@ func main() {
 	syncWitPub, err := syncWit.Public()
 	panicIfErr(err)
 
-	t = time.Now()
+	t := time.Now()
 	syncProof, err := groth16.Prove(syncParams.ConstraintSystem, syncParams.ProveKey, syncWit)
 	panicIfErr(err)
 	fmt.Printf("Sync Prove: %v\n", time.Since(t))

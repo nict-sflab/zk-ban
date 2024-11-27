@@ -64,7 +64,7 @@ func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *z
 		Commit1:       commit.Commit1,
 		Commit2:       commit.Commit2,
 		Basename:      bsn,
-		Period:        signer.Period,
+		// Period:        signer.Period,
 		UserPublicKey: signer.UserPublicKey.Number,
 	}
 

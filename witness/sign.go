@@ -13,7 +13,7 @@ type Signer struct {
 	UserSecretKey *UserSecretKey
 	UserPublicKey *UserPublicKey
 	Certificate   *Certificate
-	Period        *big.Int
+	// Period        *big.Int
 }
 
 func ComputeSignCommit(m, bsn, period *big.Int, usk *UserSecretKey) (*SignCommit, error) {
