@@ -29,7 +29,7 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	commit3, err := hash(api, circuit.Period, circuit.Basename)
+	commit3, err := hash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
