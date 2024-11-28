@@ -13,7 +13,6 @@ import (
 )
 
 type SignCircuit struct {
-	UserPublicKey frontend.Variable `gnark:"pk"`
 	Certificate   eddsa.Signature   `gnark:"cert"`
 	Nonce         frontend.Variable `gnark:"nonce"`
 
@@ -31,7 +30,6 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		api,
 		circuit.Period,
 		circuit.UserSecretKey,
-		circuit.UserPublicKey,
 		circuit.Certificate,
 		circuit.GroupPublicKey)
 
@@ -65,7 +63,6 @@ func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *z
 		Commit2:       commit.Commit2,
 		Basename:      bsn,
 		Period:        signer.Period,
-		UserPublicKey: signer.UserPublicKey.Number,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())

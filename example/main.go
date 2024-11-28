@@ -45,7 +45,6 @@ func main() {
 
 	signer := &zkbanw.Signer{
 		UserSecretKey: &usk,
-		UserPublicKey: upk,
 		Certificate:   cert,
 		Period:        period,
 	}
@@ -70,7 +69,6 @@ func main() {
 
 	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, bsn, &zkbanw.Signer{
 		UserSecretKey: &usk,
-		UserPublicKey: upk,
 		Certificate:   cert,
 		Period:        period,
 	}, gpk)

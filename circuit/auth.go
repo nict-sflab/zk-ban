@@ -9,8 +9,13 @@ import (
 	"github.com/consensys/gnark/std/hash/mimc"
 )
 
-func auth(api frontend.API, period, usk, upk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
-	err := pubKeyAuth(api, period, usk, upk)
+func auth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
+	// err := pubKeyAuth(api, period, usk, upk)
+	// if err != nil {
+	// 	return err
+	// }
+
+	upk, err := hash(api, period, usk)
 	if err != nil {
 		return err
 	}
