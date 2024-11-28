@@ -10,8 +10,8 @@ import (
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-const RevocationListSize = 10000
-const PeriodSize = 100
+const RevocationListSize = 3000
+const PeriodSize = 20
 
 type SyncCircuit struct {
 	UserSecretKey frontend.Variable             `gnark:"sk"`
@@ -29,19 +29,15 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	// 	return err
 	// }
 
-	for i := 1; i < PeriodSize; i++ {
+	for i := 0; i < PeriodSize; i++ {
 		commit3, err := hash(api, circuit.Period[i], circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
 
-		api.AssertIsDifferent(commit3, circuit.Commit[i])
-
-		// for j := 0; j < RevocationListSize; j++ {
-		// api.AssertIsDifferent(commit3, circuit.Commit[i][0])
-
-		// api.AssertIsDifferent(commit3, circuit.Commit[i][j])
-		// }
+		for j := 0; j < RevocationListSize; j++ {
+			api.AssertIsDifferent(commit3, circuit.Commit[i][j])
+		}
 
 	}
 
