@@ -3,24 +3,21 @@ package circuit
 import (
 	"math/big"
 
-	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/signature"
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-const RevocationListSize = 3000
-const PeriodSize = 20
+const RevocationListSize = 30000
+const PeriodSize = 200
 
 type SyncCircuit struct {
-	UserSecretKey frontend.Variable             `gnark:"sk"`
-	UserPublicKey frontend.Variable             `gnark:"pk"`
-	Certificate   eddsa.Signature               `gnark:"cert"`
-	Period        [PeriodSize]frontend.Variable `gnark:",public"`
-
-	GroupPublicKey eddsa.PublicKey                                   `gnark:",public"`
-	Commit         [PeriodSize][RevocationListSize]frontend.Variable `gnark:",public"`
+	UserSecretKey frontend.Variable `gnark:"sk"`
+	UserPublicKey frontend.Variable `gnark:",public"`
+	// Certificate   eddsa.Signature               `gnark:"cert"`
+	Period [PeriodSize]frontend.Variable `gnark:",public"`
+	// GroupPublicKey eddsa.PublicKey                                   `gnark:",public"`
+	Commit [PeriodSize][RevocationListSize]frontend.Variable `gnark:",public"`
 }
 
 func (circuit *SyncCircuit) Define(api frontend.API) error {
@@ -38,7 +35,6 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 		for j := 0; j < RevocationListSize; j++ {
 			api.AssertIsDifferent(commit3, circuit.Commit[i][j])
 		}
-
 	}
 
 	return nil
@@ -50,8 +46,8 @@ func NewSyncCircuitWitness(commit [PeriodSize][RevocationListSize]*big.Int, bsn 
 		UserPublicKey: signer.UserPublicKey.Number,
 	}
 
-	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
+	// assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
+	// assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
 
 	for i := 0; i < PeriodSize; i++ {
 		assign.Period[i] = periods[i]
