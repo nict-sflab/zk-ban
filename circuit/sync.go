@@ -10,48 +10,51 @@ import (
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-const RevocationListSize = 10000
+const RevocationListSize = 100
 
 type SyncCircuit struct {
 	UserSecretKey frontend.Variable `gnark:"sk"`
-	Certificate   eddsa.Signature   `gnark:"cert"`
-	Period        frontend.Variable `gnark:",public"`
-	Basename      frontend.Variable `gnark:",public"`
+	// Certificate   eddsa.Signature   `gnark:",public"`
+	Nonce  frontend.Variable `gnark:",public"`
+	Period frontend.Variable `gnark:",public"`
 
 	GroupPublicKey eddsa.PublicKey                       `gnark:",public"`
-	Commit         [RevocationListSize]frontend.Variable `gnark:",public"`
+	RevocationList [RevocationListSize]frontend.Variable `gnark:",public"`
+	Commit         frontend.Variable                     `gnark:",public"`
 }
 
 func (circuit *SyncCircuit) Define(api frontend.API) error {
-	err := auth(api, circuit.Period, circuit.UserSecretKey, circuit.Certificate, circuit.GroupPublicKey)
+	commit, err := hash(api, circuit.Nonce, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
-	commit3, err := hash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
+	api.AssertIsEqual(circuit.Commit, commit)
+
+	signature, err := hash(api, circuit.Period, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < RevocationListSize; i++ {
-		api.AssertIsDifferent(commit3, circuit.Commit[i])
+		api.AssertIsDifferent(signature, circuit.RevocationList[i])
 	}
 
 	return nil
 }
 
-func NewSyncCircuitWitness(commit [RevocationListSize]*big.Int, bsn *big.Int, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
+func NewSyncCircuitWitness(revocationList [RevocationListSize]*big.Int, nonce, commit *big.Int, signer *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
 	assign := &SyncCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		Period:        signer.Period,
-		Basename:      bsn,
+		Nonce:         nonce,
+		Commit:        commit,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
 
 	for i := 0; i < RevocationListSize; i++ {
-		assign.Commit[i] = commit[i]
+		assign.RevocationList[i] = revocationList[i]
 	}
 
 	return assign
