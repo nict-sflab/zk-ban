@@ -8,8 +8,10 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-const RevocationListSize = 30000
-const PeriodSize = 200
+// const RevocationListSize = 223
+// const RevocationSpeed = 0.82
+const RevocationListSize = 111
+const PeriodSize = 270
 
 type SyncCircuit struct {
 	UserSecretKey frontend.Variable `gnark:"sk"`
@@ -32,6 +34,8 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 			return err
 		}
 
+		// max := int(RevocationSpeed * float64(i))
+		// for j := 0; j < max; j++ {
 		for j := 0; j < RevocationListSize; j++ {
 			api.AssertIsDifferent(commit3, circuit.Commit[i][j])
 		}
