@@ -27,7 +27,7 @@ func TestSignCircuit(t *testing.T) {
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
-	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
+	commit, err := zkbanw.ComputeSignCommit(m, nonce, &usk)
 	assert.NoError(err)
 
 	authCircuit := SignCircuit{}

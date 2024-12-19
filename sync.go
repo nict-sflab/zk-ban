@@ -11,8 +11,8 @@ import (
 	"github.com/consensys/gnark/backend/witness"
 )
 
-func Sync(basename *big.Int, commit [zkbanc.PeriodSize][circuit.RevocationListSize]*big.Int, signer *zkbanw.Signer, period [zkbanc.PeriodSize]*big.Int, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
-	w := zkbanc.NewSyncCircuitWitness(commit, basename, period, signer, gpk)
+func Sync(commit [zkbanc.SessionSize][circuit.RevocationListSize]*big.Int, signer *zkbanw.Signer, sessionName [zkbanc.SessionSize]*big.Int, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
+	w := zkbanc.NewSyncCircuitWitness(commit, sessionName, signer, gpk)
 
 	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {

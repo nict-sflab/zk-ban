@@ -27,11 +27,11 @@ func main() {
 	panicIfErr(err)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
-	bsn := big.NewInt(3)
 	// m := big.NewInt(4)
-	period := [zkbanc.PeriodSize]*big.Int{}
-	for i := 0; i < zkbanc.PeriodSize; i++ {
-		period[i] = big.NewInt(int64(i + 1))
+
+	sessions := [zkbanc.SessionSize]*big.Int{}
+	for i := 0; i < zkbanc.SessionSize; i++ {
+		sessions[i] = big.NewInt(int64(i + 1))
 	}
 
 	p := big.NewInt(int64(10))
@@ -66,19 +66,19 @@ func main() {
 	// fmt.Printf("Sign Verify: %vms\n", time.Since(t))
 	// panicIfErr(err)
 
-	commit2 := [zkbanc.PeriodSize][zkbanc.RevocationListSize]*big.Int{}
+	commit2 := [zkbanc.SessionSize][zkbanc.RevocationListSize]*big.Int{}
 
-	for i := 0; i < zkbanc.PeriodSize; i++ {
+	for i := 0; i < zkbanc.SessionSize; i++ {
 		for j := 0; j < zkbanc.RevocationListSize; j++ {
 			commit2[i][j] = big.NewInt(1000000)
 		}
 	}
 
-	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, bsn, period, &zkbanw.Signer{
+	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, sessions, &zkbanw.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
 		Certificate:   cert,
-		// Period:        period[0],
+		Period:        p,
 	}, gpk)
 
 	syncWit, err := frontend.NewWitness(syncAssign, snark.EcCurve.ScalarField())
