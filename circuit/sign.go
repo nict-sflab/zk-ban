@@ -13,9 +13,8 @@ import (
 )
 
 type SignCircuit struct {
-	UserPublicKey frontend.Variable `gnark:"pk"`
-	Certificate   eddsa.Signature   `gnark:"cert"`
-	Nonce         frontend.Variable `gnark:"nonce"`
+	Certificate eddsa.Signature   `gnark:"cert"`
+	Nonce       frontend.Variable `gnark:"nonce"`
 
 	UserSecretKey  frontend.Variable `gnark:"sk"`
 	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
@@ -27,11 +26,10 @@ type SignCircuit struct {
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
-	err := auth(
+	err := certAuth(
 		api,
 		circuit.Period,
 		circuit.UserSecretKey,
-		circuit.UserPublicKey,
 		circuit.Certificate,
 		circuit.GroupPublicKey)
 
@@ -45,7 +43,6 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	}
 
 	commit2, err := hash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
-	// commit2, err := hash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
@@ -64,8 +61,7 @@ func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *z
 		Commit1:       commit.Commit1,
 		Commit2:       commit.Commit2,
 		Basename:      bsn,
-		// Period:        signer.Period,
-		UserPublicKey: signer.UserPublicKey.Number,
+		Period:        signer.Period,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())

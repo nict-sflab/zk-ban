@@ -33,7 +33,6 @@ func TestSignCircuit(t *testing.T) {
 	authCircuit := SignCircuit{}
 
 	assign := &SignCircuit{
-		UserPublicKey: upk.Number,
 		Nonce:         nonce,
 		UserSecretKey: usk.Number,
 		Basename:      bsn,
