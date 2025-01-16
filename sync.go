@@ -11,7 +11,7 @@ import (
 	"github.com/consensys/gnark/backend/witness"
 )
 
-func Sync(commit [zkbanc.SessionSize][circuit.RevocationPerSession]*big.Int, nextPeriod *big.Int, signer *zkbanw.Signer, sessionName [zkbanc.SessionSize]*big.Int, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
+func Sync(commit [circuit.RevocationListSize]*big.Int, nextPeriod *big.Int, signer *zkbanw.Signer, sessionName [zkbanc.RevocationListSize]*big.Int, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
 	nextSignerCandidate, err := signer.NextSignerCandidate(nextPeriod)
 	if err != nil {
 		return nil, nil, err

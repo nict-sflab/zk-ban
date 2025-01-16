@@ -27,8 +27,8 @@ func main() {
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
 	// m := big.NewInt(4)
 
-	sessions := [zkbanc.SessionSize]*big.Int{}
-	for i := 0; i < zkbanc.SessionSize; i++ {
+	sessions := [zkbanc.RevocationListSize]*big.Int{}
+	for i := 0; i < zkbanc.RevocationListSize; i++ {
 		sessions[i] = big.NewInt(int64(i + 1))
 	}
 
@@ -51,12 +51,10 @@ func main() {
 		Period:        last,
 	}
 
-	commit2 := [zkbanc.SessionSize][zkbanc.RevocationPerSession]*big.Int{}
+	commit2 := [zkbanc.RevocationListSize]*big.Int{}
 
-	for i := 0; i < zkbanc.SessionSize; i++ {
-		for j := 0; j < zkbanc.RevocationPerSession; j++ {
-			commit2[i][j] = big.NewInt(1000000)
-		}
+	for i := 0; i < zkbanc.RevocationListSize; i++ {
+		commit2[i] = big.NewInt(1000000)
 	}
 
 	syncProof, witness, err := zkban.Sync(commit2, next, signer, sessions, gpk, syncParams.Prover())
