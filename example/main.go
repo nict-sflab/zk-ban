@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"crypto/rand"
+	"fmt"
 	"math/big"
 
 	zkban "github.com/akakou/zk-ban"
@@ -17,6 +20,18 @@ func panicIfErr(err error) {
 	}
 }
 
+func randBig() *big.Int {
+	max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(128), nil).Sub(max, big.NewInt(1))
+
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		panic("failed to make random")
+	}
+
+	return n
+}
+
 func main() {
 	// signParams, err := snark.InitSNARK(&zkbanc.SignCircuit{})
 	// panicIfErr(err)
@@ -24,7 +39,7 @@ func main() {
 	syncParams, err := snark.InitSNARK(&zkbanc.SyncCircuit{})
 	panicIfErr(err)
 
-	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
+	usk := zkbanw.UserSecretKey{Number: randBig()}
 	// m := big.NewInt(4)
 
 	sessions := [zkbanc.SessionSize]*big.Int{}
@@ -55,9 +70,11 @@ func main() {
 
 	for i := 0; i < zkbanc.SessionSize; i++ {
 		for j := 0; j < zkbanc.RevocationPerSession; j++ {
-			commit2[i][j] = big.NewInt(1000000)
+			commit2[i][j] = randBig()
 		}
 	}
+
+	fmt.Printf("session: %v, revoke: %v\n", zkbanc.SessionSize, zkbanc.RevocationPerSession)
 
 	syncProof, witness, err := zkban.Sync(commit2, next, signer, sessions, gpk, syncParams.Prover())
 	panicIfErr(err)
@@ -67,5 +84,10 @@ func main() {
 
 	err = groth16.Verify(syncProof, syncParams.VerifyKey, pubWitness)
 	panicIfErr(err)
+
+	b := bytes.Buffer{}
+	syncProof.WriteTo(&b)
+	fmt.Printf("len: %v\n", b.Len())
+
 	print("ok")
 }
