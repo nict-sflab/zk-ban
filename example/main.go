@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/big"
 
 	zkban "github.com/akakou/zk-ban"
@@ -58,6 +59,8 @@ func main() {
 			commit2[i][j] = big.NewInt(1000000)
 		}
 	}
+
+	fmt.Printf("server: %v %v\n", zkbanc.SessionSize, zkbanc.RevocationPerSession)
 
 	syncProof, witness, err := zkban.Sync(commit2, next, signer, sessions, gpk, syncParams.Prover())
 	panicIfErr(err)
