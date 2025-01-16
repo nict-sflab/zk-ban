@@ -36,6 +36,7 @@ func (params *TestParams) signer() *zkbanw.Signer {
 		UserSecretKey: params.usk,
 		UserPublicKey: params.upk,
 		Certificate:   params.cert,
+		Period:        params.period,
 	}
 
 	return &signer

@@ -16,13 +16,13 @@ type Signer struct {
 	Period        *big.Int
 }
 
-func ComputeSignCommit(m, bsn *big.Int, usk *UserSecretKey) (*SignCommit, error) {
-	commit1, err := hash(m, usk.Number)
+func (signer *Signer) ComputeSignCommit(m, bsn *big.Int) (*SignCommit, error) {
+	commit1, err := hash(m, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := hash(bsn, usk.Number)
+	commit2, err := hash(signer.Period, bsn, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
