@@ -29,3 +29,17 @@ func ComputeSignCommit(m, bsn *big.Int, usk *UserSecretKey) (*SignCommit, error)
 
 	return &SignCommit{Commit1: commit1, Commit2: commit2}, nil
 }
+
+func (signer *Signer) NextSignerCandidate(nextPeriod *big.Int) (*Signer, error) {
+	upk, err := signer.UserSecretKey.PublicKey(nextPeriod)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Signer{
+		UserSecretKey: signer.UserSecretKey,
+		UserPublicKey: upk,
+		Period:        nextPeriod,
+		Certificate:   nil,
+	}, nil
+}
