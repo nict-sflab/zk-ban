@@ -3,8 +3,8 @@ package circuit
 import (
 	"math/big"
 
+	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/signature"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/signature/eddsa"
@@ -54,7 +54,7 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSyncCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int, sessionNames [SessionSize]*big.Int, next, last *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
+func NewSyncCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int, sessionNames [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *SyncCircuit {
 	assign := &SyncCircuit{
 		UserSecretKey:     last.UserSecretKey.Number,
 		LastPeriod:        last.Period,

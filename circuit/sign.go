@@ -7,8 +7,8 @@ import (
 
 	"github.com/consensys/gnark/std/signature/eddsa"
 
+	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -51,7 +51,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, bsn *big.Int, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk signature.PublicKey) *SignCircuit {
+func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.Signer, gpk signature.PublicKey) *SignCircuit {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		Basename:      bsn,

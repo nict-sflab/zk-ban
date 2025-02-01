@@ -4,9 +4,9 @@ import (
 	"math/big"
 	"testing"
 
-	zkbanc "github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
+	"github.com/akakou/zk-ban/commit"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/test"
@@ -19,24 +19,24 @@ func panicIfErr(err error) {
 }
 
 type TestParams struct {
-	gpk            *zkbanw.GroupPublicKey
-	gsk            *zkbanw.GroupSecretKey
+	gpk            *commit.GroupPublicKey
+	gsk            *commit.GroupSecretKey
 	joinSnark      *snark.SnarkParams
 	signSnark      *snark.SnarkParams
 	syncSnark      *snark.SnarkParams
-	upk            *zkbanw.UserPublicKey
-	usk            *zkbanw.UserSecretKey
+	upk            *commit.UserPublicKey
+	usk            *commit.UserSecretKey
 	m              *big.Int
 	period         *big.Int
 	bsn            *big.Int
-	cert           *zkbanw.Certificate
+	cert           *commit.Certificate
 	nextPeriod     *big.Int
-	sessionName    [zkbanc.SessionSize]*big.Int
-	revocationList [zkbanc.SessionSize][zkbanc.RevocationPerSession]*big.Int
+	sessionName    [circuit.SessionSize]*big.Int
+	revocationList [circuit.SessionSize][circuit.RevocationPerSession]*big.Int
 }
 
-func (params *TestParams) signer() *zkbanw.Signer {
-	signer := zkbanw.Signer{
+func (params *TestParams) signer() *commit.Signer {
+	signer := commit.Signer{
 		UserSecretKey: params.usk,
 		UserPublicKey: params.upk,
 		Certificate:   params.cert,
@@ -47,22 +47,22 @@ func (params *TestParams) signer() *zkbanw.Signer {
 }
 
 func prepare() TestParams {
-	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
+	gsk, gpk, err := commit.RandomGroupKeyPair()
 	panicIfErr(err)
 
-	joinSnark, err := snark.InitSNARK(&zkbanc.JoinRequestCircuit{})
+	joinSnark, err := snark.InitSNARK(&circuit.JoinRequestCircuit{})
 	panicIfErr(err)
 
-	signSnark, err := snark.InitSNARK(&zkbanc.SignCircuit{})
+	signSnark, err := snark.InitSNARK(&circuit.SignCircuit{})
 	panicIfErr(err)
 
-	syncSnark, err := snark.InitSNARK(&zkbanc.SyncCircuit{})
+	syncSnark, err := snark.InitSNARK(&circuit.SyncCircuit{})
 	panicIfErr(err)
 
 	period := big.NewInt(2024)
 	nextPeriod := big.NewInt(2025)
 
-	var usk = &zkbanw.UserSecretKey{
+	var usk = &commit.UserSecretKey{
 		Number: big.NewInt(100),
 	}
 
@@ -75,16 +75,16 @@ func prepare() TestParams {
 	cert, err := gsk.IssueCertificate(upk)
 	panicIfErr(err)
 
-	sn := [zkbanc.SessionSize]*big.Int{}
+	sn := [circuit.SessionSize]*big.Int{}
 
-	for i := 0; i < zkbanc.SessionSize; i++ {
+	for i := 0; i < circuit.SessionSize; i++ {
 		sn[i] = big.NewInt(300)
 	}
 
-	rl := [zkbanc.SessionSize][zkbanc.RevocationPerSession]*big.Int{}
+	rl := [circuit.SessionSize][circuit.RevocationPerSession]*big.Int{}
 
-	for i := 0; i < zkbanc.SessionSize; i++ {
-		for j := 0; j < zkbanc.RevocationPerSession; j++ {
+	for i := 0; i < circuit.SessionSize; i++ {
+		for j := 0; j < circuit.RevocationPerSession; j++ {
 			rl[i][j] = big.NewInt(300)
 		}
 	}

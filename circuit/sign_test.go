@@ -4,20 +4,20 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/test"
 )
 
 func TestSignCircuit(t *testing.T) {
 	assert := test.NewAssert(t)
 
-	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
+	usk := commit.UserSecretKey{Number: big.NewInt(1)}
 	m := big.NewInt(3)
 	bsn := big.NewInt(4)
 	period := big.NewInt(2024)
 
-	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
+	gsk, gpk, err := commit.RandomGroupKeyPair()
 	assert.NoError(err)
 
 	upk, err := usk.PublicKey(period)
@@ -26,7 +26,7 @@ func TestSignCircuit(t *testing.T) {
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
-	signer := zkbanw.Signer{
+	signer := commit.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
 		Certificate:   cert,

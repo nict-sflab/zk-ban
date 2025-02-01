@@ -1,4 +1,4 @@
-package witness
+package commit
 
 import (
 	"math/big"
