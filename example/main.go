@@ -7,9 +7,9 @@ import (
 	"math/big"
 
 	zkban "github.com/akakou/zk-ban"
-	zkbanc "github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/commit"
 	snark "github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
 
 	"github.com/consensys/gnark/backend/groth16"
 )
@@ -33,60 +33,60 @@ func randBig() *big.Int {
 }
 
 func main() {
-	// signParams, err := snark.InitSNARK(&zkbanc.SignCircuit{})
+	// signParams, err := snark.InitSNARK(&circuit.SignCircuit{})
 	// panicIfErr(err)
 
-	syncParams, err := snark.InitSNARK(&zkbanc.SyncCircuit{})
+	updateParams, err := snark.InitSNARK(&circuit.UpdateCircuit{})
 	panicIfErr(err)
 
-	usk := zkbanw.UserSecretKey{Number: randBig()}
+	usk := commit.UserSecretKey{Number: randBig()}
 	// m := big.NewInt(4)
 
-	sessions := [zkbanc.SessionSize]*big.Int{}
-	for i := 0; i < zkbanc.SessionSize; i++ {
+	sessions := [circuit.SessionSize]*big.Int{}
+	for i := 0; i < circuit.SessionSize; i++ {
 		sessions[i] = big.NewInt(int64(i + 1))
 	}
 
 	last := big.NewInt(int64(10))
 	next := big.NewInt(int64(12))
 
-	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
+	gsk, gpk, err := commit.RandomGroupKeyPair()
 	panicIfErr(err)
 
 	upk, err := usk.PublicKey(last)
 	panicIfErr(err)
 
-	cert, err := gsk.IssueCertificate(upk)
+	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
 
-	signer := &zkbanw.Signer{
+	signer := &commit.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
-		Certificate:   cert,
+		Credential:    cert,
 		Period:        last,
 	}
 
-	commit2 := [zkbanc.SessionSize][zkbanc.RevocationPerSession]*big.Int{}
+	commit2 := [circuit.SessionSize][circuit.RevocationPerSession]*big.Int{}
 
-	for i := 0; i < zkbanc.SessionSize; i++ {
-		for j := 0; j < zkbanc.RevocationPerSession; j++ {
+	for i := 0; i < circuit.SessionSize; i++ {
+		for j := 0; j < circuit.RevocationPerSession; j++ {
 			commit2[i][j] = randBig()
 		}
 	}
 
-	fmt.Printf("session: %v, revoke: %v\n", zkbanc.SessionSize, zkbanc.RevocationPerSession)
+	fmt.Printf("session: %v, revoke: %v\n", circuit.SessionSize, circuit.RevocationPerSession)
 
-	syncProof, witness, err := zkban.Sync(commit2, next, signer, sessions, gpk, syncParams.Prover())
+	updateProof, witness, err := zkban.Update(commit2, next, signer, sessions, gpk, updateParams.Prover())
 	panicIfErr(err)
 
 	pubWitness, err := witness.Public()
 	panicIfErr(err)
 
-	err = groth16.Verify(syncProof, syncParams.VerifyKey, pubWitness)
+	err = groth16.Verify(updateProof, updateParams.VerifyKey, pubWitness)
 	panicIfErr(err)
 
 	b := bytes.Buffer{}
-	syncProof.WriteTo(&b)
+	updateProof.WriteTo(&b)
 	fmt.Printf("len: %v\n", b.Len())
 
 	print("ok")

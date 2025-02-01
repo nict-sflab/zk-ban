@@ -7,13 +7,13 @@ import (
 
 	"github.com/consensys/gnark/std/signature/eddsa"
 
+	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
 )
 
 type SignCircuit struct {
-	Certificate    eddsa.Signature   `gnark:"cert"`
+	Credential     eddsa.Signature   `gnark:"cert"`
 	UserSecretKey  frontend.Variable `gnark:"sk"`
 	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
 	Basename       frontend.Variable `gnark:",public"`
@@ -28,7 +28,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		api,
 		circuit.Period,
 		circuit.UserSecretKey,
-		circuit.Certificate,
+		circuit.Credential,
 		circuit.GroupPublicKey)
 
 	if err != nil {
@@ -51,7 +51,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, bsn *big.Int, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk signature.PublicKey) *SignCircuit {
+func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.Signer, gpk signature.PublicKey) *SignCircuit {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		Basename:      bsn,
@@ -62,7 +62,7 @@ func NewSignWitness(m, bsn *big.Int, commit *zkbanw.SignCommit, signer *zkbanw.S
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
+	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
 	return assign
 }

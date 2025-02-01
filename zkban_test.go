@@ -4,9 +4,9 @@ import (
 	"math/big"
 	"testing"
 
-	zkbanc "github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/test"
@@ -19,27 +19,27 @@ func panicIfErr(err error) {
 }
 
 type TestParams struct {
-	gpk            *zkbanw.GroupPublicKey
-	gsk            *zkbanw.GroupSecretKey
+	gpk            *commit.GroupPublicKey
+	gsk            *commit.GroupSecretKey
 	joinSnark      *snark.SnarkParams
 	signSnark      *snark.SnarkParams
-	syncSnark      *snark.SnarkParams
-	upk            *zkbanw.UserPublicKey
-	usk            *zkbanw.UserSecretKey
+	updateSnark    *snark.SnarkParams
+	upk            *commit.UserPublicKey
+	usk            *commit.UserSecretKey
 	m              *big.Int
 	period         *big.Int
 	bsn            *big.Int
-	cert           *zkbanw.Certificate
+	cert           *commit.Credential
 	nextPeriod     *big.Int
-	sessionName    [zkbanc.SessionSize]*big.Int
-	revocationList [zkbanc.SessionSize][zkbanc.RevocationPerSession]*big.Int
+	sessionName    [circuit.SessionSize]*big.Int
+	revocationList [circuit.SessionSize][circuit.RevocationPerSession]*big.Int
 }
 
-func (params *TestParams) signer() *zkbanw.Signer {
-	signer := zkbanw.Signer{
+func (params *TestParams) signer() *commit.Signer {
+	signer := commit.Signer{
 		UserSecretKey: params.usk,
 		UserPublicKey: params.upk,
-		Certificate:   params.cert,
+		Credential:    params.cert,
 		Period:        params.period,
 	}
 
@@ -47,22 +47,22 @@ func (params *TestParams) signer() *zkbanw.Signer {
 }
 
 func prepare() TestParams {
-	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
+	gsk, gpk, err := commit.RandomGroupKeyPair()
 	panicIfErr(err)
 
-	joinSnark, err := snark.InitSNARK(&zkbanc.JoinRequestCircuit{})
+	joinSnark, err := snark.InitSNARK(&circuit.JoinRequestCircuit{})
 	panicIfErr(err)
 
-	signSnark, err := snark.InitSNARK(&zkbanc.SignCircuit{})
+	signSnark, err := snark.InitSNARK(&circuit.SignCircuit{})
 	panicIfErr(err)
 
-	syncSnark, err := snark.InitSNARK(&zkbanc.SyncCircuit{})
+	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{})
 	panicIfErr(err)
 
 	period := big.NewInt(2024)
 	nextPeriod := big.NewInt(2025)
 
-	var usk = &zkbanw.UserSecretKey{
+	var usk = &commit.UserSecretKey{
 		Number: big.NewInt(100),
 	}
 
@@ -72,19 +72,19 @@ func prepare() TestParams {
 	m := big.NewInt(100)
 	bsn := big.NewInt(100)
 
-	cert, err := gsk.IssueCertificate(upk)
+	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
 
-	sn := [zkbanc.SessionSize]*big.Int{}
+	sn := [circuit.SessionSize]*big.Int{}
 
-	for i := 0; i < zkbanc.SessionSize; i++ {
+	for i := 0; i < circuit.SessionSize; i++ {
 		sn[i] = big.NewInt(300)
 	}
 
-	rl := [zkbanc.SessionSize][zkbanc.RevocationPerSession]*big.Int{}
+	rl := [circuit.SessionSize][circuit.RevocationPerSession]*big.Int{}
 
-	for i := 0; i < zkbanc.SessionSize; i++ {
-		for j := 0; j < zkbanc.RevocationPerSession; j++ {
+	for i := 0; i < circuit.SessionSize; i++ {
+		for j := 0; j < circuit.RevocationPerSession; j++ {
 			rl[i][j] = big.NewInt(300)
 		}
 	}
@@ -96,7 +96,7 @@ func prepare() TestParams {
 		upk:            upk,
 		joinSnark:      joinSnark,
 		signSnark:      signSnark,
-		syncSnark:      syncSnark,
+		updateSnark:    updateSnark,
 		m:              m,
 		bsn:            bsn,
 		period:         period,
@@ -128,11 +128,11 @@ func TestAll(t *testing.T) {
 		assert.NoError(err)
 	})
 
-	t.Run("sync", func(t *testing.T) {
-		proof, pubWit, err := Sync(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.syncSnark.Prover())
+	t.Run("update", func(t *testing.T) {
+		proof, pubWit, err := Update(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.updateSnark.Prover())
 		assert.NoError(err)
 
-		err = groth16.Verify(proof, params.syncSnark.VerifyKey, pubWit)
+		err = groth16.Verify(proof, params.updateSnark.VerifyKey, pubWit)
 		assert.NoError(err)
 	})
 }
@@ -180,22 +180,22 @@ func BenchmarkAll(t *testing.B) {
 		}
 	})
 
-	t.Run("sync-req", func(b *testing.B) {
+	t.Run("update-req", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			proof, pubWit, err = Sync(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.syncSnark.Prover())
+			proof, pubWit, err = Update(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.updateSnark.Prover())
 			panicIfErr(err)
 		}
 	})
 
-	t.Run("sync-verify", func(b *testing.B) {
+	t.Run("update-verify", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			params.gsk.IssueCertificate(params.upk)
+			params.gsk.IssueCredential(params.upk)
 
-			err = groth16.Verify(proof, params.syncSnark.VerifyKey, pubWit)
+			err = groth16.Verify(proof, params.updateSnark.VerifyKey, pubWit)
 			panicIfErr(err)
 		}
 	})

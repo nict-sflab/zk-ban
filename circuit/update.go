@@ -3,8 +3,8 @@ package circuit
 import (
 	"math/big"
 
+	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
-	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/signature"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/signature/eddsa"
@@ -16,9 +16,9 @@ import (
 const RevocationPerSession = 130
 const SessionSize = 270
 
-type SyncCircuit struct {
+type UpdateCircuit struct {
 	UserSecretKey     frontend.Variable                                    `gnark:"sk"`
-	LastCertificate   eddsa.Signature                                      `gnark:"cert"`
+	LastCredential   eddsa.Signature                                      `gnark:"cert"`
 	LastPeriod        frontend.Variable                                    `gnark:",public"`
 	GroupPublicKey    eddsa.PublicKey                                      `gnark:",public"`
 	NextUserPublicKey frontend.Variable                                    `gnark:",public"`
@@ -27,8 +27,8 @@ type SyncCircuit struct {
 	Commits           [SessionSize][RevocationPerSession]frontend.Variable `gnark:",public"`
 }
 
-func (circuit *SyncCircuit) Define(api frontend.API) error {
-	err := certAuth(api, circuit.LastPeriod, circuit.UserSecretKey, circuit.LastCertificate, circuit.GroupPublicKey)
+func (circuit *UpdateCircuit) Define(api frontend.API) error {
+	err := certAuth(api, circuit.LastPeriod, circuit.UserSecretKey, circuit.LastCredential, circuit.GroupPublicKey)
 	if err != nil {
 		return err
 	}
@@ -54,8 +54,8 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSyncCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int, sessionNames [SessionSize]*big.Int, next, last *zkbanw.Signer, gpk signature.PublicKey) *SyncCircuit {
-	assign := &SyncCircuit{
+func NewUpdateCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int, sessionNames [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *UpdateCircuit {
+	assign := &UpdateCircuit{
 		UserSecretKey:     last.UserSecretKey.Number,
 		LastPeriod:        last.Period,
 		NextPeriod:        next.Period,
@@ -63,7 +63,7 @@ func NewSyncCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int, s
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.LastCertificate.Assign(snark.TwistededwardsCurve, last.Certificate.Signature)
+	assign.LastCredential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
 	for i := 0; i < SessionSize; i++ {
 		assign.SessionNames[i] = sessionNames[i]
