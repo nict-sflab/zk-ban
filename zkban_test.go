@@ -193,6 +193,8 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
+			params.gsk.IssueCertificate(params.upk)
+
 			err = groth16.Verify(proof, params.syncSnark.VerifyKey, pubWit)
 			panicIfErr(err)
 		}

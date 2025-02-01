@@ -7,12 +7,12 @@ type Certificate struct {
 }
 
 func (gsk *GroupSecretKey) IssueCertificate(upk *UserPublicKey) (*Certificate, error) {
-	hasher := snark.HashAlg.New()
-	signature, err := gsk.Sign(upk.Number.Bytes(), hasher)
+	signature, err := gsk.Sign(upk.Number.Bytes(), snark.NewCommitHash)
 	if err != nil {
 		return nil, err
 	}
 
-	cert := Certificate{Signature: signature}
-	return &cert, nil
+	return &Certificate{
+		signature,
+	}, nil
 }

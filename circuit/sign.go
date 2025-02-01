@@ -35,12 +35,12 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	commit1, err := hash(api, circuit.Message, circuit.UserSecretKey)
+	commit1, err := snark.CircuitHash(api, circuit.Message, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
-	commit2, err := hash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
+	commit2, err := snark.CircuitHash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
