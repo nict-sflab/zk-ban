@@ -1,4 +1,4 @@
-package witness
+package commit
 
 import (
 	"math/big"
@@ -7,9 +7,7 @@ import (
 	"github.com/iden3/go-iden3-crypto/poseidon"
 )
 
-var hash = mimcHash(gnarkhash.MIMC_BLS12_381)
-
-func poseidonHash(data ...*big.Int) (*big.Int, error) {
+func PoseidonHash(data ...*big.Int) (*big.Int, error) {
 	hash, err := poseidon.Hash(data)
 
 	if err != nil {
@@ -20,7 +18,7 @@ func poseidonHash(data ...*big.Int) (*big.Int, error) {
 
 }
 
-func mimcHash(h gnarkhash.Hash) func(data ...*big.Int) (*big.Int, error) {
+func MimcHash(h gnarkhash.Hash) func(data ...*big.Int) (*big.Int, error) {
 	return func(data ...*big.Int) (*big.Int, error) {
 		hasher := h.New()
 		for _, d := range data {

@@ -2,6 +2,8 @@ package witness
 
 import (
 	"math/big"
+
+	"github.com/akakou/zk-ban/snark"
 )
 
 type UserPublicKey struct {
@@ -9,7 +11,7 @@ type UserPublicKey struct {
 }
 
 func (usk *UserSecretKey) PublicKey(period *big.Int) (*UserPublicKey, error) {
-	hash, err := hash(period, usk.Number)
+	hash, err := snark.CommitHash(period, usk.Number)
 
 	if err != nil {
 		return nil, err

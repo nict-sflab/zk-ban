@@ -2,6 +2,8 @@ package witness
 
 import (
 	"math/big"
+
+	"github.com/akakou/zk-ban/snark"
 )
 
 type SignCommit struct {
@@ -17,12 +19,12 @@ type Signer struct {
 }
 
 func (signer *Signer) ComputeSignCommit(m, bsn *big.Int) (*SignCommit, error) {
-	commit1, err := hash(m, signer.UserSecretKey.Number)
+	commit1, err := snark.CommitHash(m, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := hash(signer.Period, bsn, signer.UserSecretKey.Number)
+	commit2, err := snark.CommitHash(signer.Period, bsn, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 func certAuth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
-	upk, err := hash(api, period, usk)
+	upk, err := snark.CircuitHash(api, period, usk)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func certAuth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signat
 }
 
 func pubKeyAuth(api frontend.API, period, usk, upk frontend.Variable) error {
-	upk_dash, err := hash(api, period, usk)
+	upk_dash, err := snark.CircuitHash(api, period, usk)
 	if err != nil {
 		return err
 	}

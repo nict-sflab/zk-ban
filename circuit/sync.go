@@ -39,7 +39,7 @@ func (circuit *SyncCircuit) Define(api frontend.API) error {
 	}
 
 	for i := 0; i < SessionSize; i++ {
-		commit, err := hash(api, circuit.SessionNames[i], circuit.UserSecretKey)
+		commit, err := snark.CircuitHash(api, circuit.SessionNames[i], circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
