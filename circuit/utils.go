@@ -2,30 +2,21 @@ package circuit
 
 import (
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/std/hash/mimc"
-	"github.com/vocdoni/gnark-crypto-primitives/poseidon"
+	"github.com/liyue201/gnark-circomlib/circuits"
 )
 
 type hashT func(frontend.API, ...frontend.Variable) (frontend.Variable, error)
 
 var hash = poseidonHash
 
-func mimcHash(api frontend.API, data ...frontend.Variable) (frontend.Variable, error) {
-	mimc, err := mimc.NewMiMC(api)
-	if err != nil {
-		return nil, err
-	}
+func poseidonHash(api frontend.API, data ...frontend.Variable) (frontend.Variable, error) {
+	poseidon := circuits.NewPoseidonHash(api)
 
 	for _, d := range data {
-		mimc.Write(d)
+		poseidon.Write(d)
 	}
 
-	commit := mimc.Sum()
+	commit := poseidon.Sum()
 
-	return commit, nil
-}
-
-func poseidonHash(api frontend.API, data ...frontend.Variable) (frontend.Variable, error) {
-	commit := poseidon.Hash(api, data...)
 	return commit, nil
 }

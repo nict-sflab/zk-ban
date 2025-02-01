@@ -17,10 +17,9 @@ type GroupSecretKey struct{ signature.Signer }
 func RandomGroupKeyPair() (*GroupSecretKey, *GroupPublicKey, error) {
 	gsk, err := eddsa.New(snark.TwistededwardsCurve, rand.Reader)
 	if err != nil {
-		return nil, nil, errors.Join(err)
+		return nil, nil, err
 	}
 
 	gpk := gsk.Public()
-
 	return &GroupSecretKey{gsk}, &GroupPublicKey{gpk}, nil
 }

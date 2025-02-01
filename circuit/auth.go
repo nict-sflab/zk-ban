@@ -2,20 +2,15 @@ package circuit
 
 import (
 	"github.com/akakou/zk-ban/snark"
+	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/signature/eddsa"
+	"github.com/liyue201/gnark-circomlib/circuits"
 
 	"github.com/consensys/gnark/frontend"
-	"github.com/consensys/gnark/std/algebra/native/twistededwards"
-	"github.com/consensys/gnark/std/hash/mimc"
 )
 
 func certAuth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
 	upk, err := hash(api, period, usk)
-	if err != nil {
-		return err
-	}
-
-	mimc, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
 	}
@@ -25,10 +20,13 @@ func certAuth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signat
 		return err
 	}
 
-	err = eddsa.Verify(curve, cert, upk, gpk, &mimc)
+	poseidon := circuits.NewPoseidonHash(api)
+	err = eddsa.Verify(curve, cert, upk, gpk, poseidon)
 	if err != nil {
 		return err
 	}
+
+	// circuits.EdDSAPoseidonVerifier()
 
 	return nil
 }
