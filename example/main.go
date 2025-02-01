@@ -36,7 +36,7 @@ func main() {
 	// signParams, err := snark.InitSNARK(&circuit.SignCircuit{})
 	// panicIfErr(err)
 
-	syncParams, err := snark.InitSNARK(&circuit.SyncCircuit{})
+	updateParams, err := snark.InitSNARK(&circuit.UpdateCircuit{})
 	panicIfErr(err)
 
 	usk := commit.UserSecretKey{Number: randBig()}
@@ -76,17 +76,17 @@ func main() {
 
 	fmt.Printf("session: %v, revoke: %v\n", circuit.SessionSize, circuit.RevocationPerSession)
 
-	syncProof, witness, err := zkban.Sync(commit2, next, signer, sessions, gpk, syncParams.Prover())
+	updateProof, witness, err := zkban.Update(commit2, next, signer, sessions, gpk, updateParams.Prover())
 	panicIfErr(err)
 
 	pubWitness, err := witness.Public()
 	panicIfErr(err)
 
-	err = groth16.Verify(syncProof, syncParams.VerifyKey, pubWitness)
+	err = groth16.Verify(updateProof, updateParams.VerifyKey, pubWitness)
 	panicIfErr(err)
 
 	b := bytes.Buffer{}
-	syncProof.WriteTo(&b)
+	updateProof.WriteTo(&b)
 	fmt.Printf("len: %v\n", b.Len())
 
 	print("ok")

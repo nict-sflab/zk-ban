@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/akakou/zk-ban/circuit"
-	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/commit"
+	"github.com/akakou/zk-ban/snark"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/test"
@@ -23,7 +23,7 @@ type TestParams struct {
 	gsk            *commit.GroupSecretKey
 	joinSnark      *snark.SnarkParams
 	signSnark      *snark.SnarkParams
-	syncSnark      *snark.SnarkParams
+	updateSnark    *snark.SnarkParams
 	upk            *commit.UserPublicKey
 	usk            *commit.UserSecretKey
 	m              *big.Int
@@ -56,7 +56,7 @@ func prepare() TestParams {
 	signSnark, err := snark.InitSNARK(&circuit.SignCircuit{})
 	panicIfErr(err)
 
-	syncSnark, err := snark.InitSNARK(&circuit.SyncCircuit{})
+	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{})
 	panicIfErr(err)
 
 	period := big.NewInt(2024)
@@ -96,7 +96,7 @@ func prepare() TestParams {
 		upk:            upk,
 		joinSnark:      joinSnark,
 		signSnark:      signSnark,
-		syncSnark:      syncSnark,
+		updateSnark:    updateSnark,
 		m:              m,
 		bsn:            bsn,
 		period:         period,
@@ -128,11 +128,11 @@ func TestAll(t *testing.T) {
 		assert.NoError(err)
 	})
 
-	t.Run("sync", func(t *testing.T) {
-		proof, pubWit, err := Sync(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.syncSnark.Prover())
+	t.Run("update", func(t *testing.T) {
+		proof, pubWit, err := Update(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.updateSnark.Prover())
 		assert.NoError(err)
 
-		err = groth16.Verify(proof, params.syncSnark.VerifyKey, pubWit)
+		err = groth16.Verify(proof, params.updateSnark.VerifyKey, pubWit)
 		assert.NoError(err)
 	})
 }
@@ -180,22 +180,22 @@ func BenchmarkAll(t *testing.B) {
 		}
 	})
 
-	t.Run("sync-req", func(b *testing.B) {
+	t.Run("update-req", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			proof, pubWit, err = Sync(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.syncSnark.Prover())
+			proof, pubWit, err = Update(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.updateSnark.Prover())
 			panicIfErr(err)
 		}
 	})
 
-	t.Run("sync-verify", func(b *testing.B) {
+	t.Run("update-verify", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
 			params.gsk.IssueCertificate(params.upk)
 
-			err = groth16.Verify(proof, params.syncSnark.VerifyKey, pubWit)
+			err = groth16.Verify(proof, params.updateSnark.VerifyKey, pubWit)
 			panicIfErr(err)
 		}
 	})
