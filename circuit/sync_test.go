@@ -35,6 +35,7 @@ func TestSync(t *testing.T) {
 
 	assign := &SyncCircuit{
 		UserSecretKey: usk.Number,
+		UserPublicKey: upk.Number,
 		Period:        period,
 		Basename:      bsn,
 		Commit:        [RevocationListSize]frontend.Variable{},

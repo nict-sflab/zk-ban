@@ -11,6 +11,7 @@ type SignCommit struct {
 
 type Signer struct {
 	UserSecretKey *UserSecretKey
+	UserPublicKey *UserPublicKey
 	Certificate   *Certificate
 	Period        *big.Int
 }

@@ -34,6 +34,7 @@ type TestParams struct {
 func (params *TestParams) signer() *zkbanw.Signer {
 	signer := zkbanw.Signer{
 		UserSecretKey: params.usk,
+		UserPublicKey: params.upk,
 		Certificate:   params.cert,
 		Period:        params.period,
 	}
