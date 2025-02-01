@@ -13,7 +13,6 @@ func TestSignCircuit(t *testing.T) {
 	assert := test.NewAssert(t)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
-	nonce := big.NewInt(2)
 	m := big.NewInt(3)
 	bsn := big.NewInt(4)
 	period := big.NewInt(2024)
@@ -27,13 +26,19 @@ func TestSignCircuit(t *testing.T) {
 	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
-	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
+	signer := zkbanw.Signer{
+		UserSecretKey: &usk,
+		UserPublicKey: upk,
+		Certificate:   cert,
+		Period:        period,
+	}
+
+	commit, err := signer.ComputeSignCommit(m, bsn)
 	assert.NoError(err)
 
 	authCircuit := SignCircuit{}
 
 	assign := &SignCircuit{
-		Nonce:         nonce,
 		UserSecretKey: usk.Number,
 		Basename:      bsn,
 		Message:       m,

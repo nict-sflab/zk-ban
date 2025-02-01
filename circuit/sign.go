@@ -13,9 +13,7 @@ import (
 )
 
 type SignCircuit struct {
-	Certificate   eddsa.Signature   `gnark:"cert"`
-	Nonce         frontend.Variable `gnark:"nonce"`
-
+	Certificate    eddsa.Signature   `gnark:"cert"`
 	UserSecretKey  frontend.Variable `gnark:"sk"`
 	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
 	Basename       frontend.Variable `gnark:",public"`
@@ -26,7 +24,7 @@ type SignCircuit struct {
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
-	err := auth(
+	err := certAuth(
 		api,
 		circuit.Period,
 		circuit.UserSecretKey,
@@ -43,7 +41,6 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	}
 
 	commit2, err := hash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
-	// commit2, err := hash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
@@ -54,14 +51,13 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, bsn, nonce *big.Int, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk signature.PublicKey) *SignCircuit {
+func NewSignWitness(m, bsn *big.Int, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk signature.PublicKey) *SignCircuit {
 	assign := &SignCircuit{
-		Nonce:         nonce,
 		UserSecretKey: signer.UserSecretKey.Number,
+		Basename:      bsn,
 		Message:       m,
 		Commit1:       commit.Commit1,
 		Commit2:       commit.Commit2,
-		Basename:      bsn,
 		Period:        signer.Period,
 	}
 

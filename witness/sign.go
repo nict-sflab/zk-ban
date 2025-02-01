@@ -11,20 +11,35 @@ type SignCommit struct {
 
 type Signer struct {
 	UserSecretKey *UserSecretKey
+	UserPublicKey *UserPublicKey
 	Certificate   *Certificate
 	Period        *big.Int
 }
 
-func ComputeSignCommit(m, bsn, period *big.Int, usk *UserSecretKey) (*SignCommit, error) {
-	commit1, err := hash(m, usk.Number)
+func (signer *Signer) ComputeSignCommit(m, bsn *big.Int) (*SignCommit, error) {
+	commit1, err := hash(m, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := hash(period, bsn, usk.Number)
+	commit2, err := hash(signer.Period, bsn, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
 	return &SignCommit{Commit1: commit1, Commit2: commit2}, nil
+}
+
+func (signer *Signer) NextSignerCandidate(nextPeriod *big.Int) (*Signer, error) {
+	upk, err := signer.UserSecretKey.PublicKey(nextPeriod)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Signer{
+		UserSecretKey: signer.UserSecretKey,
+		UserPublicKey: upk,
+		Period:        nextPeriod,
+		Certificate:   nil,
+	}, nil
 }

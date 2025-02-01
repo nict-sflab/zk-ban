@@ -1,7 +1,6 @@
 package zkban
 
 import (
-	"crypto/rand"
 	"math/big"
 
 	zkbanc "github.com/akakou/zk-ban/circuit"
@@ -19,17 +18,12 @@ func max() *big.Int {
 }
 
 func Sign(m, bsn *big.Int, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
-	nonce, err := rand.Int(rand.Reader, max())
+	commit, err := signer.ComputeSignCommit(m, bsn)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	commit, err := zkbanw.ComputeSignCommit(m, bsn, signer.Period, signer.UserSecretKey)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	w := zkbanc.NewSignWitness(m, bsn, nonce, commit, signer, gpk)
+	w := zkbanc.NewSignWitness(m, bsn, commit, signer, gpk)
 
 	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {

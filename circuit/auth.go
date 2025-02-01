@@ -9,28 +9,12 @@ import (
 	"github.com/consensys/gnark/std/hash/mimc"
 )
 
-func auth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
-	_, err := hash(api, period, usk)
+func certAuth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
+	upk, err := hash(api, period, usk)
 	if err != nil {
 		return err
 	}
 
-	pubKeyAuth(api, period, usk, cert)
-	return nil
-}
-
-func pubKeyAuth(api frontend.API, period, usk, upk frontend.Variable) error {
-	upk_dash, err := hash(api, period, usk)
-	if err != nil {
-		return err
-	}
-
-	api.AssertIsEqual(upk, upk_dash)
-
-	return nil
-}
-
-func certAuth(api frontend.API, upk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
 	mimc, err := mimc.NewMiMC(api)
 	if err != nil {
 		return err
@@ -45,6 +29,17 @@ func certAuth(api frontend.API, upk frontend.Variable, cert eddsa.Signature, gpk
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func pubKeyAuth(api frontend.API, period, usk, upk frontend.Variable) error {
+	upk_dash, err := hash(api, period, usk)
+	if err != nil {
+		return err
+	}
+
+	api.AssertIsEqual(upk, upk_dash)
 
 	return nil
 }
