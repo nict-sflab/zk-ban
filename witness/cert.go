@@ -1,16 +1,13 @@
 package witness
 
-import "github.com/liyue201/gnark-circomlib/utils/poseidon"
+import "github.com/akakou/zk-ban/snark"
 
 type Certificate struct {
 	Signature []byte
 }
 
 func (gsk *GroupSecretKey) IssueCertificate(upk *UserPublicKey) (*Certificate, error) {
-	// generate signature
-	hFunc := poseidon.NewPoseidon()
-
-	signature, err := gsk.Sign(upk.Number.Bytes(), hFunc)
+	signature, err := gsk.Sign(upk.Number.Bytes(), snark.Hasher)
 	if err != nil {
 		return nil, err
 	}
