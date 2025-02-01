@@ -56,13 +56,13 @@ func main() {
 	upk, err := usk.PublicKey(last)
 	panicIfErr(err)
 
-	cert, err := gsk.IssueCertificate(upk)
+	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
 
 	signer := &commit.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
-		Certificate:   cert,
+		Credential:    cert,
 		Period:        last,
 	}
 

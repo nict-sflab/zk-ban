@@ -13,7 +13,7 @@ import (
 )
 
 type SignCircuit struct {
-	Certificate    eddsa.Signature   `gnark:"cert"`
+	Credential     eddsa.Signature   `gnark:"cert"`
 	UserSecretKey  frontend.Variable `gnark:"sk"`
 	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
 	Basename       frontend.Variable `gnark:",public"`
@@ -28,7 +28,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		api,
 		circuit.Period,
 		circuit.UserSecretKey,
-		circuit.Certificate,
+		circuit.Credential,
 		circuit.GroupPublicKey)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.S
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Certificate.Assign(snark.TwistededwardsCurve, signer.Certificate.Signature)
+	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
 	return assign
 }

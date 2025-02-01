@@ -18,7 +18,7 @@ const SessionSize = 270
 
 type UpdateCircuit struct {
 	UserSecretKey     frontend.Variable                                    `gnark:"sk"`
-	LastCertificate   eddsa.Signature                                      `gnark:"cert"`
+	LastCredential   eddsa.Signature                                      `gnark:"cert"`
 	LastPeriod        frontend.Variable                                    `gnark:",public"`
 	GroupPublicKey    eddsa.PublicKey                                      `gnark:",public"`
 	NextUserPublicKey frontend.Variable                                    `gnark:",public"`
@@ -28,7 +28,7 @@ type UpdateCircuit struct {
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
-	err := certAuth(api, circuit.LastPeriod, circuit.UserSecretKey, circuit.LastCertificate, circuit.GroupPublicKey)
+	err := certAuth(api, circuit.LastPeriod, circuit.UserSecretKey, circuit.LastCredential, circuit.GroupPublicKey)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func NewUpdateCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.LastCertificate.Assign(snark.TwistededwardsCurve, last.Certificate.Signature)
+	assign.LastCredential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
 	for i := 0; i < SessionSize; i++ {
 		assign.SessionNames[i] = sessionNames[i]

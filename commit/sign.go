@@ -14,7 +14,7 @@ type SignCommit struct {
 type Signer struct {
 	UserSecretKey *UserSecretKey
 	UserPublicKey *UserPublicKey
-	Certificate   *Certificate
+	Credential    *Credential
 	Period        *big.Int
 }
 
@@ -42,6 +42,6 @@ func (signer *Signer) NextSignerCandidate(nextPeriod *big.Int) (*Signer, error) 
 		UserSecretKey: signer.UserSecretKey,
 		UserPublicKey: upk,
 		Period:        nextPeriod,
-		Certificate:   nil,
+		Credential:    nil,
 	}, nil
 }

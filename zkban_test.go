@@ -29,7 +29,7 @@ type TestParams struct {
 	m              *big.Int
 	period         *big.Int
 	bsn            *big.Int
-	cert           *commit.Certificate
+	cert           *commit.Credential
 	nextPeriod     *big.Int
 	sessionName    [circuit.SessionSize]*big.Int
 	revocationList [circuit.SessionSize][circuit.RevocationPerSession]*big.Int
@@ -39,7 +39,7 @@ func (params *TestParams) signer() *commit.Signer {
 	signer := commit.Signer{
 		UserSecretKey: params.usk,
 		UserPublicKey: params.upk,
-		Certificate:   params.cert,
+		Credential:    params.cert,
 		Period:        params.period,
 	}
 
@@ -72,7 +72,7 @@ func prepare() TestParams {
 	m := big.NewInt(100)
 	bsn := big.NewInt(100)
 
-	cert, err := gsk.IssueCertificate(upk)
+	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
 
 	sn := [circuit.SessionSize]*big.Int{}
@@ -193,7 +193,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			params.gsk.IssueCertificate(params.upk)
+			params.gsk.IssueCredential(params.upk)
 
 			err = groth16.Verify(proof, params.updateSnark.VerifyKey, pubWit)
 			panicIfErr(err)

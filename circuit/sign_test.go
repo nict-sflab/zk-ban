@@ -23,13 +23,13 @@ func TestSignCircuit(t *testing.T) {
 	upk, err := usk.PublicKey(period)
 	assert.NoError(err)
 
-	cert, err := gsk.IssueCertificate(upk)
+	cert, err := gsk.IssueCredential(upk)
 	assert.NoError(err)
 
 	signer := commit.Signer{
 		UserSecretKey: &usk,
 		UserPublicKey: upk,
-		Certificate:   cert,
+		Credential:    cert,
 		Period:        period,
 	}
 
@@ -48,7 +48,7 @@ func TestSignCircuit(t *testing.T) {
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Certificate.Assign(snark.TwistededwardsCurve, cert.Signature)
+	assign.Credential.Assign(snark.TwistededwardsCurve, cert.Signature)
 
 	assert.ProverSucceeded(&authCircuit, assign, test.WithCurves(snark.EcCurve))
 }
