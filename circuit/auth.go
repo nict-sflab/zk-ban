@@ -10,12 +10,21 @@ import (
 )
 
 func auth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
-	_, err := hash(api, period, usk)
+	// err := pubKeyAuth(api, period, usk, upk)
+	// if err != nil {
+	// 	return err
+	// }
+
+	upk, err := hash(api, period, usk)
 	if err != nil {
 		return err
 	}
 
-	pubKeyAuth(api, period, usk, cert)
+	err = certAuth(api, upk, cert, gpk)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

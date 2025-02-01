@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"time"
 
+	zkban "github.com/akakou/zk-ban"
 	zkbanc "github.com/akakou/zk-ban/circuit"
 	snark "github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
@@ -20,16 +21,15 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	// signParams, err := snark.InitSNARK(&zkbanc.SignCircuit{})
-	// panicIfErr(err)
+	signParams, err := snark.InitSNARK(&zkbanc.SignCircuit{})
+	panicIfErr(err)
 
 	syncParams, err := snark.InitSNARK(&zkbanc.SyncCircuit{})
 	panicIfErr(err)
 
 	usk := zkbanw.UserSecretKey{Number: big.NewInt(1)}
-	// bsn := big.NewInt(3)
-	// m := big.NewInt(4)
-	nonce := big.NewInt(5)
+	bsn := big.NewInt(3)
+	m := big.NewInt(4)
 	period := big.NewInt(2024)
 
 	gsk, gpk, err := zkbanw.RandomGroupKeyPair()
@@ -41,25 +41,25 @@ func main() {
 	cert, err := gsk.IssueCertificate(upk)
 	panicIfErr(err)
 
-	// t := time.Now()
+	t := time.Now()
 
-	// signer := &zkbanw.Signer{
-	// 	UserSecretKey: &usk,
-	// 	Certificate:   cert,
-	// 	Period:        period,
-	// }
+	signer := &zkbanw.Signer{
+		UserSecretKey: &usk,
+		Certificate:   cert,
+		Period:        period,
+	}
 
-	// signProof, witness, err := zkban.Sign(m, bsn, signer, gpk, signParams.Prover())
-	// panicIfErr(err)
+	signProof, witness, err := zkban.Sign(m, bsn, signer, gpk, signParams.Prover())
+	panicIfErr(err)
 
-	// signWitPub, err := witness.Public()
-	// panicIfErr(err)
-	// fmt.Printf("Sign Prove: %vms\n", time.Since(t))
+	signWitPub, err := witness.Public()
+	panicIfErr(err)
+	fmt.Printf("Sign Prove: %vms\n", time.Since(t))
 
-	// t = time.Now()
-	// err = groth16.Verify(signProof, signParams.VerifyKey, signWitPub)
-	// fmt.Printf("Sign Verify: %vms\n", time.Since(t))
-	// panicIfErr(err)
+	t = time.Now()
+	err = groth16.Verify(signProof, signParams.VerifyKey, signWitPub)
+	fmt.Printf("Sign Verify: %vms\n", time.Since(t))
+	panicIfErr(err)
 
 	commit2 := [zkbanc.RevocationListSize]*big.Int{}
 
@@ -67,10 +67,7 @@ func main() {
 		commit2[i] = big.NewInt(1000000)
 	}
 
-	c, err := zkbanw.ComputeSyncCommit(nonce, &usk)
-	panicIfErr(err)
-
-	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, nonce, c, &zkbanw.Signer{
+	syncAssign := zkbanc.NewSyncCircuitWitness(commit2, bsn, &zkbanw.Signer{
 		UserSecretKey: &usk,
 		Certificate:   cert,
 		Period:        period,
@@ -82,7 +79,7 @@ func main() {
 	syncWitPub, err := syncWit.Public()
 	panicIfErr(err)
 
-	t := time.Now()
+	t = time.Now()
 	syncProof, err := groth16.Prove(syncParams.ConstraintSystem, syncParams.ProveKey, syncWit)
 	panicIfErr(err)
 	fmt.Printf("Sync Prove: %v\n", time.Since(t))

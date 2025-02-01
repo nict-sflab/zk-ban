@@ -25,7 +25,7 @@ func TestSync(t *testing.T) {
 	upk, err := usk.PublicKey(period)
 	assert.NoError(err)
 
-	_, err = gsk.IssueCertificate(upk)
+	cert, err := gsk.IssueCertificate(upk)
 	assert.NoError(err)
 
 	commit, err := zkbanw.ComputeSignCommit(m, bsn, nonce, &usk)
@@ -34,17 +34,18 @@ func TestSync(t *testing.T) {
 	}
 
 	assign := &SyncCircuit{
-		UserSecretKey:  usk.Number,
-		Period:         period,
-		RevocationList: [RevocationListSize]frontend.Variable{},
+		UserSecretKey: usk.Number,
+		Period:        period,
+		Basename:      bsn,
+		Commit:        [RevocationListSize]frontend.Variable{},
 	}
 
 	for i := 0; i < RevocationListSize; i++ {
-		assign.RevocationList[i] = commit.Commit2
+		assign.Commit[i] = commit.Commit2
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	// assign.Certificate.Assign(snark.TwistededwardsCurve, cert.Signature)
+	assign.Certificate.Assign(snark.TwistededwardsCurve, cert.Signature)
 
 	assert.ProverSucceeded(&SyncCircuit{}, assign, test.WithCurves(snark.EcCurve))
 }
