@@ -178,10 +178,14 @@ func BenchmarkAll(t *testing.B) {
 
 		for i := 0; i < b.N; i++ {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			_, proof, pubWit, err = Update(params.nextPeriod, params.signer(), params.revocationList, params.gpk, params.updateSnark.Prover())
 =======
 			_, proof, pubWit, err = Update(params.nextPeriod, params.signer(), params.revocationList, params.sessionName, params.gpk, params.updateSnark.Prover())
 >>>>>>> 229d87c (fix: missing to assing proof and witness of update)
+=======
+			_, proof, pubWit, err = Update(params.nextPeriod, params.signer(), params.revocationList, params.gpk, params.updateSnark.Prover())
+>>>>>>> 42b048d (fix: the miss of merge)
 			panicIfErr(err)
 		}
 	})
