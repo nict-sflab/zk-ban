@@ -18,7 +18,7 @@ type Signer struct {
 	Period        *big.Int
 }
 
-func (signer *Signer) ComputeSignCommit(m, bsn *big.Int) (*SignCommit, error) {
+func (signer *Signer) CommitSign(m, bsn *big.Int) (*SignCommit, error) {
 	commit1, err := snark.CommitHash(m, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (signer *Signer) ComputeSignCommit(m, bsn *big.Int) (*SignCommit, error) {
 	return &SignCommit{Commit1: commit1, Commit2: commit2}, nil
 }
 
-func (signer *Signer) NextSignerCandidate(nextPeriod *big.Int) (*Signer, error) {
+func (signer *Signer) Next(nextPeriod *big.Int) (*Signer, error) {
 	upk, err := signer.UserSecretKey.PublicKey(nextPeriod)
 	if err != nil {
 		return nil, err

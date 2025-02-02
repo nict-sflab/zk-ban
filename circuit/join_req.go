@@ -13,7 +13,7 @@ type JoinRequestCircuit struct {
 }
 
 func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
-	err := pubKeyAuth(api, circuit.Period, circuit.UserSecretKey, circuit.UserPublicKey)
+	err := authPubKey(api, circuit.Period, circuit.UserSecretKey, circuit.UserPublicKey)
 
 	if err != nil {
 		return err

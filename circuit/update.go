@@ -18,7 +18,7 @@ const SessionSize = 270
 
 type UpdateCircuit struct {
 	UserSecretKey     frontend.Variable                                    `gnark:"sk"`
-	LastCredential   eddsa.Signature                                      `gnark:"cert"`
+	LastCredential    eddsa.Signature                                      `gnark:"cert"`
 	LastPeriod        frontend.Variable                                    `gnark:",public"`
 	GroupPublicKey    eddsa.PublicKey                                      `gnark:",public"`
 	NextUserPublicKey frontend.Variable                                    `gnark:",public"`
@@ -28,12 +28,12 @@ type UpdateCircuit struct {
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
-	err := certAuth(api, circuit.LastPeriod, circuit.UserSecretKey, circuit.LastCredential, circuit.GroupPublicKey)
+	err := authCert(api, circuit.LastPeriod, circuit.UserSecretKey, circuit.LastCredential, circuit.GroupPublicKey)
 	if err != nil {
 		return err
 	}
 
-	err = pubKeyAuth(api, circuit.NextPeriod, circuit.UserSecretKey, circuit.NextUserPublicKey)
+	err = authPubKey(api, circuit.NextPeriod, circuit.UserSecretKey, circuit.NextUserPublicKey)
 	if err != nil {
 		return err
 	}
