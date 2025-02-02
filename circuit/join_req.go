@@ -7,7 +7,7 @@ import (
 )
 
 type JoinRequestCircuit struct {
-	UserSecretKey frontend.Variable `gnark:"sk"`
+	UserSecretKey frontend.Variable `gnark:",secret"`
 	UserPublicKey frontend.Variable `gnark:",public"`
 	Period        frontend.Variable `gnark:",public"`
 }
