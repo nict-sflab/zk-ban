@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-func certAuth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
+func authCert(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
 	upk, err := snark.CircuitHash(api, period, usk)
 	if err != nil {
 		return err
@@ -29,12 +29,10 @@ func certAuth(api frontend.API, period, usk frontend.Variable, cert eddsa.Signat
 		return err
 	}
 
-	// circuits.EdDSAPoseidonVerifier()
-
 	return nil
 }
 
-func pubKeyAuth(api frontend.API, period, usk, upk frontend.Variable) error {
+func authPubKey(api frontend.API, period, usk, upk frontend.Variable) error {
 	upk_dash, err := snark.CircuitHash(api, period, usk)
 	if err != nil {
 		return err

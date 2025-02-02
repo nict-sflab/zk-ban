@@ -24,7 +24,7 @@ type SignCircuit struct {
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
-	err := certAuth(
+	err := authCert(
 		api,
 		circuit.Period,
 		circuit.UserSecretKey,

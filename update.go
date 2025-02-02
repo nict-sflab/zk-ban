@@ -11,7 +11,7 @@ import (
 )
 
 func Update(commit [circuit.SessionSize][circuit.RevocationPerSession]*big.Int, nextPeriod *big.Int, signer *commit.Signer, sessionName [circuit.SessionSize]*big.Int, gpk *commit.GroupPublicKey, prover *snark.SnarkProver) (*commit.Signer, groth16.Proof, witness.Witness, error) {
-	nextSigner, err := signer.NextSignerCandidate(nextPeriod)
+	nextSigner, err := signer.Next(nextPeriod)
 	if err != nil {
 		return nil, nil, nil, err
 	}

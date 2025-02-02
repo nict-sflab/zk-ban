@@ -33,7 +33,7 @@ func TestSignCircuit(t *testing.T) {
 		Period:        period,
 	}
 
-	commit, err := signer.ComputeSignCommit(m, bsn)
+	commit, err := signer.CommitSign(m, bsn)
 	assert.NoError(err)
 
 	authCircuit := SignCircuit{}
