@@ -20,8 +20,8 @@ type RevokedNyms [SessionSize][RevokedNymsPerSession]frontend.Variable
 type SessionTags [SessionSize]frontend.Variable
 
 type UpdateCircuit struct {
-	UserSecretKey     frontend.Variable `gnark:"sk"`
-	LastCredential    eddsa.Signature   `gnark:"cert"`
+	UserSecretKey     frontend.Variable `gnark:",secret"`
+	LastCredential    eddsa.Signature   `gnark:",secret"`
 	LastPeriod        frontend.Variable `gnark:",public"`
 	GroupPublicKey    eddsa.PublicKey   `gnark:",public"`
 	NextUserPublicKey frontend.Variable `gnark:",public"`
