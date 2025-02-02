@@ -1,8 +1,6 @@
 package circuit
 
 import (
-	"math/big"
-
 	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/consensys/gnark-crypto/signature"
@@ -10,40 +8,12 @@ import (
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-// const RevocationListSize = 223
-const RevocationSpeed = 0.82
-
-const RevokedNymsPerSession = 130
-const SessionSize = 270
-
-type RevokedNyms [][]frontend.Variable
-type SessionTags []frontend.Variable
-
-type RevocationList struct {
-	SessionTags SessionTags `gnark:",public"`
-	RevokedNyms RevokedNyms `gnark:",public"`
-}
-
 type UpdateCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
 	CurrentInfo    CredentialAuthInfo
 	NextInfo       PublicKeyAuthInfo
 	RevocationList RevocationList
 	GroupPublicKey eddsa.PublicKey `gnark:",public"`
-}
-
-var Scan = ScanConstantRevocations
-
-func ScanConstantRevocations(nym frontend.Variable, sessionId int, revokedNyms RevokedNyms, api frontend.API) {
-	for j := 0; j < len(revokedNyms[sessionId]); j++ {
-		api.AssertIsDifferent(nym, revokedNyms[sessionId][j])
-	}
-}
-func ScanIncrementalRevocations(nym frontend.Variable, sessionId int, revokedNyms RevokedNyms, api frontend.API) {
-	max := int(RevocationSpeed * float64(sessionId))
-	for j := 0; j < max; j++ {
-		api.AssertIsDifferent(nym, revokedNyms[sessionId][j])
-	}
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
@@ -57,22 +27,21 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	for i, sessionTag := range circuit.RevocationList.SessionTags {
-		nym, err := snark.CircuitHash(api, sessionTag, circuit.UserSecretKey)
+	for _, revokedPerSession := range circuit.RevocationList {
+		nym, err := snark.CircuitHash(api, revokedPerSession.SessionTag, circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
 
-		Scan(nym, i, circuit.RevocationList.RevokedNyms, api)
+		for _, revokedNym := range revokedPerSession.Nyms {
+			api.AssertIsDifferent(nym, revokedNym)
+		}
 	}
 
 	return nil
 }
 
-type DefaultRevokedNyms [SessionSize][RevokedNymsPerSession]frontend.Variable
-type DefaultSessionTags [SessionSize]frontend.Variable
-
-func NewUpdateCircuitWitness(next, last *commit.Signer, revokedNyms [][]*big.Int, sessionTags []*big.Int, gpk signature.PublicKey) *UpdateCircuit {
+func NewUpdateCircuitWitness(next, last *commit.Signer, revocationList commit.RevocationList, gpk signature.PublicKey) *UpdateCircuit {
 	assign := &UpdateCircuit{
 		UserSecretKey: last.UserSecretKey.Number,
 		CurrentInfo: CredentialAuthInfo{
@@ -87,7 +56,21 @@ func NewUpdateCircuitWitness(next, last *commit.Signer, revokedNyms [][]*big.Int
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.CurrentInfo.Credential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
-	assign.RevocationList = NewRevocationListWitness(revokedNyms, sessionTags)
+	rl := RevocationList{}
+
+	for _, rps := range revocationList {
+		nyms := []frontend.Variable{}
+		for _, nym := range rps.Nyms {
+			nyms = append(nyms, nym)
+		}
+
+		rl = append(rl, RevokedNymsPerSession{
+			Nyms:       nyms,
+			SessionTag: rps.SessionTag,
+		})
+	}
+
+	assign.RevocationList = rl
 
 	return assign
 }
