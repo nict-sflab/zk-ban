@@ -33,14 +33,11 @@ func randBig() *big.Int {
 }
 
 func main() {
-	// signParams, err := snark.InitSNARK(&circuit.SignCircuit{})
-	// panicIfErr(err)
 
 	updateParams, err := snark.InitSNARK(&circuit.UpdateCircuit{})
 	panicIfErr(err)
 
 	usk := commit.UserSecretKey{Number: randBig()}
-	// m := big.NewInt(4)
 
 	sessions := [circuit.SessionSize]*big.Int{}
 	for i := 0; i < circuit.SessionSize; i++ {
@@ -76,7 +73,7 @@ func main() {
 
 	fmt.Printf("session: %v, revoke: %v\n", circuit.SessionSize, circuit.RevocationPerSession)
 
-	updateProof, witness, err := zkban.Update(commit2, next, signer, sessions, gpk, updateParams.Prover())
+	_, updateProof, witness, err := zkban.Update(commit2, next, signer, sessions, gpk, updateParams.Prover())
 	panicIfErr(err)
 
 	pubWitness, err := witness.Public()
