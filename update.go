@@ -8,15 +8,16 @@ import (
 	"github.com/akakou/zk-ban/snark"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
+	"github.com/consensys/gnark/frontend"
 )
 
-func Update(commit [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int, nextPeriod *big.Int, signer *commit.Signer, sessionName [circuit.SessionSize]*big.Int, gpk *commit.GroupPublicKey, prover *snark.SnarkProver) (*commit.Signer, groth16.Proof, witness.Witness, error) {
+func Update(nextPeriod *big.Int, signer *commit.Signer, revokedNyms [][]frontend.Variable, sessionTags []frontend.Variable, gpk *commit.GroupPublicKey, prover *snark.SnarkProver) (*commit.Signer, groth16.Proof, witness.Witness, error) {
 	nextSigner, err := signer.Next(nextPeriod)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	w := circuit.NewUpdateCircuitWitness(commit, sessionName, nextSigner, signer, gpk)
+	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, revokedNyms, sessionTags, gpk)
 
 	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {
