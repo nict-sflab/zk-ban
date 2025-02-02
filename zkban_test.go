@@ -32,7 +32,7 @@ type TestParams struct {
 	cert           *commit.Credential
 	nextPeriod     *big.Int
 	sessionName    [circuit.SessionSize]*big.Int
-	revocationList [circuit.SessionSize][circuit.RevocationPerSession]*big.Int
+	revocationList [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int
 }
 
 func (params *TestParams) signer() *commit.Signer {
@@ -81,10 +81,10 @@ func prepare() TestParams {
 		sn[i] = big.NewInt(300)
 	}
 
-	rl := [circuit.SessionSize][circuit.RevocationPerSession]*big.Int{}
+	rl := [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int{}
 
 	for i := 0; i < circuit.SessionSize; i++ {
-		for j := 0; j < circuit.RevocationPerSession; j++ {
+		for j := 0; j < circuit.RevokedNymsPerSession; j++ {
 			rl[i][j] = big.NewInt(300)
 		}
 	}

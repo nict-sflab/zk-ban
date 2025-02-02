@@ -63,17 +63,17 @@ func main() {
 		Period:        last,
 	}
 
-	commit2 := [circuit.SessionSize][circuit.RevocationPerSession]*big.Int{}
+	revokedNyms := [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int{}
 
 	for i := 0; i < circuit.SessionSize; i++ {
-		for j := 0; j < circuit.RevocationPerSession; j++ {
-			commit2[i][j] = randBig()
+		for j := 0; j < circuit.RevokedNymsPerSession; j++ {
+			revokedNyms[i][j] = randBig()
 		}
 	}
 
-	fmt.Printf("session: %v, revoke: %v\n", circuit.SessionSize, circuit.RevocationPerSession)
+	fmt.Printf("session: %v, revoke: %v\n", circuit.SessionSize, circuit.RevokedNymsPerSession)
 
-	_, updateProof, witness, err := zkban.Update(commit2, next, signer, sessions, gpk, updateParams.Prover())
+	_, updateProof, witness, err := zkban.Update(revokedNyms, next, signer, sessions, gpk, updateParams.Prover())
 	panicIfErr(err)
 
 	pubWitness, err := witness.Public()
