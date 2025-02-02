@@ -19,15 +19,17 @@ const SessionSize = 270
 type RevokedNyms [SessionSize][RevokedNymsPerSession]frontend.Variable
 type SessionTags [SessionSize]frontend.Variable
 
+type RevocationList struct {
+	SessionTags SessionTags `gnark:",public"`
+	RevokedNyms RevokedNyms `gnark:",public"`
+}
+
 type UpdateCircuit struct {
-	UserSecretKey     frontend.Variable `gnark:",secret"`
-	LastCredential    eddsa.Signature   `gnark:",secret"`
-	LastPeriod        frontend.Variable `gnark:",public"`
-	GroupPublicKey    eddsa.PublicKey   `gnark:",public"`
-	NextUserPublicKey frontend.Variable `gnark:",public"`
-	NextPeriod        frontend.Variable `gnark:",public"`
-	SessionTags       SessionTags       `gnark:",public"`
-	RevokedNyms       RevokedNyms       `gnark:",public"`
+	UserSecretKey  frontend.Variable `gnark:",secret"`
+	CurrentInfo    CredentialAuthInfo
+	NextInfo       PublicKeyAuthInfo
+	RevocationList RevocationList
+	GroupPublicKey eddsa.PublicKey `gnark:",public"`
 }
 
 var Scan = ScanConstantRevocations
@@ -45,23 +47,23 @@ func ScanIncrementalRevocations(nym frontend.Variable, sessionId int, revokedNym
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
-	err := authCert(api, circuit.LastPeriod, circuit.UserSecretKey, circuit.LastCredential, circuit.GroupPublicKey)
+	err := authCredential(api, circuit.CurrentInfo, circuit.UserSecretKey, circuit.GroupPublicKey)
 	if err != nil {
 		return err
 	}
 
-	err = authPubKey(api, circuit.NextPeriod, circuit.UserSecretKey, circuit.NextUserPublicKey)
+	err = authPubKey(api, circuit.NextInfo, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < SessionSize; i++ {
-		nym, err := snark.CircuitHash(api, circuit.SessionTags[i], circuit.UserSecretKey)
+		nym, err := snark.CircuitHash(api, circuit.RevocationList.SessionTags[i], circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
 
-		Scan(nym, i, circuit.RevokedNyms, api)
+		Scan(nym, i, circuit.RevocationList.RevokedNyms, api)
 	}
 
 	return nil
@@ -69,20 +71,25 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 
 func NewUpdateCircuitWitness(revokedNyms [SessionSize][RevokedNymsPerSession]*big.Int, sessionTags [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *UpdateCircuit {
 	assign := &UpdateCircuit{
-		UserSecretKey:     last.UserSecretKey.Number,
-		LastPeriod:        last.Period,
-		NextPeriod:        next.Period,
-		NextUserPublicKey: next.UserPublicKey.Number,
+		UserSecretKey: last.UserSecretKey.Number,
+		CurrentInfo: CredentialAuthInfo{
+			Period: last.Period,
+		},
+
+		NextInfo: PublicKeyAuthInfo{
+			Period:        next.Period,
+			UserPublicKey: next.UserPublicKey.Number,
+		},
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.LastCredential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
+	assign.CurrentInfo.Credential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
 	for i := 0; i < SessionSize; i++ {
-		assign.SessionTags[i] = sessionTags[i]
+		assign.RevocationList.SessionTags[i] = sessionTags[i]
 
 		for j := 0; j < RevokedNymsPerSession; j++ {
-			assign.RevokedNyms[i][j] = revokedNyms[i][j]
+			assign.RevocationList.RevokedNyms[i][j] = revokedNyms[i][j]
 		}
 	}
 

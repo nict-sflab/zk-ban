@@ -13,22 +13,20 @@ import (
 )
 
 type SignCircuit struct {
-	Credential     eddsa.Signature   `gnark:",secret"`
-	UserSecretKey  frontend.Variable `gnark:",secret"`
-	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
-	Basename       frontend.Variable `gnark:",public"`
-	Message        frontend.Variable `gnark:",public"`
-	Commit1        frontend.Variable `gnark:",public"`
-	Commit2        frontend.Variable `gnark:",public"`
-	Period         frontend.Variable `gnark:",public"`
+	UserSecretKey      frontend.Variable `gnark:",secret"`
+	CredentialAuthInfo CredentialAuthInfo
+	GroupPublicKey     eddsa.PublicKey   `gnark:",public"`
+	Basename           frontend.Variable `gnark:",public"`
+	Message            frontend.Variable `gnark:",public"`
+	Commit1            frontend.Variable `gnark:",public"`
+	Commit2            frontend.Variable `gnark:",public"`
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
-	err := authCert(
+	err := authCredential(
 		api,
-		circuit.Period,
+		circuit.CredentialAuthInfo,
 		circuit.UserSecretKey,
-		circuit.Credential,
 		circuit.GroupPublicKey)
 
 	if err != nil {
@@ -40,7 +38,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	commit2, err := snark.CircuitHash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
+	commit2, err := snark.CircuitHash(api, circuit.CredentialAuthInfo.Period, circuit.Basename, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
@@ -54,15 +52,17 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.Signer, gpk signature.PublicKey) *SignCircuit {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
-		Basename:      bsn,
-		Message:       m,
-		Commit1:       commit.Commit1,
-		Commit2:       commit.Commit2,
-		Period:        signer.Period,
+		CredentialAuthInfo: CredentialAuthInfo{
+			Period: signer.Period,
+		},
+		Basename: bsn,
+		Message:  m,
+		Commit1:  commit.Commit1,
+		Commit2:  commit.Commit2,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
+	assign.CredentialAuthInfo.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
 	return assign
 }
