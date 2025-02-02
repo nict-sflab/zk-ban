@@ -1,45 +1,35 @@
 package circuit
 
 import (
-	"math/big"
-
+	"github.com/akakou/zk-ban/commit"
 	"github.com/consensys/gnark/frontend"
 )
 
-func NewRevocationListWitness(revokedNyms [][]*big.Int, sessionTags []*big.Int) RevocationList {
-	nyms := RevokedNyms{}
-	tags := SessionTags{}
+type RevokedNymsPerSession struct {
+	Nyms       []frontend.Variable `gnark:",public"`
+	SessionTag frontend.Variable   `gnark:",public"`
+}
+type RevocationList []RevokedNymsPerSession
 
-	for i, tag := range sessionTags {
-		tags = append(tags, tag)
-		nyms = append(nyms, []frontend.Variable{})
-
-		for j := 0; j < RevokedNymsPerSession; j++ {
-			nyms[i] = append(nyms[i], revokedNyms[i][j])
-		}
-	}
-
-	return RevocationList{
-		SessionTags: tags,
-		RevokedNyms: nyms,
-	}
+func EmptyRevocationList(SessionSize, NymSizePerSession int) RevocationList {
+	emptyRL := commit.EmptyRevocationList(SessionSize, NymSizePerSession)
+	return NewRevocationListWitness(emptyRL)
 }
 
-func EmptyRevocationList(SessionSize, RevokedNymsPerSession int) RevocationList {
-	nyms := RevokedNyms{}
-	tags := SessionTags{}
+func NewRevocationListWitness(revocationList commit.RevocationList) RevocationList {
+	rl := RevocationList{}
 
-	for i := 0; i < SessionSize; i++ {
-		tags = append(tags, 0)
-		nyms = append(nyms, []frontend.Variable{})
-
-		for j := 0; j < RevokedNymsPerSession; j++ {
-			nyms[i] = append(nyms[i], 0)
+	for _, rps := range revocationList {
+		nyms := []frontend.Variable{}
+		for _, nym := range rps.Nyms {
+			nyms = append(nyms, nym)
 		}
+
+		rl = append(rl, RevokedNymsPerSession{
+			Nyms:       nyms,
+			SessionTag: rps.SessionTag,
+		})
 	}
 
-	return RevocationList{
-		SessionTags: tags,
-		RevokedNyms: nyms,
-	}
+	return rl
 }
