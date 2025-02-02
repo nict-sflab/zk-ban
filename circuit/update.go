@@ -33,7 +33,7 @@ type UpdateCircuit struct {
 var Scan = ScanConstantRevocations
 
 func ScanConstantRevocations(nym frontend.Variable, sessionId int, revokedNyms RevokedNyms, api frontend.API) {
-	for j := 0; j < RevokedNymsPerSession; j++ {
+	for j := 0; j < len(revokedNyms[sessionId]); j++ {
 		api.AssertIsDifferent(nym, revokedNyms[sessionId][j])
 	}
 }
@@ -55,8 +55,8 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	for i := 0; i < SessionSize; i++ {
-		nym, err := snark.CircuitHash(api, circuit.SessionTags[i], circuit.UserSecretKey)
+	for i, sessionTag := range circuit.SessionTags {
+		nym, err := snark.CircuitHash(api, sessionTag, circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
