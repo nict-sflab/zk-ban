@@ -7,13 +7,12 @@ import (
 )
 
 type JoinRequestCircuit struct {
-	UserSecretKey frontend.Variable `gnark:",secret"`
-	UserPublicKey frontend.Variable `gnark:",public"`
-	Period        frontend.Variable `gnark:",public"`
+	UserSecretKey     frontend.Variable `gnark:",secret"`
+	PublicKeyAuthInfo PublicKeyAuthInfo
 }
 
 func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
-	err := authPubKey(api, circuit.Period, circuit.UserSecretKey, circuit.UserPublicKey)
+	err := authPubKey(api, circuit.PublicKeyAuthInfo, circuit.UserSecretKey)
 
 	if err != nil {
 		return err
@@ -21,11 +20,13 @@ func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewJoinRequestWitness(period, usk, upk *big.Int) *JoinRequestCircuit {
+func NewJoinRequestWitness(period, upk, usk *big.Int) *JoinRequestCircuit {
 	assign := &JoinRequestCircuit{
 		UserSecretKey: usk,
-		UserPublicKey: upk,
-		Period:        period,
+		PublicKeyAuthInfo: PublicKeyAuthInfo{
+			UserPublicKey: upk,
+			Period:        period,
+		},
 	}
 
 	return assign
