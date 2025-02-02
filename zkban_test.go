@@ -1,7 +1,6 @@
 package zkban
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/akakou/zk-ban/snark"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
-	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/test"
 )
 
@@ -33,8 +31,8 @@ type TestParams struct {
 	bsn            *big.Int
 	cert           *commit.Credential
 	nextPeriod     *big.Int
-	sessionName    []frontend.Variable
-	revocationList [][]frontend.Variable
+	sessionName    []*big.Int
+	revocationList [][]*big.Int
 }
 
 func (params *TestParams) signer() *commit.Signer {
@@ -58,19 +56,10 @@ func prepare() TestParams {
 	signSnark, err := snark.InitSNARK(&circuit.SignCircuit{})
 	panicIfErr(err)
 
-	tags, nyms := circuit.NewDefaultRevocationListWitness(
-		[circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int{},
-		[circuit.SessionSize]*big.Int{},
-	)
-
-	fmt.Printf("nyms: %v\n", len(nyms))
-	fmt.Printf("nyms[0]: %v\n", len(nyms[0]))
-	fmt.Printf("tags: %v\n", len(tags))
-
 	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{
-		RevokedNyms: nyms,
-		SessionTags: tags,
+		RevocationList: circuit.EmptyRevocationList(circuit.SessionSize, circuit.RevokedNymsPerSession),
 	})
+
 	panicIfErr(err)
 
 	period := big.NewInt(2024)
@@ -89,21 +78,21 @@ func prepare() TestParams {
 	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
 
-	sn := [circuit.SessionSize]*big.Int{}
+	tags_ := []*big.Int{}
 
 	for i := 0; i < circuit.SessionSize; i++ {
-		sn[i] = big.NewInt(300)
+		tags_ = append(tags_, big.NewInt(300))
 	}
 
-	rl := [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int{}
+	nyms_ := [][]*big.Int{}
 
 	for i := 0; i < circuit.SessionSize; i++ {
+		nyms_ = append(nyms_, []*big.Int{})
+
 		for j := 0; j < circuit.RevokedNymsPerSession; j++ {
-			rl[i][j] = big.NewInt(300)
+			nyms_[i] = append(nyms_[i], big.NewInt(300))
 		}
 	}
-
-	tags_, nyms_ := circuit.NewDefaultRevocationListWitness(rl, sn)
 
 	return TestParams{
 		gpk:            gpk,
