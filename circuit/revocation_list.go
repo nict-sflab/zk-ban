@@ -12,7 +12,7 @@ type RevokedNymsPerSession struct {
 type RevocationList []RevokedNymsPerSession
 
 func EmptyRevocationList(SessionSize, NymSizePerSession int) RevocationList {
-	emptyRL := commit.EmptyRevocationList(SessionSize, NymSizePerSession)
+	emptyRL := commit.EmptyConstantRevocationAddList(SessionSize, NymSizePerSession)
 	return NewRevocationListWitness(emptyRL)
 }
 

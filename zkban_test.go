@@ -58,7 +58,7 @@ func prepare() TestParams {
 	signSnark, err := snark.InitSNARK(&circuit.SignCircuit{})
 	panicIfErr(err)
 
-	rl := commit.EmptyRevocationList(SessionSize, RevokedNymsPerSession)
+	rl := commit.EmptyLinerRevocationAddList(270, 35100)
 	witnessRL := circuit.NewRevocationListWitness(rl)
 
 	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{
