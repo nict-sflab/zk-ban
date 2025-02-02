@@ -10,13 +10,13 @@ import (
 	"github.com/consensys/gnark/backend/witness"
 )
 
-func Update(nextPeriod *big.Int, signer *commit.Signer, revokedNyms [][]*big.Int, sessionTags []*big.Int, gpk *commit.GroupPublicKey, prover *snark.SnarkProver) (*commit.Signer, groth16.Proof, witness.Witness, error) {
+func Update(nextPeriod *big.Int, signer *commit.Signer, rl commit.RevocationList, gpk *commit.GroupPublicKey, prover *snark.SnarkProver) (*commit.Signer, groth16.Proof, witness.Witness, error) {
 	nextSigner, err := signer.Next(nextPeriod)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, revokedNyms, sessionTags, gpk)
+	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, rl, gpk)
 
 	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {
