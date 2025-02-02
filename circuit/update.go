@@ -72,7 +72,7 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 type DefaultRevokedNyms [SessionSize][RevokedNymsPerSession]frontend.Variable
 type DefaultSessionTags [SessionSize]frontend.Variable
 
-func NewUpdateCircuitWitness(next, last *commit.Signer, revokedNyms [][]frontend.Variable, sessionTags []frontend.Variable, gpk signature.PublicKey) *UpdateCircuit {
+func NewUpdateCircuitWitness(next, last *commit.Signer, revokedNyms [][]*big.Int, sessionTags []*big.Int, gpk signature.PublicKey) *UpdateCircuit {
 	assign := &UpdateCircuit{
 		UserSecretKey: last.UserSecretKey.Number,
 		CurrentInfo: CredentialAuthInfo{
@@ -82,31 +82,12 @@ func NewUpdateCircuitWitness(next, last *commit.Signer, revokedNyms [][]frontend
 			Period:        next.Period,
 			UserPublicKey: next.UserPublicKey.Number,
 		},
-
-		RevocationList: RevocationList{
-			SessionTags: sessionTags,
-			RevokedNyms: revokedNyms,
-		},
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.CurrentInfo.Credential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
+	assign.RevocationList = NewRevocationListWitness(revokedNyms, sessionTags)
+
 	return assign
-}
-
-func NewDefaultRevocationListWitness(revokedNyms [SessionSize][RevokedNymsPerSession]*big.Int, sessionTags [SessionSize]*big.Int) (SessionTags, RevokedNyms) {
-	nyms := RevokedNyms{}
-	tags := SessionTags{}
-
-	for i := 0; i < SessionSize; i++ {
-		tags = append(tags, sessionTags[i])
-		nyms = append(nyms, []frontend.Variable{})
-
-		for j := 0; j < RevokedNymsPerSession; j++ {
-			nyms[i] = append(nyms[i], revokedNyms[i][j])
-		}
-	}
-
-	return tags, nyms
 }
