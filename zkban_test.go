@@ -68,8 +68,10 @@ func prepare() TestParams {
 	fmt.Printf("tags: %v\n", len(tags))
 
 	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{
-		RevokedNyms: nyms,
-		SessionTags: tags,
+		RevocationList: circuit.RevocationList{
+			RevokedNyms: nyms,
+			SessionTags: tags,
+		},
 	})
 	panicIfErr(err)
 

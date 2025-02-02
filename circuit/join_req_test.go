@@ -19,11 +19,11 @@ func TestJoinReq(t *testing.T) {
 	upk, err := usk.PublicKey(period)
 	assert.NoError(err)
 
-	assign := &JoinRequestCircuit{
-		UserSecretKey: usk.Number,
-		UserPublicKey: upk.Number,
-		Period:        period,
-	}
+	assign := NewJoinRequestWitness(
+		period,
+		upk.Number,
+		usk.Number,
+	)
 
 	assert.ProverSucceeded(&joinCercuit, assign, test.WithCurves(snark.EcCurve))
 }

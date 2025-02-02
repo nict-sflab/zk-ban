@@ -38,17 +38,7 @@ func TestSignCircuit(t *testing.T) {
 
 	authCircuit := SignCircuit{}
 
-	assign := &SignCircuit{
-		UserSecretKey: usk.Number,
-		Basename:      bsn,
-		Message:       m,
-		Commit1:       commit.Commit1,
-		Commit2:       commit.Commit2,
-		Period:        period,
-	}
+	witness := NewSignWitness(m, bsn, commit, &signer, gpk)
 
-	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Credential.Assign(snark.TwistededwardsCurve, cert.Signature)
-
-	assert.ProverSucceeded(&authCircuit, assign, test.WithCurves(snark.EcCurve))
+	assert.ProverSucceeded(&authCircuit, witness, test.WithCurves(snark.EcCurve))
 }
