@@ -16,8 +16,8 @@ const RevocationSpeed = 0.82
 const RevokedNymsPerSession = 130
 const SessionSize = 270
 
-type RevokedNyms [SessionSize][RevokedNymsPerSession]frontend.Variable
-type SessionTags [SessionSize]frontend.Variable
+type RevokedNyms [][]frontend.Variable
+type SessionTags []frontend.Variable
 
 type RevocationList struct {
 	SessionTags SessionTags `gnark:",public"`
@@ -35,7 +35,7 @@ type UpdateCircuit struct {
 var Scan = ScanConstantRevocations
 
 func ScanConstantRevocations(nym frontend.Variable, sessionId int, revokedNyms RevokedNyms, api frontend.API) {
-	for j := 0; j < RevokedNymsPerSession; j++ {
+	for j := 0; j < len(revokedNyms[sessionId]); j++ {
 		api.AssertIsDifferent(nym, revokedNyms[sessionId][j])
 	}
 }
@@ -57,8 +57,8 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	for i := 0; i < SessionSize; i++ {
-		nym, err := snark.CircuitHash(api, circuit.RevocationList.SessionTags[i], circuit.UserSecretKey)
+	for i, sessionTag := range circuit.RevocationList.SessionTags {
+		nym, err := snark.CircuitHash(api, sessionTag, circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
@@ -69,13 +69,15 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewUpdateCircuitWitness(revokedNyms [SessionSize][RevokedNymsPerSession]*big.Int, sessionTags [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *UpdateCircuit {
+type DefaultRevokedNyms [SessionSize][RevokedNymsPerSession]frontend.Variable
+type DefaultSessionTags [SessionSize]frontend.Variable
+
+func NewUpdateCircuitWitness(next, last *commit.Signer, revokedNyms [][]*big.Int, sessionTags []*big.Int, gpk signature.PublicKey) *UpdateCircuit {
 	assign := &UpdateCircuit{
 		UserSecretKey: last.UserSecretKey.Number,
 		CurrentInfo: CredentialAuthInfo{
 			Period: last.Period,
 		},
-
 		NextInfo: PublicKeyAuthInfo{
 			Period:        next.Period,
 			UserPublicKey: next.UserPublicKey.Number,
@@ -85,13 +87,7 @@ func NewUpdateCircuitWitness(revokedNyms [SessionSize][RevokedNymsPerSession]*bi
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.CurrentInfo.Credential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
-	for i := 0; i < SessionSize; i++ {
-		assign.RevocationList.SessionTags[i] = sessionTags[i]
-
-		for j := 0; j < RevokedNymsPerSession; j++ {
-			assign.RevocationList.RevokedNyms[i][j] = revokedNyms[i][j]
-		}
-	}
+	assign.RevocationList = NewRevocationListWitness(revokedNyms, sessionTags)
 
 	return assign
 }

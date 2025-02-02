@@ -31,8 +31,8 @@ type TestParams struct {
 	bsn            *big.Int
 	cert           *commit.Credential
 	nextPeriod     *big.Int
-	sessionName    [circuit.SessionSize]*big.Int
-	revocationList [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int
+	sessionName    []*big.Int
+	revocationList [][]*big.Int
 }
 
 func (params *TestParams) signer() *commit.Signer {
@@ -56,7 +56,10 @@ func prepare() TestParams {
 	signSnark, err := snark.InitSNARK(&circuit.SignCircuit{})
 	panicIfErr(err)
 
-	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{})
+	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{
+		RevocationList: circuit.EmptyRevocationList(circuit.SessionSize, circuit.RevokedNymsPerSession),
+	})
+
 	panicIfErr(err)
 
 	period := big.NewInt(2024)
@@ -75,17 +78,19 @@ func prepare() TestParams {
 	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
 
-	sn := [circuit.SessionSize]*big.Int{}
+	tags_ := []*big.Int{}
 
 	for i := 0; i < circuit.SessionSize; i++ {
-		sn[i] = big.NewInt(300)
+		tags_ = append(tags_, big.NewInt(300))
 	}
 
-	rl := [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int{}
+	nyms_ := [][]*big.Int{}
 
 	for i := 0; i < circuit.SessionSize; i++ {
+		nyms_ = append(nyms_, []*big.Int{})
+
 		for j := 0; j < circuit.RevokedNymsPerSession; j++ {
-			rl[i][j] = big.NewInt(300)
+			nyms_[i] = append(nyms_[i], big.NewInt(300))
 		}
 	}
 
@@ -102,8 +107,8 @@ func prepare() TestParams {
 		period:         period,
 		cert:           cert,
 		nextPeriod:     nextPeriod,
-		sessionName:    sn,
-		revocationList: rl,
+		sessionName:    tags_,
+		revocationList: nyms_,
 	}
 }
 
@@ -129,7 +134,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		_, proof, pubWit, err := Update(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.updateSnark.Prover())
+		_, proof, pubWit, err := Update(params.nextPeriod, params.signer(), params.revocationList, params.sessionName, params.gpk, params.updateSnark.Prover())
 		assert.NoError(err)
 
 		err = groth16.Verify(proof, params.updateSnark.VerifyKey, pubWit)
@@ -184,7 +189,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, pubWit, err = Update(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.updateSnark.Prover())
+			_, _, _, err := Update(params.nextPeriod, params.signer(), params.revocationList, params.sessionName, params.gpk, params.updateSnark.Prover())
 			panicIfErr(err)
 		}
 	})
