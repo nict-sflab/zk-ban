@@ -13,8 +13,8 @@ import (
 )
 
 type SignCircuit struct {
-	Credential     eddsa.Signature   `gnark:"cert"`
-	UserSecretKey  frontend.Variable `gnark:"sk"`
+	Credential     eddsa.Signature   `gnark:",secret"`
+	UserSecretKey  frontend.Variable `gnark:",secret"`
 	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
 	Basename       frontend.Variable `gnark:",public"`
 	Message        frontend.Variable `gnark:",public"`
