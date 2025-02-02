@@ -13,18 +13,18 @@ import (
 // const RevocationListSize = 223
 // const RevocationSpeed = 0.82
 
-const RevocationPerSession = 130
+const RevokedNymsPerSession = 130
 const SessionSize = 270
 
 type UpdateCircuit struct {
-	UserSecretKey     frontend.Variable                                    `gnark:"sk"`
-	LastCredential    eddsa.Signature                                      `gnark:"cert"`
-	LastPeriod        frontend.Variable                                    `gnark:",public"`
-	GroupPublicKey    eddsa.PublicKey                                      `gnark:",public"`
-	NextUserPublicKey frontend.Variable                                    `gnark:",public"`
-	NextPeriod        frontend.Variable                                    `gnark:",public"`
-	SessionNames      [SessionSize]frontend.Variable                       `gnark:",public"`
-	Commits           [SessionSize][RevocationPerSession]frontend.Variable `gnark:",public"`
+	UserSecretKey     frontend.Variable                                     `gnark:"sk"`
+	LastCredential    eddsa.Signature                                       `gnark:"cert"`
+	LastPeriod        frontend.Variable                                     `gnark:",public"`
+	GroupPublicKey    eddsa.PublicKey                                       `gnark:",public"`
+	NextUserPublicKey frontend.Variable                                     `gnark:",public"`
+	NextPeriod        frontend.Variable                                     `gnark:",public"`
+	SessionTags       [SessionSize]frontend.Variable                        `gnark:",public"`
+	RevokedNyms       [SessionSize][RevokedNymsPerSession]frontend.Variable `gnark:",public"`
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
@@ -39,22 +39,22 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 	}
 
 	for i := 0; i < SessionSize; i++ {
-		commit, err := snark.CircuitHash(api, circuit.SessionNames[i], circuit.UserSecretKey)
+		nym, err := snark.CircuitHash(api, circuit.SessionTags[i], circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
 
 		// max := int(RevocationSpeed * float64(i))
 		// for j := 0; j < max; j++ {
-		for j := 0; j < RevocationPerSession; j++ {
-			api.AssertIsDifferent(commit, circuit.Commits[i][j])
+		for j := 0; j < RevokedNymsPerSession; j++ {
+			api.AssertIsDifferent(nym, circuit.RevokedNyms[i][j])
 		}
 	}
 
 	return nil
 }
 
-func NewUpdateCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int, sessionNames [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *UpdateCircuit {
+func NewUpdateCircuitWitness(commit [SessionSize][RevokedNymsPerSession]*big.Int, sessionNames [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *UpdateCircuit {
 	assign := &UpdateCircuit{
 		UserSecretKey:     last.UserSecretKey.Number,
 		LastPeriod:        last.Period,
@@ -66,10 +66,10 @@ func NewUpdateCircuitWitness(commit [SessionSize][RevocationPerSession]*big.Int,
 	assign.LastCredential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
 	for i := 0; i < SessionSize; i++ {
-		assign.SessionNames[i] = sessionNames[i]
+		assign.SessionTags[i] = sessionNames[i]
 
-		for j := 0; j < RevocationPerSession; j++ {
-			assign.Commits[i][j] = commit[i][j]
+		for j := 0; j < RevokedNymsPerSession; j++ {
+			assign.RevokedNyms[i][j] = commit[i][j]
 		}
 	}
 
