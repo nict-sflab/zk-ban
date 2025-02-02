@@ -11,20 +11,37 @@ import (
 )
 
 // const RevocationListSize = 223
-// const RevocationSpeed = 0.82
+const RevocationSpeed = 0.82
 
 const RevokedNymsPerSession = 130
 const SessionSize = 270
 
+type RevokedNyms [SessionSize][RevokedNymsPerSession]frontend.Variable
+type SessionTags [SessionSize]frontend.Variable
+
 type UpdateCircuit struct {
-	UserSecretKey     frontend.Variable                                     `gnark:"sk"`
-	LastCredential    eddsa.Signature                                       `gnark:"cert"`
-	LastPeriod        frontend.Variable                                     `gnark:",public"`
-	GroupPublicKey    eddsa.PublicKey                                       `gnark:",public"`
-	NextUserPublicKey frontend.Variable                                     `gnark:",public"`
-	NextPeriod        frontend.Variable                                     `gnark:",public"`
-	SessionTags       [SessionSize]frontend.Variable                        `gnark:",public"`
-	RevokedNyms       [SessionSize][RevokedNymsPerSession]frontend.Variable `gnark:",public"`
+	UserSecretKey     frontend.Variable `gnark:"sk"`
+	LastCredential    eddsa.Signature   `gnark:"cert"`
+	LastPeriod        frontend.Variable `gnark:",public"`
+	GroupPublicKey    eddsa.PublicKey   `gnark:",public"`
+	NextUserPublicKey frontend.Variable `gnark:",public"`
+	NextPeriod        frontend.Variable `gnark:",public"`
+	SessionTags       SessionTags       `gnark:",public"`
+	RevokedNyms       RevokedNyms       `gnark:",public"`
+}
+
+var Scan = ScanConstantRevocations
+
+func ScanConstantRevocations(nym frontend.Variable, sessionId int, revokedNyms RevokedNyms, api frontend.API) {
+	for j := 0; j < RevokedNymsPerSession; j++ {
+		api.AssertIsDifferent(nym, revokedNyms[sessionId][j])
+	}
+}
+func ScanIncrementalRevocations(nym frontend.Variable, sessionId int, revokedNyms RevokedNyms, api frontend.API) {
+	max := int(RevocationSpeed * float64(sessionId))
+	for j := 0; j < max; j++ {
+		api.AssertIsDifferent(nym, revokedNyms[sessionId][j])
+	}
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
@@ -44,17 +61,13 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 			return err
 		}
 
-		// max := int(RevocationSpeed * float64(i))
-		// for j := 0; j < max; j++ {
-		for j := 0; j < RevokedNymsPerSession; j++ {
-			api.AssertIsDifferent(nym, circuit.RevokedNyms[i][j])
-		}
+		Scan(nym, i, circuit.RevokedNyms, api)
 	}
 
 	return nil
 }
 
-func NewUpdateCircuitWitness(commit [SessionSize][RevokedNymsPerSession]*big.Int, sessionNames [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *UpdateCircuit {
+func NewUpdateCircuitWitness(revokedNyms [SessionSize][RevokedNymsPerSession]*big.Int, sessionTags [SessionSize]*big.Int, next, last *commit.Signer, gpk signature.PublicKey) *UpdateCircuit {
 	assign := &UpdateCircuit{
 		UserSecretKey:     last.UserSecretKey.Number,
 		LastPeriod:        last.Period,
@@ -66,10 +79,10 @@ func NewUpdateCircuitWitness(commit [SessionSize][RevokedNymsPerSession]*big.Int
 	assign.LastCredential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
 	for i := 0; i < SessionSize; i++ {
-		assign.SessionTags[i] = sessionNames[i]
+		assign.SessionTags[i] = sessionTags[i]
 
 		for j := 0; j < RevokedNymsPerSession; j++ {
-			assign.RevokedNyms[i][j] = commit[i][j]
+			assign.RevokedNyms[i][j] = revokedNyms[i][j]
 		}
 	}
 
