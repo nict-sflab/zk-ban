@@ -1,4 +1,4 @@
-package zkban_test
+package zkbantest
 
 import (
 	"math/big"
@@ -7,6 +7,9 @@ import (
 	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
 )
+
+var SessionSize = 270
+var RevokedNymsPerSession = 130
 
 func panicIfErr(err error) {
 	if err != nil {
@@ -27,8 +30,7 @@ type TestParams struct {
 	bsn            *big.Int
 	cert           *commit.Credential
 	nextPeriod     *big.Int
-	sessionName    [circuit.SessionSize]*big.Int
-	revocationList [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int
+	revocationList commit.RevocationList
 }
 
 func (params *TestParams) signer() *commit.Signer {
@@ -52,38 +54,30 @@ func prepare() TestParams {
 	signSnark, err := snark.InitSNARK(&circuit.SignCircuit{})
 	panicIfErr(err)
 
-	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{})
+	rl := commit.EmptyLinerRevocationAddList(270, 35100)
+	witnessRL := circuit.NewRevocationListWitness(rl)
+
+	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{
+		RevocationList: witnessRL,
+	})
+
 	panicIfErr(err)
 
 	period := big.NewInt(2024)
 	nextPeriod := big.NewInt(2025)
 
 	var usk = &commit.UserSecretKey{
-		Number: big.NewInt(100),
+		Number: big.NewInt(102),
 	}
 
 	upk, err := usk.PublicKey(period)
 	panicIfErr(err)
 
 	m := big.NewInt(100)
-	bsn := big.NewInt(100)
+	bsn := big.NewInt(101)
 
 	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
-
-	sn := [circuit.SessionSize]*big.Int{}
-
-	for i := 0; i < circuit.SessionSize; i++ {
-		sn[i] = big.NewInt(300)
-	}
-
-	rl := [circuit.SessionSize][circuit.RevokedNymsPerSession]*big.Int{}
-
-	for i := 0; i < circuit.SessionSize; i++ {
-		for j := 0; j < circuit.RevokedNymsPerSession; j++ {
-			rl[i][j] = big.NewInt(300)
-		}
-	}
 
 	return TestParams{
 		gpk:            gpk,
@@ -98,7 +92,6 @@ func prepare() TestParams {
 		period:         period,
 		cert:           cert,
 		nextPeriod:     nextPeriod,
-		sessionName:    sn,
 		revocationList: rl,
 	}
 }
