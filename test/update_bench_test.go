@@ -24,10 +24,6 @@ func BenchmarkUpdate(t *testing.B) {
 	}
 
 	for i := 1; i <= 10; i++ {
-		benchmarkUpdate(false, 1, 270*30*i, t)
-	}
-
-	for i := 1; i <= 10; i++ {
 		benchmarkUpdate(true, 60*i, 35000, t)
 	}
 
