@@ -14,12 +14,14 @@ func BenchmarkUpdate(t *testing.B) {
 	for i := 0; i < 10; i++ {
 		benchmarkUpdate(true, 270, 40*i, t)
 		benchmarkUpdate(false, 270, 40*i, t)
+
+		benchmarkUpdate(true, 1, 40*i*270, t)
 		benchmarkUpdate(false, 1, 40*i*270, t)
 	}
 
 	for i := 0; i < 10; i++ {
-		benchmarkUpdate(true, 35000/i, 35000, t)
-		benchmarkUpdate(false, 35000/i, 35000, t)
+		benchmarkUpdate(true, 60*i, 35000, t)
+		benchmarkUpdate(false, 60*i, 35000, t)
 	}
 }
 
