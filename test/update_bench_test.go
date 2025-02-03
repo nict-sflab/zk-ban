@@ -11,27 +11,27 @@ import (
 )
 
 func BenchmarkUpdate(t *testing.B) {
-	for i := 0; i < 10; i++ {
+	for i := 1; i <= 10; i++ {
 		benchmarkUpdate(true, 270, 40*i, t)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 1; i <= 10; i++ {
 		benchmarkUpdate(false, 270, 40*i, t)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 1; i <= 10; i++ {
 		benchmarkUpdate(true, 1, 40*270*i, t)
 	}
-	
-	for i := 0; i < 10; i++ {
+
+	for i := 1; i <= 10; i++ {
 		benchmarkUpdate(false, 1, 40*270*i, t)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 1; i <= 10; i++ {
 		benchmarkUpdate(true, 60*i, 35000, t)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 1; i <= 10; i++ {
 		benchmarkUpdate(false, 60*i, 35000, t)
 	}
 }
