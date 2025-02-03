@@ -8,8 +8,18 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-func authCert(api frontend.API, period, usk frontend.Variable, cert eddsa.Signature, gpk eddsa.PublicKey) error {
-	upk, err := snark.CircuitHash(api, period, usk)
+type CredentialAuthInfo struct {
+	Credential eddsa.Signature   `gnark:",secret"`
+	Period     frontend.Variable `gnark:",public"`
+}
+
+type PublicKeyAuthInfo struct {
+	UserPublicKey frontend.Variable `gnark:",public"`
+	Period        frontend.Variable `gnark:",public"`
+}
+
+func authCredential(api frontend.API, info CredentialAuthInfo, usk frontend.Variable, gpk eddsa.PublicKey) error {
+	upk, err := snark.CircuitHash(api, info.Period, usk)
 	if err != nil {
 		return err
 	}
@@ -24,7 +34,7 @@ func authCert(api frontend.API, period, usk frontend.Variable, cert eddsa.Signat
 		return err
 	}
 
-	err = eddsa.Verify(curve, cert, upk, gpk, hash)
+	err = eddsa.Verify(curve, info.Credential, upk, gpk, hash)
 	if err != nil {
 		return err
 	}
@@ -32,13 +42,13 @@ func authCert(api frontend.API, period, usk frontend.Variable, cert eddsa.Signat
 	return nil
 }
 
-func authPubKey(api frontend.API, period, usk, upk frontend.Variable) error {
-	upk_dash, err := snark.CircuitHash(api, period, usk)
+func authPubKey(api frontend.API, info PublicKeyAuthInfo, usk frontend.Variable) error {
+	upk_dash, err := snark.CircuitHash(api, info.Period, usk)
 	if err != nil {
 		return err
 	}
 
-	api.AssertIsEqual(upk, upk_dash)
+	api.AssertIsEqual(info.UserPublicKey, upk_dash)
 
 	return nil
 }

@@ -6,9 +6,14 @@ import (
 	"github.com/consensys/gnark-crypto/hash"
 )
 
+// var NewCircuitHash = circuit.NewPoseidon
+// var NewCommitHash = poseidon.NewPoseidon
+// var CommitHash = commit.PoseidonHash
+
 var NewCircuitHash = circuit.NewMIMC
-var CircuitHash = circuit.HashMaker(NewCircuitHash)
+var NewCommitHash = NewCommitHashBase.New
+var CommitHash = commit.MimcHash(NewCommitHashBase)
 
 var NewCommitHashBase = hash.MIMC_BLS12_381
-var NewCommitHash = NewCommitHashBase.New()
-var CommitHash = commit.MimcHash(NewCommitHashBase)
+
+var CircuitHash = circuit.HashMaker(NewCircuitHash)

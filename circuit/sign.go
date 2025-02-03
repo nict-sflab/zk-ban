@@ -13,40 +13,38 @@ import (
 )
 
 type SignCircuit struct {
-	Credential     eddsa.Signature   `gnark:"cert"`
-	UserSecretKey  frontend.Variable `gnark:"sk"`
-	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
-	Basename       frontend.Variable `gnark:",public"`
-	Message        frontend.Variable `gnark:",public"`
-	Commit1        frontend.Variable `gnark:",public"`
-	Commit2        frontend.Variable `gnark:",public"`
-	Period         frontend.Variable `gnark:",public"`
+	UserSecretKey      frontend.Variable `gnark:",secret"`
+	CredentialAuthInfo CredentialAuthInfo
+	GroupPublicKey     eddsa.PublicKey   `gnark:",public"`
+	Basename           frontend.Variable `gnark:",public"`
+	Message            frontend.Variable `gnark:",public"`
+	Signature          frontend.Variable `gnark:",public"`
+	Nym                frontend.Variable `gnark:",public"`
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
-	err := authCert(
+	err := authCredential(
 		api,
-		circuit.Period,
+		circuit.CredentialAuthInfo,
 		circuit.UserSecretKey,
-		circuit.Credential,
 		circuit.GroupPublicKey)
 
 	if err != nil {
 		return err
 	}
 
-	commit1, err := snark.CircuitHash(api, circuit.Message, circuit.UserSecretKey)
+	signature, err := snark.CircuitHash(api, circuit.Message, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
-	commit2, err := snark.CircuitHash(api, circuit.Period, circuit.Basename, circuit.UserSecretKey)
+	nym, err := snark.CircuitHash(api, circuit.CredentialAuthInfo.Period, circuit.Basename, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
-	api.AssertIsEqual(circuit.Commit1, commit1)
-	api.AssertIsEqual(circuit.Commit2, commit2)
+	api.AssertIsEqual(circuit.Signature, signature)
+	api.AssertIsEqual(circuit.Nym, nym)
 
 	return nil
 }
@@ -54,15 +52,17 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.Signer, gpk signature.PublicKey) *SignCircuit {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
-		Basename:      bsn,
-		Message:       m,
-		Commit1:       commit.Commit1,
-		Commit2:       commit.Commit2,
-		Period:        signer.Period,
+		CredentialAuthInfo: CredentialAuthInfo{
+			Period: signer.Period,
+		},
+		Basename:  bsn,
+		Message:   m,
+		Signature: commit.Commit1,
+		Nym:       commit.Commit2,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
+	assign.CredentialAuthInfo.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
 	return assign
 }
