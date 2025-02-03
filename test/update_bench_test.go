@@ -15,8 +15,8 @@ func BenchmarkUpdate(t *testing.B) {
 		benchmarkUpdate(true, 270, 40*i, t)
 		benchmarkUpdate(false, 270, 40*i, t)
 
-		benchmarkUpdate(true, 1, 40*i*270, t)
-		benchmarkUpdate(false, 1, 40*i*270, t)
+		benchmarkUpdate(true, 1, 40*270*i, t)
+		benchmarkUpdate(false, 1, 40*270*i, t)
 	}
 
 	for i := 0; i < 10; i++ {
@@ -41,7 +41,7 @@ func benchmarkUpdate(useConstant bool, a, b int, t *testing.B) {
 
 	_, _, updateCircuit := prepareCircuit(rl, true)
 
-	tag1 := fmt.Sprintf("update (%v, %d, %d)", useConstant, a, b)
+	tag1 := fmt.Sprintf("update-request (%v, %d, %d)", useConstant, a, b)
 	tag2 := fmt.Sprintf("update-verify (%v, %d, %d)", useConstant, a, b)
 
 	t.Run(tag1, func(b *testing.B) {
