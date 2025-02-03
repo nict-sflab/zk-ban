@@ -55,7 +55,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, pubWit, err = zkban.Update(params.revocationList, params.nextPeriod, params.signer(), params.sessionName, params.gpk, params.updateSnark.Prover())
+			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.signer(), params.revocationList, params.gpk, params.updateSnark.Prover())
 			panicIfErr(err)
 		}
 	})
