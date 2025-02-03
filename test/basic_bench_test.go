@@ -1,4 +1,4 @@
-package zkban_test
+package zkbantest
 
 import (
 	"testing"
