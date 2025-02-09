@@ -43,11 +43,11 @@ func benchmarkUpdate(useConstant bool, a, b int, t *testing.B) {
 	var tag = ""
 	if useConstant {
 		rl = commit.EmptyConstantRevocationAddList(a, b)
-		tag = fmt.Sprintf("%d,%d,%d,%v", a*b, b, a, "constant")
+		tag = fmt.Sprintf("%d,%d,%d,%v", a*b, a, b, "constant")
 
 	} else {
 		rl = commit.EmptyLinerRevocationAddList(a, b)
-		tag = fmt.Sprintf("%d,%d,%v,%v", a, b, "-", "linear")
+		tag = fmt.Sprintf("%d,%d,%v,%v", b, a, "-", "linear")
 	}
 
 	_, _, updateCircuit := prepareCircuit(rl, true)
