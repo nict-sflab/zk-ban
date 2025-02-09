@@ -1,8 +1,6 @@
 package commit
 
-import (
-	"math/big"
-)
+import "math/big"
 
 type RevocationList []RevokedNymsPerSession
 type RevokedNymsPerSession struct {

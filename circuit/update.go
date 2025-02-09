@@ -47,7 +47,6 @@ func NewUpdateCircuitWitness(next, last *commit.Signer, revocationList commit.Re
 		CurrentInfo: CredentialAuthInfo{
 			Period: last.Period,
 		},
-
 		NextInfo: PublicKeyAuthInfo{
 			Period:        next.Period,
 			UserPublicKey: next.UserPublicKey.Number,
