@@ -23,14 +23,18 @@ goos: linux
 goarch: amd64
 pkg: github.com/akakou/zk-ban/test
 cpu: Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz
-BenchmarkAll/join_req-16                       5          14418801 ns/op
-BenchmarkAll/verify_join_req-16                5           2088670 ns/op
-BenchmarkAll/sign-16                           5          75351809 ns/op
-BenchmarkAll/verify-16                         5           2103861 ns/op
-BenchmarkAll/update-req-16                     5        1077088720 ns/op
-BenchmarkAll/update-verify-16                  5           5847203 ns/op
+BenchmarkAll/join_req-16                       5          14789137 ns/op
+BenchmarkAll/verify_join_req-16                5           2365974 ns/op
+BenchmarkAll/sign-16                           5          74586961 ns/op
+BenchmarkAll/verify-16                         5           2412382 ns/op
+BenchmarkAll/update-req_(constant)-16                  5        1090865694 ns/op
+BenchmarkAll/update-verify_(constant)-16               5           5914462 ns/op
+BenchmarkAll/update-req_(linear)-16                    5        1017619754 ns/op
+BenchmarkAll/update-verify_(linear)-16                 5           2374631 ns/op
+BenchmarkAll/update-req_(one_session)-16               5         246248717 ns/op
+BenchmarkAll/update-verify_(one_session)-16            5           6695769 ns/op
 PASS
-ok      github.com/akakou/zk-ban/test   39.990s
+ok      github.com/akakou/zk-ban/test   63.898s
 
 akakou@ra-webs:~/zk-ban/test$ go test --bench BenchmarkUpdate . -timeout 0 -benchtime 5x 
 goos: linux
