@@ -3,8 +3,6 @@ package circuit
 import (
 	"math/big"
 
-	"github.com/consensys/gnark-crypto/signature"
-
 	"github.com/consensys/gnark/std/signature/eddsa"
 
 	"github.com/akakou/zk-ban/commit"
@@ -49,7 +47,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.Signer, gpk signature.PublicKey) *SignCircuit {
+func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.Signer) *SignCircuit {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		CredentialAuthInfo: CredentialAuthInfo{
@@ -61,7 +59,7 @@ func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.S
 		Nym:       commit.Commit2,
 	}
 
-	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, signer.GroupPublicKey.Bytes())
 	assign.CredentialAuthInfo.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
 	return assign
