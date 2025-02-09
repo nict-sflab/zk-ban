@@ -12,8 +12,13 @@ import (
 func BenchmarkAll(t *testing.B) {
 	params := prepareParams()
 
-	rl := commit.EmptyConstantRevocationAddList(270, 130)
-	joinCircuit, signCircuit, updateCircuit := prepareCircuit(rl, false)
+	rl1 := commit.EmptyConstantRevocationAddList(270, 130)
+	rl2 := commit.EmptyLinerRevocationAddList(270, 130*270)
+	rl3 := commit.EmptyConstantRevocationAddList(1, 130*270)
+
+	joinCircuit, signCircuit, updateCircuit1 := prepareCircuit(rl1, false)
+	_, _, updateCircuit2 := prepareCircuit(rl2, true)
+	_, _, updateCircuit3 := prepareCircuit(rl3, true)
 
 	var proof groth16.Proof
 	var pubWit witness.Witness
@@ -55,22 +60,62 @@ func BenchmarkAll(t *testing.B) {
 		}
 	})
 
-	t.Run("update-req", func(b *testing.B) {
+	t.Run("update-req (constant)", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
+			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl1, updateCircuit1.Prover())
 			panicIfErr(err)
 		}
 	})
 
-	t.Run("update-verify", func(b *testing.B) {
+	t.Run("update-verify (constant)", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
 			params.gsk.IssueCredential(params.upk)
 
-			err = groth16.Verify(proof, updateCircuit.VerifyKey, pubWit)
+			err = groth16.Verify(proof, updateCircuit1.VerifyKey, pubWit)
+			panicIfErr(err)
+		}
+	})
+
+	t.Run("update-req (linear)", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl2, updateCircuit2.Prover())
+			panicIfErr(err)
+		}
+	})
+
+	t.Run("update-verify (linear)", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			params.gsk.IssueCredential(params.upk)
+
+			err = groth16.Verify(proof, updateCircuit2.VerifyKey, pubWit)
+			panicIfErr(err)
+		}
+	})
+
+	t.Run("update-req (one session)", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl3, updateCircuit3.Prover())
+			panicIfErr(err)
+		}
+	})
+
+	t.Run("update-verify (one session)", func(b *testing.B) {
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			params.gsk.IssueCredential(params.upk)
+
+			err = groth16.Verify(proof, updateCircuit3.VerifyKey, pubWit)
 			panicIfErr(err)
 		}
 	})
