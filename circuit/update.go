@@ -3,7 +3,6 @@ package circuit
 import (
 	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
-	"github.com/consensys/gnark-crypto/signature"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
@@ -41,7 +40,7 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewUpdateCircuitWitness(next, last *commit.Signer, revocationList commit.RevocationList, gpk signature.PublicKey) *UpdateCircuit {
+func NewUpdateCircuitWitness(next, last *commit.Signer, revocationList commit.RevocationList) *UpdateCircuit {
 	assign := &UpdateCircuit{
 		UserSecretKey: last.UserSecretKey.Number,
 		CurrentInfo: CredentialAuthInfo{
@@ -53,7 +52,7 @@ func NewUpdateCircuitWitness(next, last *commit.Signer, revocationList commit.Re
 		},
 	}
 
-	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, last.GroupPublicKey.Bytes())
 	assign.CurrentInfo.Credential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
 	rl := RevocationList{}
