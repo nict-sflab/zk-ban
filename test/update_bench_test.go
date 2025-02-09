@@ -40,18 +40,19 @@ func benchmarkUpdate(useConstant bool, a, b int, t *testing.B) {
 	var err error
 
 	var rl commit.RevocationList
+	var tag = ""
 	if useConstant {
 		rl = commit.EmptyConstantRevocationAddList(a, b)
+		tag = fmt.Sprintf("%d,%d,%d,%v", a*b, b, a, "constant")
+
 	} else {
 		rl = commit.EmptyLinerRevocationAddList(a, b)
+		tag = fmt.Sprintf("%d,%d,%v,%v", a, b, "-", "linear")
 	}
 
 	_, _, updateCircuit := prepareCircuit(rl, true)
 
-	tag1 := fmt.Sprintf("update-request (%v, %d, %d)", useConstant, a, b)
-	tag2 := fmt.Sprintf("update-verify (%v, %d, %d)", useConstant, a, b)
-
-	t.Run(tag1, func(b *testing.B) {
+	t.Run("Prove ,"+tag, func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
@@ -60,7 +61,7 @@ func benchmarkUpdate(useConstant bool, a, b int, t *testing.B) {
 		}
 	})
 
-	t.Run(tag2, func(b *testing.B) {
+	t.Run("Verify ,"+tag, func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
