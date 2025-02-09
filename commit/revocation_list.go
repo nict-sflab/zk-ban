@@ -31,7 +31,7 @@ func EmptyConstantRevocationAddList(SessionSize, NymSizePerSession int) Revocati
 func EmptyLinerRevocationAddList(SessionSize, RevocationListSize int) RevocationList {
 	rl := RevocationList{}
 
-	a := RevocationListSize / (2 * SessionSize * SessionSize)
+	a := 2 * RevocationListSize / (SessionSize * SessionSize)
 
 	for i := 0; i < SessionSize; i++ {
 		nyms := []*big.Int{}
