@@ -39,10 +39,11 @@ type TestParams struct {
 
 func (params *TestParams) signer() *commit.Signer {
 	signer := commit.Signer{
-		UserSecretKey: params.usk,
-		UserPublicKey: params.upk,
-		Credential:    params.cert,
-		Period:        params.period,
+		UserSecretKey:  params.usk,
+		UserPublicKey:  params.upk,
+		Credential:     params.cert,
+		Period:         params.period,
+		GroupPublicKey: params.gpk,
 	}
 
 	return &signer
