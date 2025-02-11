@@ -39,10 +39,11 @@ type TestParams struct {
 
 func (params *TestParams) signer() *commit.Signer {
 	signer := commit.Signer{
-		UserSecretKey: params.usk,
-		UserPublicKey: params.upk,
-		Credential:    params.cert,
-		Period:        params.period,
+		UserSecretKey:  params.usk,
+		UserPublicKey:  params.upk,
+		Credential:     params.cert,
+		Period:         params.period,
+		GroupPublicKey: params.gpk,
 	}
 
 	return &signer
@@ -122,7 +123,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		_, proof, pubWit, err := Update(params.nextPeriod, params.signer(), params.revocationList, params.gpk, params.updateSnark.Prover())
+		_, proof, pubWit, err := Update(params.nextPeriod, params.gpk, params.signer(), params.revocationList, params.updateSnark.Prover())
 		assert.NoError(err)
 
 		err = groth16.Verify(proof, params.updateSnark.VerifyKey, pubWit)
@@ -177,7 +178,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, pubWit, err = Update(params.nextPeriod, params.signer(), params.revocationList, params.gpk, params.updateSnark.Prover())
+			_, proof, pubWit, err = Update(params.nextPeriod, params.gpk, params.signer(), params.revocationList, params.updateSnark.Prover())
 			panicIfErr(err)
 		}
 	})
