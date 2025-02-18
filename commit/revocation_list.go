@@ -6,8 +6,9 @@ import (
 
 type RevocationList []RevokedNymsPerSession
 type RevokedNymsPerSession struct {
-	SessionTag *big.Int
-	Nyms       []*big.Int
+	Period   *big.Int
+	Basename *big.Int
+	Nyms     []*big.Int
 }
 
 func EmptyConstantRevocationAddList(SessionSize, NymSizePerSession int) RevocationList {
@@ -20,8 +21,9 @@ func EmptyConstantRevocationAddList(SessionSize, NymSizePerSession int) Revocati
 		}
 
 		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: big.NewInt(0),
+			Nyms:     nyms,
+			Period:   big.NewInt(0),
+			Basename: big.NewInt(0),
 		})
 	}
 
@@ -40,8 +42,9 @@ func EmptyLinerRevocationAddList(SessionSize, RevocationListSize int) Revocation
 		}
 
 		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: big.NewInt(0),
+			Nyms:     nyms,
+			Period:   big.NewInt(0),
+			Basename: big.NewInt(0),
 		})
 	}
 

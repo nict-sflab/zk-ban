@@ -27,7 +27,7 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 	}
 
 	for _, revokedPerSession := range circuit.RevocationList {
-		nym, err := snark.CircuitHash(api, revokedPerSession.SessionTag, circuit.UserSecretKey)
+		nym, err := snark.CircuitHash(api, revokedPerSession.Period, revokedPerSession.Basename, circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}
@@ -64,8 +64,9 @@ func NewUpdateCircuitWitness(next, last *commit.Signer, revocationList commit.Re
 		}
 
 		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: rps.SessionTag,
+			Nyms:     nyms,
+			Period:   rps.Period,
+			Basename: rps.Basename,
 		})
 	}
 

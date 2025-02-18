@@ -6,8 +6,9 @@ import (
 )
 
 type RevokedNymsPerSession struct {
-	Nyms       []frontend.Variable `gnark:",public"`
-	SessionTag frontend.Variable   `gnark:",public"`
+	Nyms     []frontend.Variable `gnark:",public"`
+	Period   frontend.Variable   `gnark:",public"`
+	Basename frontend.Variable   `gnark:",public"`
 }
 type RevocationList []RevokedNymsPerSession
 
@@ -26,8 +27,9 @@ func NewRevocationListWitness(revocationList commit.RevocationList) RevocationLi
 		}
 
 		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: rps.SessionTag,
+			Nyms:     nyms,
+			Period:   rps.Period,
+			Basename: rps.Basename,
 		})
 	}
 
