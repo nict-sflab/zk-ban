@@ -1,6 +1,6 @@
 module github.com/akakou/zk-ban
 
-go 1.22.6
+go 1.23.0
 
 require (
 	github.com/consensys/gnark v0.12.0
