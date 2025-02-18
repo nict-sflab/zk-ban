@@ -7,8 +7,8 @@ import (
 )
 
 type SignCommit struct {
-	Commit1 *big.Int
-	Commit2 *big.Int
+	Sigma *big.Int
+	Nym   *big.Int
 }
 
 type Signer struct {
@@ -30,7 +30,7 @@ func (signer *Signer) CommitSign(m, sessionTag *big.Int) (*SignCommit, error) {
 		return nil, err
 	}
 
-	return &SignCommit{Commit1: commit1, Commit2: commit2}, nil
+	return &SignCommit{Sigma: commit1, Nym: commit2}, nil
 }
 
 func (signer *Signer) NextWithoutCred(nextPeriod *big.Int, nextGpk *GroupPublicKey) (*Signer, error) {

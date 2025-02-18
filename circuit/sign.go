@@ -57,8 +57,8 @@ func NewSignWitness(m, sessionTag *big.Int, commit *commit.SignCommit, signer *c
 		},
 		SessionTag: sessionTag,
 		Message:    m,
-		Signature:  commit.Commit1,
-		Nym:        commit.Commit2,
+		Signature:  commit.Sigma,
+		Nym:        commit.Nym,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
