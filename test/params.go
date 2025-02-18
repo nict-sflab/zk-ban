@@ -4,8 +4,8 @@ import (
 	"math/big"
 
 	"github.com/akakou/zk-ban/circuit"
-	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
+	"github.com/akakou/zk-ban/witness"
 )
 
 var SessionSize = 270
@@ -18,19 +18,19 @@ func panicIfErr(err error) {
 }
 
 type TestParams struct {
-	gpk        *commit.GroupPublicKey
-	gsk        *commit.GroupSecretKey
-	upk        *commit.UserPublicKey
-	usk        *commit.UserSecretKey
+	gpk        *witness.GroupPublicKey
+	gsk        *witness.GroupSecretKey
+	upk        *witness.UserPublicKey
+	usk        *witness.UserSecretKey
 	m          *big.Int
 	period     *big.Int
 	cnt        *big.Int
-	cert       *commit.Credential
+	cert       *witness.Credential
 	nextPeriod *big.Int
 }
 
-func (params *TestParams) signer() *commit.Signer {
-	signer := commit.Signer{
+func (params *TestParams) signer() *witness.Signer {
+	signer := witness.Signer{
 		UserSecretKey:  params.usk,
 		UserPublicKey:  params.upk,
 		Credential:     params.cert,
@@ -41,7 +41,7 @@ func (params *TestParams) signer() *commit.Signer {
 	return &signer
 }
 
-func prepareCircuit(rl commit.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
+func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
 	var err error
 	var joinSnark *snark.SnarkParams = nil
 	var signSnark *snark.SnarkParams = nil
@@ -67,13 +67,13 @@ func prepareCircuit(rl commit.RevocationList, omitJoinAndSign bool) (*snark.Snar
 }
 
 func prepareParams() TestParams {
-	gsk, gpk, err := commit.RandomGroupKeyPair()
+	gsk, gpk, err := witness.RandomGroupKeyPair()
 	panicIfErr(err)
 
 	period := big.NewInt(2024)
 	nextPeriod := big.NewInt(2025)
 
-	var usk = &commit.UserSecretKey{
+	var usk = &witness.UserSecretKey{
 		Number: big.NewInt(102),
 	}
 

@@ -7,7 +7,7 @@ import (
 
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/circuit"
-	"github.com/akakou/zk-ban/commit"
+	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/test"
@@ -20,8 +20,8 @@ func TestAll(t *testing.T) {
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := commit.EmptyConstantRevocationAddList(270, 130)
-	rldash := commit.EmptyConstantRevocationAddList(270, 130)
+	rl := witness.EmptyConstantRevocationAddList(270, 130)
+	rldash := witness.EmptyConstantRevocationAddList(270, 130)
 
 	joinCircuit, signCircuit, updateCircuit := prepareCircuit(rl, false)
 

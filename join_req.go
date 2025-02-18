@@ -5,19 +5,19 @@ import (
 	"math/big"
 
 	"github.com/akakou/zk-ban/circuit"
-	"github.com/akakou/zk-ban/commit"
 	"github.com/akakou/zk-ban/snark"
+	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
 )
 
-func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof, witness.Witness, *commit.UserSecretKey, *commit.UserPublicKey, error) {
+func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof, witness.Witness, *zkbanw.UserSecretKey, *zkbanw.UserPublicKey, error) {
 	u, err := rand.Int(rand.Reader, max())
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	usk := commit.UserSecretKey{
+	usk := zkbanw.UserSecretKey{
 		Number: u,
 	}
 
