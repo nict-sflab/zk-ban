@@ -29,7 +29,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("sign", func(t *testing.T) {
-		proof, pubWit, err := zkban.Sign(params.m, params.bsn, params.signer(), params.gpk, signCircuit.Prover())
+		proof, pubWit, err := zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
 		assert.NoError(err)
 
 		err = groth16.Verify(proof, signCircuit.VerifyKey, pubWit)
@@ -37,7 +37,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("sign-fail", func(t *testing.T) {
-		proof, pubWit, err := zkban.Sign(params.m, params.bsn, params.signer(), params.gpk, signCircuit.Prover())
+		proof, pubWit, err := zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
 		assert.NoError(err)
 
 		schema, err := frontend.NewSchema(&circuit.SignCircuit{})

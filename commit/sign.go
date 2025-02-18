@@ -19,13 +19,13 @@ type Signer struct {
 	GroupPublicKey *GroupPublicKey
 }
 
-func (signer *Signer) CommitSign(m, bsn *big.Int) (*SignCommit, error) {
+func (signer *Signer) CommitSign(m, sessionTag *big.Int) (*SignCommit, error) {
 	commit1, err := snark.CommitHash(m, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := snark.CommitHash(signer.Period, bsn, signer.UserSecretKey.Number)
+	commit2, err := snark.CommitHash(sessionTag, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
@@ -46,4 +46,12 @@ func (signer *Signer) NextWithoutCred(nextPeriod *big.Int, nextGpk *GroupPublicK
 		GroupPublicKey: nextGpk,
 		Credential:     nil,
 	}, nil
+}
+
+func (signer *Signer) SessionTag(counter *big.Int) *big.Int {
+	sessionTagBytes := append(counter.Bytes(), signer.Period.Bytes()...)
+	sessionTag := big.NewInt(0)
+	sessionTag.SetBytes(sessionTagBytes)
+
+	return sessionTag
 }

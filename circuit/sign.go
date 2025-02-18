@@ -16,7 +16,7 @@ type SignCircuit struct {
 	UserSecretKey      frontend.Variable `gnark:",secret"`
 	CredentialAuthInfo CredentialAuthInfo
 	GroupPublicKey     eddsa.PublicKey   `gnark:",public"`
-	Basename           frontend.Variable `gnark:",public"`
+	SessionTag         frontend.Variable `gnark:",public"`
 	Message            frontend.Variable `gnark:",public"`
 	Signature          frontend.Variable `gnark:",public"`
 	Nym                frontend.Variable `gnark:",public"`
@@ -38,7 +38,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	nym, err := snark.CircuitHash(api, circuit.CredentialAuthInfo.Period, circuit.Basename, circuit.UserSecretKey)
+	nym, err := snark.CircuitHash(api, circuit.SessionTag, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
@@ -49,16 +49,16 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, bsn *big.Int, commit *commit.SignCommit, signer *commit.Signer, gpk signature.PublicKey) *SignCircuit {
+func NewSignWitness(m, sessionTag *big.Int, commit *commit.SignCommit, signer *commit.Signer, gpk signature.PublicKey) *SignCircuit {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		CredentialAuthInfo: CredentialAuthInfo{
 			Period: signer.Period,
 		},
-		Basename:  bsn,
-		Message:   m,
-		Signature: commit.Commit1,
-		Nym:       commit.Commit2,
+		SessionTag: sessionTag,
+		Message:    m,
+		Signature:  commit.Commit1,
+		Nym:        commit.Commit2,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())

@@ -24,7 +24,7 @@ type TestParams struct {
 	usk        *commit.UserSecretKey
 	m          *big.Int
 	period     *big.Int
-	bsn        *big.Int
+	cnt        *big.Int
 	cert       *commit.Credential
 	nextPeriod *big.Int
 }
@@ -92,7 +92,7 @@ func prepareParams() TestParams {
 		usk:        usk,
 		upk:        upk,
 		m:          m,
-		bsn:        bsn,
+		cnt:        bsn,
 		period:     period,
 		cert:       cert,
 		nextPeriod: nextPeriod,
