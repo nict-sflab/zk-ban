@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	zkban "github.com/akakou/zk-ban"
-	"github.com/akakou/zk-ban/commit"
+	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
 )
@@ -12,9 +12,9 @@ import (
 func BenchmarkAll(t *testing.B) {
 	params := prepareParams()
 
-	rl1 := commit.EmptyConstantRevocationAddList(270, 130)
-	rl2 := commit.EmptyLinerRevocationAddList(270, 130*270)
-	rl3 := commit.EmptyConstantRevocationAddList(1, 130*270)
+	rl1 := zkbanw.EmptyConstantRevocationAddList(270, 130)
+	rl2 := zkbanw.EmptyLinerRevocationAddList(270, 130*270)
+	rl3 := zkbanw.EmptyConstantRevocationAddList(1, 130*270)
 
 	joinCircuit, signCircuit, updateCircuit1 := prepareCircuit(rl1, false)
 	_, _, updateCircuit2 := prepareCircuit(rl2, true)

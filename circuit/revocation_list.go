@@ -1,7 +1,7 @@
 package circuit
 
 import (
-	"github.com/akakou/zk-ban/commit"
+	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -12,11 +12,11 @@ type RevokedNymsPerSession struct {
 type RevocationList []RevokedNymsPerSession
 
 func EmptyRevocationList(SessionSize, NymSizePerSession int) RevocationList {
-	emptyRL := commit.EmptyConstantRevocationAddList(SessionSize, NymSizePerSession)
+	emptyRL := witness.EmptyConstantRevocationAddList(SessionSize, NymSizePerSession)
 	return NewRevocationListWitness(emptyRL)
 }
 
-func NewRevocationListWitness(revocationList commit.RevocationList) RevocationList {
+func NewRevocationListWitness(revocationList witness.RevocationList) RevocationList {
 	rl := RevocationList{}
 
 	for _, rps := range revocationList {

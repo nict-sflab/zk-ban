@@ -2,7 +2,7 @@ package snark
 
 import (
 	"github.com/akakou/zk-ban/primitives/hash/circuit"
-	"github.com/akakou/zk-ban/primitives/hash/commit"
+	"github.com/akakou/zk-ban/primitives/hash/witness"
 	"github.com/consensys/gnark-crypto/hash"
 )
 
@@ -12,7 +12,7 @@ import (
 
 var NewCircuitHash = circuit.NewMIMC
 var NewCommitHash = NewCommitHashBase.New
-var CommitHash = commit.MimcHash(NewCommitHashBase)
+var CommitHash = witness.MimcHash(NewCommitHashBase)
 
 var NewCommitHashBase = hash.MIMC_BLS12_381
 

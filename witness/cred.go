@@ -1,4 +1,4 @@
-package commit
+package witness
 
 import "github.com/akakou/zk-ban/snark"
 
