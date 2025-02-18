@@ -7,8 +7,8 @@ import (
 )
 
 type SignCommit struct {
-	Commit1 *big.Int
-	Commit2 *big.Int
+	Sigma *big.Int
+	Nym   *big.Int
 }
 
 type Signer struct {
@@ -19,18 +19,18 @@ type Signer struct {
 	GroupPublicKey *GroupPublicKey
 }
 
-func (signer *Signer) CommitSign(m, bsn *big.Int) (*SignCommit, error) {
+func (signer *Signer) CommitSign(m, sessionTag *big.Int) (*SignCommit, error) {
 	commit1, err := snark.CommitHash(m, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := snark.CommitHash(signer.Period, bsn, signer.UserSecretKey.Number)
+	commit2, err := snark.CommitHash(sessionTag, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SignCommit{Commit1: commit1, Commit2: commit2}, nil
+	return &SignCommit{Sigma: commit1, Nym: commit2}, nil
 }
 
 func (signer *Signer) NextWithoutCred(nextPeriod *big.Int, nextGpk *GroupPublicKey) (*Signer, error) {
@@ -46,4 +46,12 @@ func (signer *Signer) NextWithoutCred(nextPeriod *big.Int, nextGpk *GroupPublicK
 		GroupPublicKey: nextGpk,
 		Credential:     nil,
 	}, nil
+}
+
+func (signer *Signer) SessionTag(counter *big.Int) *big.Int {
+	sessionTagBytes := append(counter.Bytes(), signer.Period.Bytes()...)
+	sessionTag := big.NewInt(0)
+	sessionTag.SetBytes(sessionTagBytes)
+
+	return sessionTag
 }

@@ -17,13 +17,15 @@ func max() *big.Int {
 	return i
 }
 
-func Sign(m, bsn *big.Int, signer *commit.Signer, gpk *commit.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
-	comm, err := signer.CommitSign(m, bsn)
+func Sign(m, counter *big.Int, signer *commit.Signer, gpk *commit.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, witness.Witness, error) {
+	sessionTag := signer.SessionTag(counter)
+
+	comm, err := signer.CommitSign(m, sessionTag)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	w := circuit.NewSignWitness(m, bsn, comm, signer, gpk)
+	w := circuit.NewSignWitness(m, sessionTag, comm, signer, gpk)
 
 	proof, wit, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {
