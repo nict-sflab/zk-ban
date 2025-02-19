@@ -18,23 +18,23 @@ Environments:
 
 Result:
 ```
-akakou@ra-webs:~/zk-ban/test$ go test --bench BenchmarkAll . -timeout 0 -benchtime 5x
+akakou@ra-webs:~/zk-ban/test$ go test --bench BenchmarkAll . -timeout 0 -benchtime 20x
 goos: linux
 goarch: amd64
 pkg: github.com/akakou/zk-ban/test
 cpu: Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz
-BenchmarkAll/join_req-16                       5          14789137 ns/op
-BenchmarkAll/verify_join_req-16                5           2365974 ns/op
-BenchmarkAll/sign-16                           5          74586961 ns/op
-BenchmarkAll/verify-16                         5           2412382 ns/op
-BenchmarkAll/update-req_(constant)-16                  5        1090865694 ns/op
-BenchmarkAll/update-verify_(constant)-16               5           5914462 ns/op
-BenchmarkAll/update-req_(linear)-16                    5        1017619754 ns/op
-BenchmarkAll/update-verify_(linear)-16                 5           2374631 ns/op
-BenchmarkAll/update-req_(one_session)-16               5         246248717 ns/op
-BenchmarkAll/update-verify_(one_session)-16            5           6695769 ns/op
+BenchmarkAll/join_req-16                      20          13599889 ns/op
+BenchmarkAll/verify_join_req-16               20           2154118 ns/op
+BenchmarkAll/sign-16                          20          74022378 ns/op
+BenchmarkAll/verify-16                        20           2317964 ns/op
+BenchmarkAll/update-req_(constant)-16                 20        1086758618 ns/op
+BenchmarkAll/update-verify_(constant)-16              20           5903594 ns/op
+BenchmarkAll/update-req_(linear)-16                   20        1008659901 ns/op
+BenchmarkAll/update-verify_(linear)-16                20           2537904 ns/op
+BenchmarkAll/update-req_(one_session)-16              20         244845114 ns/op
+BenchmarkAll/update-verify_(one_session)-16           20           6906016 ns/op
 PASS
-ok      github.com/akakou/zk-ban/test   63.898s
+ok      github.com/akakou/zk-ban/test   102.312s
 ```
 
 ```
