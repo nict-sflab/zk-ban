@@ -6,11 +6,11 @@ import (
 )
 
 type Result struct {
-	Out []byte
+	Out string
 	Err string
 }
 
-func NewResult(out []byte, err error) *Result {
+func NewResult(out string, err error) *Result {
 	errString := ""
 	if err != nil {
 		errString = err.Error()

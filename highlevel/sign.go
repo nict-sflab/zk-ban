@@ -2,15 +2,15 @@ package highlevel
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"math/big"
 
 	core "github.com/akakou/zk-ban"
-	zkbanc "github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
-	"github.com/consensys/gnark/frontend"
 )
 
 type Signature struct {
@@ -30,19 +30,21 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) []byte
 	jsonSignerStruct := Signer{}
 	err := json.Unmarshal(signer, &jsonSignerStruct)
 	if err != nil {
-		return NewResult([]byte{}, err).Bytes()
+		return NewResult("", err).Bytes()
 	}
 
 	cs := groth16.NewCS(snark.EcCurve)
 	csReader := bytes.NewReader(circuitBytes)
-	if _, err := cs.ReadFrom(csReader); err != nil {
-		return NewResult([]byte{}, err).Bytes()
+	_, err = cs.ReadFrom(csReader)
+	if err != nil {
+		return NewResult("", err).Bytes()
 	}
 
 	proveKeyStruct := groth16.NewProvingKey(snark.EcCurve)
 	proveKeyReader := bytes.NewReader(proveKey)
-	if err := proveKeyStruct.ReadDump(proveKeyReader); err != nil {
-		return NewResult([]byte{}, err).Bytes()
+	err = proveKeyStruct.ReadDump(proveKeyReader)
+	if err != nil {
+		return NewResult("", err).Bytes()
 	}
 
 	mBig := big.NewInt(0).SetBytes(m)
@@ -53,12 +55,12 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) []byte
 
 	_, gpkStruct, err := zkbanw.RandomGroupKeyPair()
 	if err != nil {
-		return NewResult([]byte{}, err).Bytes()
+		return NewResult("", err).Bytes()
 	}
 
 	_, err = gpkStruct.SetBytes(jsonSignerStruct.GroupPublicKey)
 	if err != nil {
-		return NewResult([]byte{}, err).Bytes()
+		return NewResult("", err).Bytes()
 	}
 
 	snarkProver := snark.SnarkProver{
@@ -76,33 +78,29 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) []byte
 
 	proof, pubWit, err := core.Sign(mBig, counterBig, &signerStruct, &snarkProver)
 	if err != nil {
-		return NewResult([]byte{}, err).Bytes()
+		return NewResult("", err).Bytes()
 	}
 
-	schema, err := frontend.NewSchema(&zkbanc.SignCircuit{})
+	// schema, err := frontend.NewSchema(&zkbanc.SignCircuit{})
+	// if err != nil {
+	// 	return NewResult([]byte{}, err).Bytes()
+	// }
+
+	var witBuf bytes.Buffer
+	_, err = pubWit.WriteTo(&witBuf)
 	if err != nil {
-		return NewResult([]byte{}, err).Bytes()
+		return NewResult("", err).Bytes()
 	}
+	witString := base64.StdEncoding.EncodeToString(witBuf.Bytes())
 
-	witBytes, err := pubWit.ToJSON(schema)
+	var proofBuf bytes.Buffer
+	_, err = proof.WriteTo(&proofBuf)
 	if err != nil {
-		return NewResult([]byte{}, err).Bytes()
+		return NewResult("", err).Bytes()
 	}
 
-	var buf bytes.Buffer
-	if _, err = proof.WriteRawTo(&buf); err != nil {
-		return NewResult([]byte{}, err).Bytes()
-	}
-
-	var signature = Signature{
-		Circuit: witBytes,
-		Proof:   buf.Bytes(),
-	}
-
-	result, err := json.Marshal(signature)
-	if err != nil {
-		return NewResult([]byte{}, err).Bytes()
-	}
+	proofString := base64.StdEncoding.EncodeToString(proofBuf.Bytes())
+	result := fmt.Sprintf("%s.%s", proofString, witString)
 
 	return NewResult(result, nil).Bytes()
 }
