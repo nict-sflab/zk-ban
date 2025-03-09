@@ -54,15 +54,24 @@ func TestHighLevelApi(t *testing.T) {
 	)
 
 	var resultStrct highlevel.Result
-	err = resultStrct.FromBytes(result)
+	err = resultStrct.FromString(result)
 	assert.NoError(err)
 
-	err = json.Unmarshal(result, &resultStrct)
+	err = json.Unmarshal([]byte(result), &resultStrct)
 	assert.NoError(err)
 	assert.Empty(resultStrct.Err)
 
-	result = highlevel.Verify(resultStrct.Out, circuitBytes, verifyKeyBytes)
-	err = resultStrct.FromBytes(result)
+	result = highlevel.Verify(
+		resultStrct.Out,
+		params.m.Bytes(),
+		params.cnt.Int64(),
+		params.period.Int64(),
+		params.gpk.Bytes(),
+		circuitBytes,
+		verifyKeyBytes,
+	)
+
+	err = resultStrct.FromString(result)
 	assert.NoError(err)
 	assert.Equal(resultStrct.Err, "")
 }

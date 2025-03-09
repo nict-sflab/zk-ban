@@ -22,17 +22,17 @@ func NewResult(out string, err error) *Result {
 	}
 }
 
-func (result *Result) Bytes() []byte {
+func (result *Result) String() string {
 	bytes, err := json.Marshal(result)
 	if err != nil {
 		panic(err)
 	}
 
-	return bytes
+	return string(bytes)
 }
 
-func (result *Result) FromBytes(bytes []byte) error {
-	err := json.Unmarshal(bytes, result)
+func (result *Result) FromString(str string) error {
+	err := json.Unmarshal([]byte(str), result)
 	if err != nil {
 		return errors.New(result.Err)
 	}

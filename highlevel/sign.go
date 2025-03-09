@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"math/big"
+	"strings"
 
 	core "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/snark"
@@ -14,8 +15,49 @@ import (
 )
 
 type Signature struct {
-	Circuit []byte
-	Proof   []byte
+	Proof *big.Int
+	Nym   *big.Int
+	Sigma *big.Int
+}
+
+func (signature *Signature) String() string {
+	proof := signature.Proof.Bytes()
+	sigma := signature.Sigma.Bytes()
+	nym := signature.Nym.Bytes()
+
+	encodedProof := base64.StdEncoding.EncodeToString(proof)
+	encodedSigma := base64.StdEncoding.EncodeToString(sigma)
+	encodeNym := base64.StdEncoding.EncodeToString(nym)
+
+	return string(encodedProof) + "." + string(encodedSigma) + "." + string(encodeNym)
+}
+
+func (signature *Signature) FromString(str string) error {
+	strs := strings.Split(str, ".")
+	if len(strs) != 3 {
+		return errors.New("invalid signature string (expected 3 parts)")
+	}
+
+	proof, err := base64.StdEncoding.DecodeString(strs[0])
+	if err != nil {
+		return err
+	}
+
+	sigma, err := base64.StdEncoding.DecodeString(strs[1])
+	if err != nil {
+		return err
+	}
+
+	nym, err := base64.StdEncoding.DecodeString(strs[2])
+	if err != nil {
+		return err
+	}
+
+	signature.Proof = big.NewInt(0).SetBytes(proof)
+	signature.Nym = big.NewInt(0).SetBytes(nym)
+	signature.Sigma = big.NewInt(0).SetBytes(sigma)
+
+	return nil
 }
 
 type Signer struct {
@@ -26,25 +68,25 @@ type Signer struct {
 	Period         int64
 }
 
-func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) []byte {
+func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string {
 	jsonSignerStruct := Signer{}
 	err := json.Unmarshal(signer, &jsonSignerStruct)
 	if err != nil {
-		return NewResult("", err).Bytes()
+		return NewResult("", err).String()
 	}
 
 	cs := groth16.NewCS(snark.EcCurve)
 	csReader := bytes.NewReader(circuitBytes)
 	_, err = cs.ReadFrom(csReader)
 	if err != nil {
-		return NewResult("", err).Bytes()
+		return NewResult("", err).String()
 	}
 
 	proveKeyStruct := groth16.NewProvingKey(snark.EcCurve)
 	proveKeyReader := bytes.NewReader(proveKey)
 	err = proveKeyStruct.ReadDump(proveKeyReader)
 	if err != nil {
-		return NewResult("", err).Bytes()
+		return NewResult("", err).String()
 	}
 
 	mBig := big.NewInt(0).SetBytes(m)
@@ -55,12 +97,12 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) []byte
 
 	_, gpkStruct, err := zkbanw.RandomGroupKeyPair()
 	if err != nil {
-		return NewResult("", err).Bytes()
+		return NewResult("", err).String()
 	}
 
 	_, err = gpkStruct.SetBytes(jsonSignerStruct.GroupPublicKey)
 	if err != nil {
-		return NewResult("", err).Bytes()
+		return NewResult("", err).String()
 	}
 
 	snarkProver := snark.SnarkProver{
@@ -76,31 +118,26 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) []byte
 		GroupPublicKey: gpkStruct,
 	}
 
-	proof, pubWit, err := core.Sign(mBig, counterBig, &signerStruct, &snarkProver)
+	proof, assign, err := core.Sign(mBig, counterBig, &signerStruct, &snarkProver)
 	if err != nil {
-		return NewResult("", err).Bytes()
+		return NewResult("", err).String()
 	}
-
-	// schema, err := frontend.NewSchema(&zkbanc.SignCircuit{})
-	// if err != nil {
-	// 	return NewResult([]byte{}, err).Bytes()
-	// }
-
-	var witBuf bytes.Buffer
-	_, err = pubWit.WriteTo(&witBuf)
-	if err != nil {
-		return NewResult("", err).Bytes()
-	}
-	witString := base64.StdEncoding.EncodeToString(witBuf.Bytes())
 
 	var proofBuf bytes.Buffer
 	_, err = proof.WriteTo(&proofBuf)
 	if err != nil {
-		return NewResult("", err).Bytes()
+		return NewResult("", err).String()
 	}
 
-	proofString := base64.StdEncoding.EncodeToString(proofBuf.Bytes())
-	result := fmt.Sprintf("%s.%s", proofString, witString)
+	pi := big.NewInt(0).SetBytes(proofBuf.Bytes())
+	nym := assign.Nym.(*big.Int)
+	signature := assign.Signature.(*big.Int)
 
-	return NewResult(result, nil).Bytes()
+	result := Signature{
+		Proof: pi,
+		Nym:   nym,
+		Sigma: signature,
+	}
+
+	return NewResult(result.String(), nil).String()
 }
