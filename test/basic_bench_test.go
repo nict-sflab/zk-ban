@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
-	"github.com/consensys/gnark/backend/witness"
+	"github.com/consensys/gnark/frontend"
 )
 
 func BenchmarkAll(t *testing.B) {
@@ -21,14 +23,15 @@ func BenchmarkAll(t *testing.B) {
 	_, _, updateCircuit3 := prepareCircuit(rl3, true)
 
 	var proof groth16.Proof
-	var pubWit witness.Witness
 	var err error
+
+	var joinAssign *circuit.JoinRequestCircuit
 
 	t.Run("join req", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			proof, pubWit, _, _, err = zkban.JoinRequest(params.period, joinCircuit.Prover())
+			proof, joinAssign, err = zkban.JoinRequest(params.period, joinCircuit.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -37,16 +40,23 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
+			wit, err := frontend.NewWitness(joinAssign, snark.EcCurve.ScalarField())
+			panicIfErr(err)
+
+			pubWit, err := wit.Public()
+			panicIfErr(err)
+
 			err = groth16.Verify(proof, joinCircuit.VerifyKey, pubWit)
 			panicIfErr(err)
 		}
 	})
 
+	var signAssign *circuit.SignCircuit
 	t.Run("sign", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			proof, pubWit, err = zkban.Sign(params.m, params.cnt, params.signer(), signCircuit.Prover())
+			proof, signAssign, err = zkban.Sign(params.m, params.cnt, params.signer(), signCircuit.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -55,16 +65,23 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
+			wit, err := frontend.NewWitness(signAssign, snark.EcCurve.ScalarField())
+			panicIfErr(err)
+
+			pubWit, err := wit.Public()
+			panicIfErr(err)
+
 			err = groth16.Verify(proof, signCircuit.VerifyKey, pubWit)
 			panicIfErr(err)
 		}
 	})
 
+	var updateAssign *circuit.UpdateCircuit
 	t.Run("update-req (constant)", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl1, updateCircuit1.Prover())
+			_, proof, updateAssign, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl1, updateCircuit1.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -73,6 +90,12 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
+			wit, err := frontend.NewWitness(updateAssign, snark.EcCurve.ScalarField())
+			panicIfErr(err)
+
+			pubWit, err := wit.Public()
+			panicIfErr(err)
+
 			params.gsk.IssueCredential(params.upk)
 
 			err = groth16.Verify(proof, updateCircuit1.VerifyKey, pubWit)
@@ -84,7 +107,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl2, updateCircuit2.Prover())
+			_, proof, updateAssign, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl2, updateCircuit2.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -93,6 +116,12 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
+			wit, err := frontend.NewWitness(updateAssign, snark.EcCurve.ScalarField())
+			panicIfErr(err)
+
+			pubWit, err := wit.Public()
+			panicIfErr(err)
+
 			params.gsk.IssueCredential(params.upk)
 
 			err = groth16.Verify(proof, updateCircuit2.VerifyKey, pubWit)
@@ -104,7 +133,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, pubWit, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl3, updateCircuit3.Prover())
+			_, proof, updateAssign, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl3, updateCircuit3.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -113,6 +142,12 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
+			wit, err := frontend.NewWitness(updateAssign, snark.EcCurve.ScalarField())
+			panicIfErr(err)
+
+			pubWit, err := wit.Public()
+			panicIfErr(err)
+
 			params.gsk.IssueCredential(params.upk)
 
 			err = groth16.Verify(proof, updateCircuit3.VerifyKey, pubWit)
