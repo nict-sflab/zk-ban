@@ -49,7 +49,12 @@ func (signer *Signer) NextWithoutCred(nextPeriod *big.Int, nextGpk *GroupPublicK
 }
 
 func (signer *Signer) SessionTag(counter *big.Int) *big.Int {
-	sessionTagBytes := append(counter.Bytes(), signer.Period.Bytes()...)
+	sessionTag := SessionTag(counter, signer.Period)
+	return sessionTag
+}
+
+func SessionTag(counter *big.Int, period *big.Int) *big.Int {
+	sessionTagBytes := append(counter.Bytes(), period.Bytes()...)
 	sessionTag := big.NewInt(0)
 	sessionTag.SetBytes(sessionTagBytes)
 

@@ -7,10 +7,9 @@ import (
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
-	"github.com/consensys/gnark/backend/witness"
 )
 
-func Update(nextPeriod *big.Int, nextGpk *zkbanw.GroupPublicKey, signer *zkbanw.Signer, rl zkbanw.RevocationList, prover *snark.SnarkProver) (*zkbanw.Signer, groth16.Proof, witness.Witness, error) {
+func Update(nextPeriod *big.Int, nextGpk *zkbanw.GroupPublicKey, signer *zkbanw.Signer, rl zkbanw.RevocationList, prover *snark.SnarkProver) (*zkbanw.Signer, groth16.Proof, *circuit.UpdateCircuit, error) {
 	nextSigner, err := signer.NextWithoutCred(nextPeriod, nextGpk)
 	if err != nil {
 		return nil, nil, nil, err
@@ -18,10 +17,10 @@ func Update(nextPeriod *big.Int, nextGpk *zkbanw.GroupPublicKey, signer *zkbanw.
 
 	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, rl)
 
-	proof, wit, _, err := snark.ProveSNARK(w, prover)
+	proof, _, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	return nextSigner, proof, wit, nil
+	return nextSigner, proof, w, nil
 }
