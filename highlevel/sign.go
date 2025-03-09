@@ -3,7 +3,6 @@ package highlevel
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	core "github.com/akakou/zk-ban"
@@ -19,7 +18,21 @@ type Signature struct {
 	Proof   []byte
 }
 
-func Sign(m []byte, counter, period int64, upk, cred, secret, gpk, circuitBytes, proveKey []byte) []byte {
+type Signer struct {
+	Credential     []byte
+	Secret         []byte
+	UserPublicKey  []byte
+	GroupPublicKey []byte
+	Period         int64
+}
+
+func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) []byte {
+	jsonSignerStruct := Signer{}
+	err := json.Unmarshal(signer, &jsonSignerStruct)
+	if err != nil {
+		return NewResult([]byte{}, err).Bytes()
+	}
+
 	cs := groth16.NewCS(snark.EcCurve)
 	csReader := bytes.NewReader(circuitBytes)
 	if _, err := cs.ReadFrom(csReader); err != nil {
@@ -34,15 +47,17 @@ func Sign(m []byte, counter, period int64, upk, cred, secret, gpk, circuitBytes,
 
 	mBig := big.NewInt(0).SetBytes(m)
 	counterBig := big.NewInt(counter)
-	periodBig := big.NewInt(period)
-	upkBig := big.NewInt(0).SetBytes(upk)
-	secretBig := big.NewInt(0).SetBytes(secret)
+	periodBig := big.NewInt(jsonSignerStruct.Period)
+	upkBig := big.NewInt(0).SetBytes(jsonSignerStruct.UserPublicKey)
+	secretBig := big.NewInt(0).SetBytes(jsonSignerStruct.Secret)
 
 	_, gpkStruct, err := zkbanw.RandomGroupKeyPair()
 	if err != nil {
 		return NewResult([]byte{}, err).Bytes()
 	}
-	if _, err = gpkStruct.SetBytes(gpk); err != nil {
+
+	_, err = gpkStruct.SetBytes(jsonSignerStruct.GroupPublicKey)
+	if err != nil {
 		return NewResult([]byte{}, err).Bytes()
 	}
 
@@ -54,7 +69,7 @@ func Sign(m []byte, counter, period int64, upk, cred, secret, gpk, circuitBytes,
 	signerStruct := zkbanw.Signer{
 		UserSecretKey:  &zkbanw.UserSecretKey{Number: secretBig},
 		UserPublicKey:  &zkbanw.UserPublicKey{Number: upkBig},
-		Credential:     &zkbanw.Credential{Signature: cred},
+		Credential:     &zkbanw.Credential{Signature: jsonSignerStruct.Credential},
 		Period:         periodBig,
 		GroupPublicKey: gpkStruct,
 	}
@@ -83,8 +98,6 @@ func Sign(m []byte, counter, period int64, upk, cred, secret, gpk, circuitBytes,
 		Circuit: witBytes,
 		Proof:   buf.Bytes(),
 	}
-
-	fmt.Printf("Sign: %v\n", string(witBytes))
 
 	result, err := json.Marshal(signature)
 	if err != nil {

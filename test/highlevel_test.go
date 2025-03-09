@@ -34,14 +34,21 @@ func TestHighLevelApi(t *testing.T) {
 
 	message := params.m.Bytes()
 
+	signer := highlevel.Signer{
+		Credential:     params.cert.Signature,
+		GroupPublicKey: params.gpk.Bytes(),
+		Period:         params.signer().Period.Int64(),
+		Secret:         params.usk.Number.Bytes(),
+		UserPublicKey:  params.upk.Number.Bytes(),
+	}
+
+	signerBytes, err := json.Marshal(signer)
+	assert.NoError(err)
+
 	result := highlevel.Sign(
 		message,
 		params.cnt.Int64(),
-		params.signer().Period.Int64(),
-		params.upk.Number.Bytes(),
-		params.cert.Signature,
-		params.usk.Number.Bytes(),
-		params.gpk.Bytes(),
+		signerBytes,
 		circuitBytes,
 		proveKeyBytes,
 	)
