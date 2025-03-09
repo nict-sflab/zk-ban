@@ -46,7 +46,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			proof, pubWit, err = zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
+			proof, pubWit, err = zkban.Sign(params.m, params.cnt, params.signer(), signCircuit.Prover())
 			panicIfErr(err)
 		}
 	})

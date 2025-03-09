@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/akakou/zk-ban/witness"
 	"github.com/akakou/zk-ban/snark"
+	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/test"
 )
 
@@ -27,10 +27,11 @@ func TestSignCircuit(t *testing.T) {
 	assert.NoError(err)
 
 	signer := witness.Signer{
-		UserSecretKey: &usk,
-		UserPublicKey: upk,
-		Credential:    cert,
-		Period:        period,
+		UserSecretKey:  &usk,
+		UserPublicKey:  upk,
+		Credential:     cert,
+		Period:         period,
+		GroupPublicKey: gpk,
 	}
 
 	commit, err := signer.CommitSign(m, bsn)
@@ -38,7 +39,7 @@ func TestSignCircuit(t *testing.T) {
 
 	authCircuit := SignCircuit{}
 
-	witness := NewSignWitness(m, bsn, commit, &signer, gpk)
+	witness := NewSignWitness(m, bsn, commit, &signer)
 
 	assert.ProverSucceeded(&authCircuit, witness, test.WithCurves(snark.EcCurve))
 }

@@ -81,7 +81,7 @@ func prepareParams() TestParams {
 	panicIfErr(err)
 
 	m := big.NewInt(100)
-	bsn := big.NewInt(101)
+	cnt := big.NewInt(101)
 
 	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
@@ -92,7 +92,7 @@ func prepareParams() TestParams {
 		usk:        usk,
 		upk:        upk,
 		m:          m,
-		cnt:        bsn,
+		cnt:        cnt,
 		period:     period,
 		cert:       cert,
 		nextPeriod: nextPeriod,
