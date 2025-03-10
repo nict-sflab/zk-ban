@@ -1,7 +1,6 @@
 package highlevel
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -9,9 +8,13 @@ import (
 	"strings"
 
 	core "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/snark"
+	"github.com/akakou/zk-ban/witness"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/frontend"
+	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
 type Signature struct {
@@ -75,16 +78,12 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 		return NewResult("", err).String()
 	}
 
-	cs := groth16.NewCS(snark.EcCurve)
-	csReader := bytes.NewReader(circuitBytes)
-	_, err = cs.ReadFrom(csReader)
+	cs, err := snark.DecodeCircuit(circuitBytes)
 	if err != nil {
 		return NewResult("", err).String()
 	}
 
-	proveKeyStruct := groth16.NewProvingKey(snark.EcCurve)
-	proveKeyReader := bytes.NewReader(proveKey)
-	err = proveKeyStruct.ReadDump(proveKeyReader)
+	proverKeyObj, err := snark.DecodeProverKey(proveKey)
 	if err != nil {
 		return NewResult("", err).String()
 	}
@@ -95,19 +94,14 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 	upkBig := big.NewInt(0).SetBytes(jsonSignerStruct.UserPublicKey)
 	secretBig := big.NewInt(0).SetBytes(jsonSignerStruct.Secret)
 
-	_, gpkStruct, err := zkbanw.RandomGroupKeyPair()
-	if err != nil {
-		return NewResult("", err).String()
-	}
-
-	_, err = gpkStruct.SetBytes(jsonSignerStruct.GroupPublicKey)
+	gpkObj, err := zkbanw.GroupPublicKeyFromBytes(jsonSignerStruct.GroupPublicKey)
 	if err != nil {
 		return NewResult("", err).String()
 	}
 
 	snarkProver := snark.SnarkProver{
 		ConstraintSystem: cs,
-		ProveKey:         proveKeyStruct,
+		ProveKey:         proverKeyObj,
 	}
 
 	signerStruct := zkbanw.Signer{
@@ -115,7 +109,7 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 		UserPublicKey:  &zkbanw.UserPublicKey{Number: upkBig},
 		Credential:     &zkbanw.Credential{Signature: jsonSignerStruct.Credential},
 		Period:         periodBig,
-		GroupPublicKey: gpkStruct,
+		GroupPublicKey: gpkObj,
 	}
 
 	proof, assign, err := core.Sign(mBig, counterBig, &signerStruct, &snarkProver)
@@ -123,13 +117,8 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 		return NewResult("", err).String()
 	}
 
-	var proofBuf bytes.Buffer
-	_, err = proof.WriteTo(&proofBuf)
-	if err != nil {
-		return NewResult("", err).String()
-	}
-
-	pi := big.NewInt(0).SetBytes(proofBuf.Bytes())
+	proofBytes, err := snark.EncodeProof(proof)
+	pi := big.NewInt(0).SetBytes(proofBytes)
 	nym := assign.Nym.(*big.Int)
 	signature := assign.Signature.(*big.Int)
 
@@ -140,4 +129,60 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 	}
 
 	return NewResult(result.String(), nil).String()
+}
+
+func Verify(proof string, m []byte, counter, period int64, gpk, circuitBytes, verifyKeyBytes []byte) string {
+	sig := Signature{}
+	sig.FromString(proof)
+
+	proofObj, err := snark.DecodeProof(sig.Proof.Bytes())
+	if err != nil {
+		return NewResult("", err).String()
+	}
+
+	verifyKeyObj, err := snark.DecodeVerifierKey(verifyKeyBytes)
+	if err != nil {
+		return NewResult("", err).String()
+	}
+
+	mBig := big.NewInt(0).SetBytes(m)
+	counterBig := big.NewInt(counter)
+	periodBig := big.NewInt(period)
+
+	publicKey := eddsa.PublicKey{}
+	publicKey.Assign(snark.TwistededwardsCurve, gpk)
+
+	dummy := eddsa.Signature{}
+	dummyBuf := [32]byte{}
+	dummy.Assign(snark.TwistededwardsCurve, dummyBuf[:])
+
+	assign := circuit.SignCircuit{
+		UserSecretKey: big.NewInt(0),
+		CredentialAuthInfo: circuit.CredentialAuthInfo{
+			Credential: dummy,
+			Period:     period,
+		},
+		GroupPublicKey: publicKey,
+		SessionTag:     witness.SessionTag(counterBig, periodBig),
+		Message:        mBig,
+		Signature:      sig.Sigma,
+		Nym:            sig.Nym,
+	}
+
+	wit, err := frontend.NewWitness(&assign, snark.EcCurve.ScalarField())
+	if err != nil {
+		return NewResult("", err).String()
+	}
+
+	pubWit, err := wit.Public()
+	if err != nil {
+		return NewResult("", err).String()
+	}
+
+	err = groth16.Verify(proofObj, verifyKeyObj, pubWit)
+	if err != nil {
+		return NewResult("", err).String()
+	}
+
+	return NewResult("ok", nil).String()
 }
