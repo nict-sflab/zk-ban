@@ -22,7 +22,7 @@ func EncodeProverKey(proveKey groth16.ProvingKey) ([]byte, error) {
 
 func DecodeProverKey(proveKeyBytes []byte) (groth16.ProvingKey, error) {
 	proveKey := groth16.NewProvingKey(EcCurve)
-	err := encode.DecodeWithReadFrom(proveKeyBytes, proveKey)
+	err := encode.DecodeWithReadDump(proveKeyBytes, proveKey)
 	return proveKey, err
 }
 
