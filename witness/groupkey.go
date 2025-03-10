@@ -23,3 +23,15 @@ func RandomGroupKeyPair() (*GroupSecretKey, *GroupPublicKey, error) {
 	gpk := gsk.Public()
 	return &GroupSecretKey{gsk}, &GroupPublicKey{gpk}, nil
 }
+
+func GroupPublicKeyFromBytes(gpk []byte) (*GroupPublicKey, error) {
+	gsk, err := eddsa.New(snark.TwistededwardsCurve, rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	gpkObj := gsk.Public()
+	gpkObj.SetBytes(gpk)
+
+	return &GroupPublicKey{gpkObj}, nil
+}
