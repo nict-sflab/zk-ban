@@ -81,7 +81,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, updateAssign, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl1, updateCircuit1.Prover())
+			_, proof, updateAssign, err = zkban.UpdateRequest(params.nextPeriod, params.gpk, params.signer(), rl1, updateCircuit1.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -107,7 +107,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, updateAssign, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl2, updateCircuit2.Prover())
+			_, proof, updateAssign, err = zkban.UpdateRequest(params.nextPeriod, params.gpk, params.signer(), rl2, updateCircuit2.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -133,7 +133,7 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, updateAssign, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl3, updateCircuit3.Prover())
+			_, proof, updateAssign, err = zkban.UpdateRequest(params.nextPeriod, params.gpk, params.signer(), rl3, updateCircuit3.Prover())
 			panicIfErr(err)
 		}
 	})

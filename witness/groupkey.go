@@ -35,3 +35,17 @@ func GroupPublicKeyFromBytes(gpk []byte) (*GroupPublicKey, error) {
 
 	return &GroupPublicKey{gpkObj}, nil
 }
+
+func GroupSecretKeyFromBytes(gsk []byte) (*GroupSecretKey, error) {
+	signer, err := eddsa.New(snark.TwistededwardsCurve, rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = signer.SetBytes(gsk)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GroupSecretKey{signer}, nil
+}

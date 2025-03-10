@@ -73,7 +73,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		_, proof, assign, err := zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
+		_, proof, assign, err := zkban.UpdateRequest(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
 		assert.NoError(err)
 
 		wit, err := frontend.NewWitness(assign, snark.EcCurve.ScalarField())
@@ -90,12 +90,12 @@ func TestAll(t *testing.T) {
 		rl[0].SessionTag = sign.SessionTag.(*big.Int)
 		rl[0].Nyms[0] = sign.Nym.(*big.Int)
 
-		_, _, _, err := zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
+		_, _, _, err := zkban.UpdateRequest(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)
 
 		rl[0].Nyms[0] = big.NewInt(0)
 
-		_, proof, assign, err := zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
+		_, proof, assign, err := zkban.UpdateRequest(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
 		assert.NoError(err)
 
 		witnessRL := circuit.NewRevocationListWitness(rldash)

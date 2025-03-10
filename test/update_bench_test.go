@@ -61,7 +61,7 @@ func benchmarkUpdate(useConstant bool, a, b int, t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, _, err = zkban.Update(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
+			_, proof, _, err = zkban.UpdateRequest(params.nextPeriod, params.gpk, params.signer(), rl, updateCircuit.Prover())
 			panicIfErr(err)
 		}
 	})

@@ -9,7 +9,7 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-func Update(nextPeriod *big.Int, nextGpk *zkbanw.GroupPublicKey, signer *zkbanw.Signer, rl zkbanw.RevocationList, prover *snark.SnarkProver) (*zkbanw.Signer, groth16.Proof, *circuit.UpdateCircuit, error) {
+func UpdateRequest(nextPeriod *big.Int, nextGpk *zkbanw.GroupPublicKey, signer *zkbanw.Signer, rl zkbanw.RevocationList, prover *snark.SnarkProver) (*zkbanw.Signer, groth16.Proof, *circuit.UpdateCircuit, error) {
 	nextSigner, err := signer.NextWithoutCred(nextPeriod, nextGpk)
 	if err != nil {
 		return nil, nil, nil, err

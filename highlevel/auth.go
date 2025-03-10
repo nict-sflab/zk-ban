@@ -1,7 +1,6 @@
 package highlevel
 
 import (
-	"encoding/json"
 	"math/big"
 
 	core "github.com/akakou/zk-ban"
@@ -20,7 +19,7 @@ type Signature struct {
 	Sigma []byte
 }
 
-type Signer struct {
+type HighLevelSigner struct {
 	Credential     []byte
 	Secret         []byte
 	UserPublicKey  []byte
@@ -28,13 +27,39 @@ type Signer struct {
 	Period         int64
 }
 
-func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) (*Signature, error) {
-	jsonSignerStruct := Signer{}
-	err := json.Unmarshal(signer, &jsonSignerStruct)
+func (signer *HighLevelSigner) ToSigner() (*zkbanw.Signer, error) {
+	gpkObj, err := zkbanw.GroupPublicKeyFromBytes(signer.GroupPublicKey)
 	if err != nil {
 		return nil, err
 	}
 
+	periodBig := big.NewInt(signer.Period)
+	upkBig := big.NewInt(0).SetBytes(signer.UserPublicKey)
+	secretBig := big.NewInt(0).SetBytes(signer.Secret)
+
+	signerStruct := zkbanw.Signer{
+		UserSecretKey:  &zkbanw.UserSecretKey{Number: secretBig},
+		UserPublicKey:  &zkbanw.UserPublicKey{Number: upkBig},
+		Credential:     &zkbanw.Credential{Signature: signer.Credential},
+		Period:         periodBig,
+		GroupPublicKey: gpkObj,
+	}
+
+	return &signerStruct, nil
+}
+
+func (signer *HighLevelSigner) FromSigner(signerObj *zkbanw.Signer) {
+	if signer.Credential != nil {
+		signer.Credential = signerObj.Credential.Signature
+	}
+
+	signer.Secret = signerObj.UserSecretKey.Number.Bytes()
+	signer.UserPublicKey = signerObj.UserPublicKey.Number.Bytes()
+	signer.GroupPublicKey = signerObj.GroupPublicKey.Bytes()
+	signer.Period = signerObj.Period.Int64()
+}
+
+func Sign(m []byte, counter int64, signer HighLevelSigner, circuitBytes, proveKey []byte) (*Signature, error) {
 	cs, err := snark.DecodeCircuit(circuitBytes)
 	if err != nil {
 		return nil, err
@@ -45,31 +70,20 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) (*Sign
 		return nil, err
 	}
 
-	mBig := big.NewInt(0).SetBytes(m)
-	counterBig := big.NewInt(counter)
-	periodBig := big.NewInt(jsonSignerStruct.Period)
-	upkBig := big.NewInt(0).SetBytes(jsonSignerStruct.UserPublicKey)
-	secretBig := big.NewInt(0).SetBytes(jsonSignerStruct.Secret)
-
-	gpkObj, err := zkbanw.GroupPublicKeyFromBytes(jsonSignerStruct.GroupPublicKey)
-	if err != nil {
-		return nil, err
-	}
-
 	snarkProver := snark.SnarkProver{
 		ConstraintSystem: cs,
 		ProveKey:         proverKeyObj,
 	}
 
-	signerStruct := zkbanw.Signer{
-		UserSecretKey:  &zkbanw.UserSecretKey{Number: secretBig},
-		UserPublicKey:  &zkbanw.UserPublicKey{Number: upkBig},
-		Credential:     &zkbanw.Credential{Signature: jsonSignerStruct.Credential},
-		Period:         periodBig,
-		GroupPublicKey: gpkObj,
+	mBig := big.NewInt(0).SetBytes(m)
+	counterBig := big.NewInt(counter)
+
+	signerObj, err := signer.ToSigner()
+	if err != nil {
+		return nil, err
 	}
 
-	proof, assign, err := core.Sign(mBig, counterBig, &signerStruct, &snarkProver)
+	proof, assign, err := core.Sign(mBig, counterBig, signerObj, &snarkProver)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +125,7 @@ func Verify(signature *Signature, m []byte, counter, period int64, gpk, verifyKe
 	dummy.Assign(snark.TwistededwardsCurve, dummyBuf[:])
 
 	assign := circuit.SignCircuit{
-		UserSecretKey: big.NewInt(0),
+		UserSecretKey: 0,
 		CredentialAuthInfo: circuit.CredentialAuthInfo{
 			Credential: dummy,
 			Period:     period,
