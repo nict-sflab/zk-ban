@@ -1,7 +1,6 @@
 package zkbantest
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/akakou/zk-ban/highlevel"
@@ -14,8 +13,8 @@ func TestHighLevelApi(t *testing.T) {
 	params := prepareParams()
 	assert := test.NewAssert(t)
 
-	rl1 := zkbanw.EmptyConstantRevocationAddList(1, 1)
-	joinCircuit, signCircuit, _ := prepareCircuit(rl1, false)
+	rl1 := zkbanw.EmptyConstantRevocationAddList(10, 10)
+	joinCircuit, signCircuit, updateCircuit := prepareCircuit(rl1, false)
 
 	joinCircuitBytes, err := snark.EncodeCircuit(joinCircuit.ConstraintSystem)
 	assert.NoError(err)
@@ -33,6 +32,15 @@ func TestHighLevelApi(t *testing.T) {
 	assert.NoError(err)
 
 	signVerifyKeyBytes, err := snark.EncodeVerifierKey(signCircuit.VerifyKey)
+	assert.NoError(err)
+
+	updateCircuitBytes, err := snark.EncodeCircuit(updateCircuit.ConstraintSystem)
+	assert.NoError(err)
+
+	updateProveKeyBytes, err := snark.EncodeProverKey(updateCircuit.ProveKey)
+	assert.NoError(err)
+
+	updateVerifyKeyBytes, err := snark.EncodeVerifierKey(updateCircuit.VerifyKey)
 	assert.NoError(err)
 
 	message := params.m.Bytes()
@@ -57,7 +65,7 @@ func TestHighLevelApi(t *testing.T) {
 	cred, err := highlevel.IssueCredential(params.period.Int64(), req.UserPublicKey, params.gsk.Bytes())
 	assert.NoError(err)
 
-	signer := highlevel.Signer{
+	signer := highlevel.HighLevelSigner{
 		Credential:     cred,
 		GroupPublicKey: params.gpk.Bytes(),
 		Period:         params.signer().Period.Int64(),
@@ -65,13 +73,10 @@ func TestHighLevelApi(t *testing.T) {
 		UserPublicKey:  req.UserPublicKey,
 	}
 
-	signerBytes, err := json.Marshal(signer)
-	assert.NoError(err)
-
 	signature, err := highlevel.Sign(
 		message,
 		params.cnt.Int64(),
-		signerBytes,
+		signer,
 		signCircuitBytes,
 		signProveKeyBytes,
 	)
@@ -85,6 +90,30 @@ func TestHighLevelApi(t *testing.T) {
 		params.period.Int64(),
 		params.gpk.Bytes(),
 		signVerifyKeyBytes,
+	)
+
+	assert.NoError(err)
+
+	updateSigner, proof, err := highlevel.UpdateRequest(
+		params.nextPeriod.Int64(),
+		params.gpk.Bytes(),
+		&signer,
+		rl1,
+		&highlevel.HighLevelSnarkProver{
+			ConstraintSystem: updateCircuitBytes,
+			ProveKey:         updateProveKeyBytes,
+		},
+	)
+
+	assert.NoError(err)
+
+	err = highlevel.VerifyUpdateRequest(
+		proof,
+		updateSigner.UserPublicKey,
+		params.nextPeriod.Int64(),
+		&signer,
+		rl1,
+		updateVerifyKeyBytes,
 	)
 
 	assert.NoError(err)

@@ -1,0 +1,114 @@
+package highlevel
+
+import (
+	"math/big"
+
+	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/snark"
+	"github.com/akakou/zk-ban/witness"
+	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/frontend"
+	"github.com/consensys/gnark/std/algebra/native/twistededwards"
+	"github.com/consensys/gnark/std/signature/eddsa"
+)
+
+func UpdateRequest(
+	nextPeriod int64,
+	nextGpk []byte,
+	signer *HighLevelSigner,
+	rl witness.RevocationList,
+	prover *HighLevelSnarkProver,
+) (*HighLevelSigner, []byte, error) {
+	nextPerioBig := big.NewInt(nextPeriod)
+
+	nextGpkObj, err := witness.GroupPublicKeyFromBytes(nextGpk)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	signerObj, err := signer.ToSigner()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	proverObj, err := prover.ToSnarkProver()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nextSignerObj, proof, _, err := zkban.UpdateRequest(nextPerioBig, nextGpkObj, signerObj, rl, proverObj)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nextSigner := HighLevelSigner{}
+	nextSigner.FromSigner(nextSignerObj)
+
+	proofBytes, err := snark.EncodeProof(proof)
+
+	return &nextSigner, proofBytes, err
+}
+
+func VerifyUpdateRequest(
+	proofBytes []byte,
+	nextupk []byte,
+	nextPeriod int64,
+	signer *HighLevelSigner,
+	rl witness.RevocationList,
+	verifyKey []byte,
+) error {
+	nextPerioBig := big.NewInt(nextPeriod)
+
+	// signerObj, err := signer.ToSigner()
+	// if err != nil {
+	// 	return err
+	// }
+
+	verifyKeyObj, err := snark.DecodeVerifierKey(verifyKey)
+	if err != nil {
+		return err
+	}
+
+	proof, err := snark.DecodeProof(proofBytes)
+	if err != nil {
+		return err
+	}
+
+	assign := circuit.UpdateCircuit{
+		UserSecretKey: 0,
+		CurrentInfo: circuit.CredentialAuthInfo{
+			Credential: eddsa.Signature{
+				R: twistededwards.Point{
+					X: 0,
+					Y: 0,
+				},
+				S: 0,
+			},
+			Period: signer.Period,
+		},
+		NextInfo: circuit.PublicKeyAuthInfo{
+			Period:        nextPerioBig,
+			UserPublicKey: big.NewInt(0).SetBytes(nextupk),
+		},
+		RevocationList: circuit.NewRevocationListWitness(rl),
+		GroupPublicKey: eddsa.PublicKey{},
+	}
+
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, signer.GroupPublicKey)
+
+	wit, err := frontend.NewWitness(&assign, snark.EcCurve.ScalarField())
+	if err != nil {
+		return err
+	}
+
+	pubWit, err := wit.Public()
+	if err != nil {
+		return err
+	}
+
+	err = groth16.Verify(proof, verifyKeyObj, pubWit)
+
+	return err
+}
