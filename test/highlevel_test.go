@@ -96,9 +96,9 @@ func TestHighLevelApi(t *testing.T) {
 
 	updateSigner, proof, err := highlevel.UpdateRequest(
 		params.nextPeriod.Int64(),
-		params.gpk.Bytes(),
 		&signer,
 		rl1,
+		params.gpk.Bytes(),
 		&highlevel.HighLevelSnarkProver{
 			ConstraintSystem: updateCircuitBytes,
 			ProveKey:         updateProveKeyBytes,
