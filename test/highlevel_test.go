@@ -1,11 +1,11 @@
 package zkbantest
 
 import (
-	"bytes"
 	"encoding/json"
 	"testing"
 
 	"github.com/akakou/zk-ban/highlevel"
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/test"
 )
@@ -15,24 +15,44 @@ func TestHighLevelApi(t *testing.T) {
 	assert := test.NewAssert(t)
 
 	rl1 := zkbanw.EmptyConstantRevocationAddList(1, 1)
-	_, signCircuit, _ := prepareCircuit(rl1, false)
+	joinCircuit, signCircuit, _ := prepareCircuit(rl1, false)
 
-	var circuitBuf bytes.Buffer
-	_, err := signCircuit.ConstraintSystem.WriteTo(&circuitBuf)
+	joinCircuitBytes, err := snark.EncodeCircuit(joinCircuit.ConstraintSystem)
 	assert.NoError(err)
-	circuitBytes := circuitBuf.Bytes()
 
-	var proveKeyBuf bytes.Buffer
-	err = signCircuit.ProveKey.WriteDump(&proveKeyBuf)
+	joinProveKeyBytes, err := snark.EncodeProverKey(joinCircuit.ProveKey)
 	assert.NoError(err)
-	proveKeyBytes := proveKeyBuf.Bytes()
 
-	var verifyKeyBuf bytes.Buffer
-	_, err = signCircuit.VerifyKey.WriteTo(&verifyKeyBuf)
+	joinVerifyKeyBytes, err := snark.EncodeVerifierKey(joinCircuit.VerifyKey)
 	assert.NoError(err)
-	verifyKeyBytes := verifyKeyBuf.Bytes()
+
+	signCircuitBytes, err := snark.EncodeCircuit(signCircuit.ConstraintSystem)
+	assert.NoError(err)
+
+	signProveKeyBytes, err := snark.EncodeProverKey(signCircuit.ProveKey)
+	assert.NoError(err)
+
+	signVerifyKeyBytes, err := snark.EncodeVerifierKey(signCircuit.VerifyKey)
+	assert.NoError(err)
 
 	message := params.m.Bytes()
+
+	proof, req, err := highlevel.JoinRequest(
+		params.period.Int64(),
+		joinCircuitBytes,
+		joinProveKeyBytes,
+	)
+
+	assert.NoError(err)
+
+	err = highlevel.VerifyJoinReq(
+		proof,
+		req.UserPublicKey,
+		req.Period,
+		joinVerifyKeyBytes,
+	)
+
+	assert.NoError(err)
 
 	signer := highlevel.Signer{
 		Credential:     params.cert.Signature,
@@ -49,8 +69,8 @@ func TestHighLevelApi(t *testing.T) {
 		message,
 		params.cnt.Int64(),
 		signerBytes,
-		circuitBytes,
-		proveKeyBytes,
+		signCircuitBytes,
+		signProveKeyBytes,
 	)
 
 	assert.NoError(err)
@@ -61,8 +81,7 @@ func TestHighLevelApi(t *testing.T) {
 		params.cnt.Int64(),
 		params.period.Int64(),
 		params.gpk.Bytes(),
-		circuitBytes,
-		verifyKeyBytes,
+		signVerifyKeyBytes,
 	)
 
 	assert.NoError(err)
