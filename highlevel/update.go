@@ -15,14 +15,14 @@ import (
 
 func UpdateRequest(
 	nextPeriod int64,
-	nextGpk []byte,
 	signer *HighLevelSigner,
 	rl witness.RevocationList,
+	gpk []byte,
 	prover *HighLevelSnarkProver,
 ) (*HighLevelSigner, []byte, error) {
 	nextPerioBig := big.NewInt(nextPeriod)
 
-	nextGpkObj, err := witness.GroupPublicKeyFromBytes(nextGpk)
+	gpkObj, err := witness.GroupPublicKeyFromBytes(gpk)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -37,7 +37,7 @@ func UpdateRequest(
 		return nil, nil, err
 	}
 
-	nextSignerObj, proof, _, err := zkban.UpdateRequest(nextPerioBig, nextGpkObj, signerObj, rl, proverObj)
+	nextSignerObj, proof, _, err := zkban.UpdateRequest(nextPerioBig, signerObj, rl, gpkObj, proverObj)
 
 	if err != nil {
 		return nil, nil, err
