@@ -88,7 +88,7 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) (*Sign
 	return &result, err
 }
 
-func Verify(signature *Signature, m []byte, counter, period int64, gpk, circuitBytes, verifyKeyBytes []byte) error {
+func Verify(signature *Signature, m []byte, counter, period int64, gpk, verifyKeyBytes []byte) error {
 	proofObj, err := snark.DecodeProof(signature.Proof)
 	if err != nil {
 		return err
