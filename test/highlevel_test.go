@@ -67,11 +67,10 @@ func TestHighLevelApi(t *testing.T) {
 	assert.NoError(err)
 
 	signer := highlevel.HighLevelSigner{
-		Credential:     cred,
-		GroupPublicKey: params.gpk.Bytes(),
-		Period:         params.signer().Period.Int64(),
-		Secret:         req.UserSecretKey,
-		UserPublicKey:  req.UserPublicKey,
+		Credential:    cred,
+		Period:        params.signer().Period.Int64(),
+		Secret:        req.UserSecretKey,
+		UserPublicKey: req.UserPublicKey,
 	}
 
 	signature, err := highlevel.Sign(
@@ -117,6 +116,7 @@ func TestHighLevelApi(t *testing.T) {
 		params.nextPeriod.Int64(),
 		&signer,
 		rl1,
+		params.gpk.Bytes(),
 		updateVerifyKeyBytes,
 	)
 

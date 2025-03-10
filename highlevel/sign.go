@@ -20,11 +20,10 @@ type Signature struct {
 }
 
 type HighLevelSigner struct {
-	Credential     []byte
-	Secret         []byte
-	UserPublicKey  []byte
-	GroupPublicKey []byte
-	Period         int64
+	Credential    []byte
+	Secret        []byte
+	UserPublicKey []byte
+	Period        int64
 }
 
 func (signer *HighLevelSigner) ToSigner() (*zkbanw.Signer, error) {

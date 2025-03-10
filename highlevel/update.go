@@ -57,14 +57,10 @@ func VerifyUpdateRequest(
 	nextPeriod int64,
 	signer *HighLevelSigner,
 	rl witness.RevocationList,
+	gpk []byte,
 	verifyKey []byte,
 ) error {
 	nextPerioBig := big.NewInt(nextPeriod)
-
-	// signerObj, err := signer.ToSigner()
-	// if err != nil {
-	// 	return err
-	// }
 
 	verifyKeyObj, err := snark.DecodeVerifierKey(verifyKey)
 	if err != nil {
@@ -96,7 +92,7 @@ func VerifyUpdateRequest(
 		GroupPublicKey: eddsa.PublicKey{},
 	}
 
-	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, signer.GroupPublicKey)
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk)
 
 	wit, err := frontend.NewWitness(&assign, snark.EcCurve.ScalarField())
 	if err != nil {
