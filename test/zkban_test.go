@@ -42,7 +42,7 @@ func TestAll(t *testing.T) {
 
 	var sign *circuit.SignCircuit
 	t.Run("sign", func(t *testing.T) {
-		proof, assign, err := zkban.Sign(params.m, params.cnt, params.signer(), signCircuit.Prover())
+		proof, assign, err := zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
 		assert.NoError(err)
 
 		sign = assign
@@ -58,7 +58,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("sign-fail", func(t *testing.T) {
-		proof, assign, err := zkban.Sign(params.m, params.cnt, params.signer(), signCircuit.Prover())
+		proof, assign, err := zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
 		assert.NoError(err)
 
 		assign.Message = big.NewInt(100000)

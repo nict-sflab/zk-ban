@@ -27,11 +27,10 @@ func TestSignCircuit(t *testing.T) {
 	assert.NoError(err)
 
 	signer := witness.Signer{
-		UserSecretKey:  &usk,
-		UserPublicKey:  upk,
-		Credential:     cert,
-		Period:         period,
-		GroupPublicKey: gpk,
+		UserSecretKey: &usk,
+		UserPublicKey: upk,
+		Credential:    cert,
+		Period:        period,
 	}
 
 	commit, err := signer.CommitSign(m, bsn)
@@ -39,7 +38,7 @@ func TestSignCircuit(t *testing.T) {
 
 	authCircuit := SignCircuit{}
 
-	witness := NewSignWitness(m, bsn, commit, &signer)
+	witness := NewSignWitness(m, bsn, commit, &signer, gpk)
 
 	assert.ProverSucceeded(&authCircuit, witness, test.WithCurves(snark.EcCurve))
 }

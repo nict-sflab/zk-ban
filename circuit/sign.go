@@ -47,7 +47,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, sessionTag *big.Int, commit *witness.SignCommit, signer *witness.Signer) *SignCircuit {
+func NewSignWitness(m, sessionTag *big.Int, commit *witness.SignCommit, signer *witness.Signer, gpk *witness.GroupPublicKey) *SignCircuit {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number,
 		CredentialAuthInfo: CredentialAuthInfo{
@@ -60,7 +60,7 @@ func NewSignWitness(m, sessionTag *big.Int, commit *witness.SignCommit, signer *
 		Nym:        commit.Nym,
 	}
 
-	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, signer.GroupPublicKey.Bytes())
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.CredentialAuthInfo.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
 	return assign

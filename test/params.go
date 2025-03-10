@@ -31,11 +31,10 @@ type TestParams struct {
 
 func (params *TestParams) signer() *witness.Signer {
 	signer := witness.Signer{
-		UserSecretKey:  params.usk,
-		UserPublicKey:  params.upk,
-		Credential:     params.cert,
-		Period:         params.period,
-		GroupPublicKey: params.gpk,
+		UserSecretKey: params.usk,
+		UserPublicKey: params.upk,
+		Credential:    params.cert,
+		Period:        params.period,
 	}
 
 	return &signer
