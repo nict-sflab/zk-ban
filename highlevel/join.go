@@ -6,6 +6,7 @@ import (
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/snark"
+	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/frontend"
 )
@@ -14,6 +15,23 @@ type JoinReq struct {
 	UserSecretKey []byte
 	UserPublicKey []byte
 	Period        int64
+}
+
+func IssueCredential(period int64, upk, gsk []byte) ([]byte, error) {
+	signer, err := witness.GroupSecretKeyFromBytes(gsk)
+	if err != nil {
+		return nil, err
+	}
+
+	gskStruct := witness.GroupSecretKey{Signer: signer}
+	upkStruct := witness.UserPublicKey{Number: big.NewInt(0).SetBytes(upk)}
+
+	cred, err := gskStruct.IssueCredential(&upkStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	return cred.Signature, nil
 }
 
 func JoinRequest(period int64, circuitBytes, proveKey []byte) ([]byte, *JoinReq, error) {
