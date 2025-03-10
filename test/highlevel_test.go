@@ -45,7 +45,7 @@ func TestHighLevelApi(t *testing.T) {
 	signerBytes, err := json.Marshal(signer)
 	assert.NoError(err)
 
-	result := highlevel.Sign(
+	signature, err := highlevel.Sign(
 		message,
 		params.cnt.Int64(),
 		signerBytes,
@@ -53,16 +53,10 @@ func TestHighLevelApi(t *testing.T) {
 		proveKeyBytes,
 	)
 
-	var resultStrct highlevel.Result
-	err = resultStrct.FromString(result)
 	assert.NoError(err)
 
-	err = json.Unmarshal([]byte(result), &resultStrct)
-	assert.NoError(err)
-	assert.Empty(resultStrct.Err)
-
-	result = highlevel.Verify(
-		resultStrct.Out,
+	err = highlevel.Verify(
+		signature,
 		params.m.Bytes(),
 		params.cnt.Int64(),
 		params.period.Int64(),
@@ -71,7 +65,5 @@ func TestHighLevelApi(t *testing.T) {
 		verifyKeyBytes,
 	)
 
-	err = resultStrct.FromString(result)
 	assert.NoError(err)
-	assert.Equal(resultStrct.Err, "")
 }

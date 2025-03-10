@@ -1,11 +1,8 @@
 package highlevel
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"math/big"
-	"strings"
 
 	core "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/circuit"
@@ -18,49 +15,9 @@ import (
 )
 
 type Signature struct {
-	Proof *big.Int
-	Nym   *big.Int
-	Sigma *big.Int
-}
-
-func (signature *Signature) String() string {
-	proof := signature.Proof.Bytes()
-	sigma := signature.Sigma.Bytes()
-	nym := signature.Nym.Bytes()
-
-	encodedProof := base64.StdEncoding.EncodeToString(proof)
-	encodedSigma := base64.StdEncoding.EncodeToString(sigma)
-	encodeNym := base64.StdEncoding.EncodeToString(nym)
-
-	return string(encodedProof) + "." + string(encodedSigma) + "." + string(encodeNym)
-}
-
-func (signature *Signature) FromString(str string) error {
-	strs := strings.Split(str, ".")
-	if len(strs) != 3 {
-		return errors.New("invalid signature string (expected 3 parts)")
-	}
-
-	proof, err := base64.StdEncoding.DecodeString(strs[0])
-	if err != nil {
-		return err
-	}
-
-	sigma, err := base64.StdEncoding.DecodeString(strs[1])
-	if err != nil {
-		return err
-	}
-
-	nym, err := base64.StdEncoding.DecodeString(strs[2])
-	if err != nil {
-		return err
-	}
-
-	signature.Proof = big.NewInt(0).SetBytes(proof)
-	signature.Nym = big.NewInt(0).SetBytes(nym)
-	signature.Sigma = big.NewInt(0).SetBytes(sigma)
-
-	return nil
+	Proof []byte
+	Nym   []byte
+	Sigma []byte
 }
 
 type Signer struct {
@@ -71,21 +28,21 @@ type Signer struct {
 	Period         int64
 }
 
-func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string {
+func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) (*Signature, error) {
 	jsonSignerStruct := Signer{}
 	err := json.Unmarshal(signer, &jsonSignerStruct)
 	if err != nil {
-		return NewResult("", err).String()
+		return nil, err
 	}
 
 	cs, err := snark.DecodeCircuit(circuitBytes)
 	if err != nil {
-		return NewResult("", err).String()
+		return nil, err
 	}
 
 	proverKeyObj, err := snark.DecodeProverKey(proveKey)
 	if err != nil {
-		return NewResult("", err).String()
+		return nil, err
 	}
 
 	mBig := big.NewInt(0).SetBytes(m)
@@ -96,7 +53,7 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 
 	gpkObj, err := zkbanw.GroupPublicKeyFromBytes(jsonSignerStruct.GroupPublicKey)
 	if err != nil {
-		return NewResult("", err).String()
+		return nil, err
 	}
 
 	snarkProver := snark.SnarkProver{
@@ -114,7 +71,7 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 
 	proof, assign, err := core.Sign(mBig, counterBig, &signerStruct, &snarkProver)
 	if err != nil {
-		return NewResult("", err).String()
+		return nil, err
 	}
 
 	proofBytes, err := snark.EncodeProof(proof)
@@ -123,26 +80,23 @@ func Sign(m []byte, counter int64, signer, circuitBytes, proveKey []byte) string
 	signature := assign.Signature.(*big.Int)
 
 	result := Signature{
-		Proof: pi,
-		Nym:   nym,
-		Sigma: signature,
+		Proof: pi.Bytes(),
+		Nym:   nym.Bytes(),
+		Sigma: signature.Bytes(),
 	}
 
-	return NewResult(result.String(), nil).String()
+	return &result, err
 }
 
-func Verify(proof string, m []byte, counter, period int64, gpk, circuitBytes, verifyKeyBytes []byte) string {
-	sig := Signature{}
-	sig.FromString(proof)
-
-	proofObj, err := snark.DecodeProof(sig.Proof.Bytes())
+func Verify(signature *Signature, m []byte, counter, period int64, gpk, circuitBytes, verifyKeyBytes []byte) error {
+	proofObj, err := snark.DecodeProof(signature.Proof)
 	if err != nil {
-		return NewResult("", err).String()
+		return err
 	}
 
 	verifyKeyObj, err := snark.DecodeVerifierKey(verifyKeyBytes)
 	if err != nil {
-		return NewResult("", err).String()
+		return err
 	}
 
 	mBig := big.NewInt(0).SetBytes(m)
@@ -165,24 +119,24 @@ func Verify(proof string, m []byte, counter, period int64, gpk, circuitBytes, ve
 		GroupPublicKey: publicKey,
 		SessionTag:     witness.SessionTag(counterBig, periodBig),
 		Message:        mBig,
-		Signature:      sig.Sigma,
-		Nym:            sig.Nym,
+		Signature:      signature.Sigma,
+		Nym:            signature.Nym,
 	}
 
 	wit, err := frontend.NewWitness(&assign, snark.EcCurve.ScalarField())
 	if err != nil {
-		return NewResult("", err).String()
+		return err
 	}
 
 	pubWit, err := wit.Public()
 	if err != nil {
-		return NewResult("", err).String()
+		return err
 	}
 
 	err = groth16.Verify(proofObj, verifyKeyObj, pubWit)
 	if err != nil {
-		return NewResult("", err).String()
+		return err
 	}
 
-	return NewResult("ok", nil).String()
+	return nil
 }
