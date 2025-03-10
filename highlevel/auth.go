@@ -125,7 +125,7 @@ func Verify(signature *Signature, m []byte, counter, period int64, gpk, verifyKe
 	dummy.Assign(snark.TwistededwardsCurve, dummyBuf[:])
 
 	assign := circuit.SignCircuit{
-		UserSecretKey: big.NewInt(0),
+		UserSecretKey: 0,
 		CredentialAuthInfo: circuit.CredentialAuthInfo{
 			Credential: dummy,
 			Period:     period,

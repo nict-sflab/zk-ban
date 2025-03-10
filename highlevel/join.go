@@ -83,7 +83,7 @@ func VerifyJoinReq(proof, upk []byte, period int64, verifyKey []byte) error {
 	}
 
 	assign := circuit.JoinRequestCircuit{
-		UserSecretKey: big.NewInt(0),
+		UserSecretKey: 0,
 		PublicKeyAuthInfo: circuit.PublicKeyAuthInfo{
 			UserPublicKey: big.NewInt(0).SetBytes(upk),
 			Period:        period,
