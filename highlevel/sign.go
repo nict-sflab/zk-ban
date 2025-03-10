@@ -52,20 +52,10 @@ func (signer *HighLevelSigner) FromSigner(signerObj *zkbanw.Signer) {
 	signer.Period = signerObj.Period.Int64()
 }
 
-func Sign(m []byte, counter int64, signer HighLevelSigner, gpk, circuitBytes, proveKey []byte) (*Signature, error) {
-	cs, err := snark.DecodeCircuit(circuitBytes)
+func Sign(m []byte, counter int64, signer HighLevelSigner, gpk []byte, prover *HighLevelSnarkProver) (*Signature, error) {
+	snarkProver, err := prover.ToSnarkProver()
 	if err != nil {
 		return nil, err
-	}
-
-	proverKeyObj, err := snark.DecodeProverKey(proveKey)
-	if err != nil {
-		return nil, err
-	}
-
-	snarkProver := snark.SnarkProver{
-		ConstraintSystem: cs,
-		ProveKey:         proverKeyObj,
 	}
 
 	mBig := big.NewInt(0).SetBytes(m)
@@ -81,7 +71,7 @@ func Sign(m []byte, counter int64, signer HighLevelSigner, gpk, circuitBytes, pr
 		return nil, err
 	}
 
-	proof, assign, err := core.Sign(mBig, counterBig, signerObj, gpkObj, &snarkProver)
+	proof, assign, err := core.Sign(mBig, counterBig, signerObj, gpkObj, snarkProver)
 	if err != nil {
 		return nil, err
 	}

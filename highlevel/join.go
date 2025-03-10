@@ -34,25 +34,15 @@ func IssueCredential(period int64, upk, gsk []byte) ([]byte, error) {
 	return cred.Signature, nil
 }
 
-func JoinRequest(period int64, circuitBytes, proveKey []byte) ([]byte, *JoinReq, error) {
+func JoinRequest(period int64, prover *HighLevelSnarkProver) ([]byte, *JoinReq, error) {
 	periodBig := big.NewInt(period)
 
-	cs, err := snark.DecodeCircuit(circuitBytes)
+	proverObj, err := prover.ToSnarkProver()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	proveKeyObj, err := snark.DecodeProverKey(proveKey)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	prover := snark.SnarkProver{
-		ConstraintSystem: cs,
-		ProveKey:         proveKeyObj,
-	}
-
-	proof, assign, err := zkban.JoinRequest(periodBig, &prover)
+	proof, assign, err := zkban.JoinRequest(periodBig, proverObj)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -47,9 +47,10 @@ func TestHighLevelApi(t *testing.T) {
 
 	proof, req, err := highlevel.JoinRequest(
 		params.period.Int64(),
-		joinCircuitBytes,
-		joinProveKeyBytes,
-	)
+		&highlevel.HighLevelSnarkProver{
+			ConstraintSystem: joinCircuitBytes,
+			ProveKey:         joinProveKeyBytes,
+		})
 
 	assert.NoError(err)
 
@@ -78,8 +79,10 @@ func TestHighLevelApi(t *testing.T) {
 		params.cnt.Int64(),
 		signer,
 		params.gpk.Bytes(),
-		signCircuitBytes,
-		signProveKeyBytes,
+		&highlevel.HighLevelSnarkProver{
+			ConstraintSystem: signCircuitBytes,
+			ProveKey:         signProveKeyBytes,
+		},
 	)
 
 	assert.NoError(err)
