@@ -28,21 +28,15 @@ type HighLevelSigner struct {
 }
 
 func (signer *HighLevelSigner) ToSigner() (*zkbanw.Signer, error) {
-	gpkObj, err := zkbanw.GroupPublicKeyFromBytes(signer.GroupPublicKey)
-	if err != nil {
-		return nil, err
-	}
-
 	periodBig := big.NewInt(signer.Period)
 	upkBig := big.NewInt(0).SetBytes(signer.UserPublicKey)
 	secretBig := big.NewInt(0).SetBytes(signer.Secret)
 
 	signerStruct := zkbanw.Signer{
-		UserSecretKey:  &zkbanw.UserSecretKey{Number: secretBig},
-		UserPublicKey:  &zkbanw.UserPublicKey{Number: upkBig},
-		Credential:     &zkbanw.Credential{Signature: signer.Credential},
-		Period:         periodBig,
-		GroupPublicKey: gpkObj,
+		UserSecretKey: &zkbanw.UserSecretKey{Number: secretBig},
+		UserPublicKey: &zkbanw.UserPublicKey{Number: upkBig},
+		Credential:    &zkbanw.Credential{Signature: signer.Credential},
+		Period:        periodBig,
 	}
 
 	return &signerStruct, nil
@@ -55,11 +49,10 @@ func (signer *HighLevelSigner) FromSigner(signerObj *zkbanw.Signer) {
 
 	signer.Secret = signerObj.UserSecretKey.Number.Bytes()
 	signer.UserPublicKey = signerObj.UserPublicKey.Number.Bytes()
-	signer.GroupPublicKey = signerObj.GroupPublicKey.Bytes()
 	signer.Period = signerObj.Period.Int64()
 }
 
-func Sign(m []byte, counter int64, signer HighLevelSigner, circuitBytes, proveKey []byte) (*Signature, error) {
+func Sign(m []byte, counter int64, signer HighLevelSigner, gpk, circuitBytes, proveKey []byte) (*Signature, error) {
 	cs, err := snark.DecodeCircuit(circuitBytes)
 	if err != nil {
 		return nil, err
@@ -83,7 +76,12 @@ func Sign(m []byte, counter int64, signer HighLevelSigner, circuitBytes, proveKe
 		return nil, err
 	}
 
-	proof, assign, err := core.Sign(mBig, counterBig, signerObj, &snarkProver)
+	gpkObj, err := witness.GroupPublicKeyFromBytes(gpk)
+	if err != nil {
+		return nil, err
+	}
+
+	proof, assign, err := core.Sign(mBig, counterBig, signerObj, gpkObj, &snarkProver)
 	if err != nil {
 		return nil, err
 	}

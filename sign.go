@@ -16,7 +16,7 @@ func max() *big.Int {
 	return i
 }
 
-func Sign(m, counter *big.Int, signer *zkbanw.Signer, prover *snark.SnarkProver) (groth16.Proof, *circuit.SignCircuit, error) {
+func Sign(m, counter *big.Int, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (groth16.Proof, *circuit.SignCircuit, error) {
 	sessionTag := signer.SessionTag(counter)
 
 	comm, err := signer.CommitSign(m, sessionTag)
@@ -24,7 +24,7 @@ func Sign(m, counter *big.Int, signer *zkbanw.Signer, prover *snark.SnarkProver)
 		return nil, nil, err
 	}
 
-	w := circuit.NewSignWitness(m, sessionTag, comm, signer)
+	w := circuit.NewSignWitness(m, sessionTag, comm, signer, gpk)
 
 	proof, _, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {

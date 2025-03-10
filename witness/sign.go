@@ -12,11 +12,10 @@ type SignCommit struct {
 }
 
 type Signer struct {
-	UserSecretKey  *UserSecretKey
-	UserPublicKey  *UserPublicKey
-	Credential     *Credential
-	Period         *big.Int
-	GroupPublicKey *GroupPublicKey
+	UserSecretKey *UserSecretKey
+	UserPublicKey *UserPublicKey
+	Credential    *Credential
+	Period        *big.Int
 }
 
 func (signer *Signer) CommitSign(m, sessionTag *big.Int) (*SignCommit, error) {
@@ -33,18 +32,17 @@ func (signer *Signer) CommitSign(m, sessionTag *big.Int) (*SignCommit, error) {
 	return &SignCommit{Sigma: commit1, Nym: commit2}, nil
 }
 
-func (signer *Signer) NextWithoutCred(nextPeriod *big.Int, nextGpk *GroupPublicKey) (*Signer, error) {
+func (signer *Signer) NextWithoutCred(nextPeriod *big.Int) (*Signer, error) {
 	upk, err := signer.UserSecretKey.PublicKey(nextPeriod)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Signer{
-		UserSecretKey:  signer.UserSecretKey,
-		UserPublicKey:  upk,
-		Period:         nextPeriod,
-		GroupPublicKey: nextGpk,
-		Credential:     nil,
+		UserSecretKey: signer.UserSecretKey,
+		UserPublicKey: upk,
+		Period:        nextPeriod,
+		Credential:    nil,
 	}, nil
 }
 

@@ -1,8 +1,8 @@
 package circuit
 
 import (
-	"github.com/akakou/zk-ban/witness"
 	"github.com/akakou/zk-ban/snark"
+	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
@@ -40,7 +40,7 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewUpdateCircuitWitness(next, last *witness.Signer, revocationList witness.RevocationList) *UpdateCircuit {
+func NewUpdateCircuitWitness(next, last *witness.Signer, revocationList witness.RevocationList, gpk *witness.GroupPublicKey) *UpdateCircuit {
 	assign := &UpdateCircuit{
 		UserSecretKey: last.UserSecretKey.Number,
 		CurrentInfo: CredentialAuthInfo{
@@ -52,7 +52,7 @@ func NewUpdateCircuitWitness(next, last *witness.Signer, revocationList witness.
 		},
 	}
 
-	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, last.GroupPublicKey.Bytes())
+	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.CurrentInfo.Credential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
 
 	rl := RevocationList{}

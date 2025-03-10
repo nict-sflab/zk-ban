@@ -77,6 +77,7 @@ func TestHighLevelApi(t *testing.T) {
 		message,
 		params.cnt.Int64(),
 		signer,
+		params.gpk.Bytes(),
 		signCircuitBytes,
 		signProveKeyBytes,
 	)

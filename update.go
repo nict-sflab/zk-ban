@@ -10,12 +10,12 @@ import (
 )
 
 func UpdateRequest(nextPeriod *big.Int, signer *zkbanw.Signer, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*zkbanw.Signer, groth16.Proof, *circuit.UpdateCircuit, error) {
-	nextSigner, err := signer.NextWithoutCred(nextPeriod, gpk)
+	nextSigner, err := signer.NextWithoutCred(nextPeriod)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, rl)
+	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, rl, gpk)
 
 	proof, _, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {
