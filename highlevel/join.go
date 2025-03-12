@@ -12,7 +12,6 @@ import (
 )
 
 type JoinReq struct {
-	UserSecretKey []byte
 	UserPublicKey []byte
 	Period        int64
 }
@@ -34,31 +33,30 @@ func IssueCredential(period int64, upk, gsk []byte) ([]byte, error) {
 	return cred.Signature, nil
 }
 
-func JoinRequest(period int64, prover *HighLevelSnarkProver) ([]byte, *JoinReq, error) {
+func JoinRequest(period int64, prover *HighLevelSnarkProver) ([]byte, *JoinReq, *circuit.JoinRequestCircuit, error) {
 	periodBig := big.NewInt(period)
 
 	proverObj, err := prover.ToSnarkProver()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	proof, assign, err := zkban.JoinRequest(periodBig, proverObj)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	proofBytes, err := snark.EncodeProof(proof)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	req := JoinReq{
-		UserSecretKey: assign.UserSecretKey.(*big.Int).Bytes(),
 		UserPublicKey: assign.PublicKeyAuthInfo.UserPublicKey.(*big.Int).Bytes(),
 		Period:        assign.PublicKeyAuthInfo.Period.(*big.Int).Int64(),
 	}
 
-	return proofBytes, &req, err
+	return proofBytes, &req, assign, err
 }
 
 func VerifyJoinReq(proof, upk []byte, period int64, verifyKey []byte) error {
