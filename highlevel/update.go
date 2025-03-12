@@ -20,7 +20,7 @@ func UpdateRequest(
 	gpk []byte,
 	prover *HighLevelSnarkProver,
 ) (*HighLevelSigner, []byte, error) {
-	nextPerioBig := big.NewInt(nextPeriod)
+	nextPeriodBig := big.NewInt(nextPeriod)
 
 	gpkObj, err := witness.GroupPublicKeyFromBytes(gpk)
 	if err != nil {
@@ -37,7 +37,7 @@ func UpdateRequest(
 		return nil, nil, err
 	}
 
-	nextSignerObj, proof, _, err := zkban.UpdateRequest(nextPerioBig, signerObj, rl, gpkObj, proverObj)
+	nextSignerObj, proof, _, err := zkban.UpdateRequest(nextPeriodBig, signerObj, rl, gpkObj, proverObj)
 
 	if err != nil {
 		return nil, nil, err
@@ -55,7 +55,7 @@ func VerifyUpdateRequest(
 	proofBytes []byte,
 	nextupk []byte,
 	nextPeriod int64,
-	signer *HighLevelSigner,
+	beforePeriod int64,
 	rl witness.RevocationList,
 	gpk []byte,
 	verifyKey []byte,
@@ -82,7 +82,7 @@ func VerifyUpdateRequest(
 				},
 				S: 0,
 			},
-			Period: signer.Period,
+			Period: beforePeriod,
 		},
 		NextInfo: circuit.PublicKeyAuthInfo{
 			Period:        nextPerioBig,
