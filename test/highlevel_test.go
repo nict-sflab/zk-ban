@@ -1,6 +1,7 @@
 package zkbantest
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/akakou/zk-ban/highlevel"
@@ -45,7 +46,7 @@ func TestHighLevelApi(t *testing.T) {
 
 	message := params.m.Bytes()
 
-	proof, req, err := highlevel.JoinRequest(
+	proof, req, assign, err := highlevel.JoinRequest(
 		params.period.Int64(),
 		&highlevel.HighLevelSnarkProver{
 			ConstraintSystem: joinCircuitBytes,
@@ -69,7 +70,7 @@ func TestHighLevelApi(t *testing.T) {
 	signer := highlevel.HighLevelSigner{
 		Credential:    cred,
 		Period:        params.signer().Period.Int64(),
-		Secret:        req.UserSecretKey,
+		Secret:        assign.UserSecretKey.(*big.Int).Bytes(),
 		UserPublicKey: req.UserPublicKey,
 	}
 
@@ -89,8 +90,6 @@ func TestHighLevelApi(t *testing.T) {
 	err = highlevel.Verify(
 		signature,
 		params.m.Bytes(),
-		params.cnt.Int64(),
-		params.period.Int64(),
 		params.gpk.Bytes(),
 		signVerifyKeyBytes,
 	)
@@ -114,7 +113,7 @@ func TestHighLevelApi(t *testing.T) {
 		proof,
 		updateSigner.UserPublicKey,
 		params.nextPeriod.Int64(),
-		&signer,
+		params.signer().Period.Int64(),
 		rl1,
 		params.gpk.Bytes(),
 		updateVerifyKeyBytes,
