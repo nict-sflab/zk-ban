@@ -14,9 +14,11 @@ import (
 )
 
 type Signature struct {
-	Proof []byte
-	Nym   []byte
-	Sigma []byte
+	Proof   []byte
+	Nym     []byte
+	Sigma   []byte
+	Period  int64
+	Counter int64
 }
 
 type HighLevelSigner struct {
@@ -81,15 +83,17 @@ func Sign(m []byte, counter int64, signer HighLevelSigner, gpk []byte, prover *H
 	signature := assign.Signature.(*big.Int)
 
 	result := Signature{
-		Proof: pi.Bytes(),
-		Nym:   nym.Bytes(),
-		Sigma: signature.Bytes(),
+		Proof:   pi.Bytes(),
+		Nym:     nym.Bytes(),
+		Sigma:   signature.Bytes(),
+		Period:  assign.CredentialAuthInfo.Period.(*big.Int).Int64(),
+		Counter: counter,
 	}
 
 	return &result, err
 }
 
-func Verify(signature *Signature, m []byte, counter, period int64, gpk, verifyKeyBytes []byte) error {
+func Verify(signature *Signature, m []byte, gpk, verifyKeyBytes []byte) error {
 	proofObj, err := snark.DecodeProof(signature.Proof)
 	if err != nil {
 		return err
@@ -101,8 +105,8 @@ func Verify(signature *Signature, m []byte, counter, period int64, gpk, verifyKe
 	}
 
 	mBig := big.NewInt(0).SetBytes(m)
-	counterBig := big.NewInt(counter)
-	periodBig := big.NewInt(period)
+	counterBig := big.NewInt(signature.Counter)
+	periodBig := big.NewInt(signature.Period)
 
 	publicKey := eddsa.PublicKey{}
 	publicKey.Assign(snark.TwistededwardsCurve, gpk)
@@ -115,7 +119,7 @@ func Verify(signature *Signature, m []byte, counter, period int64, gpk, verifyKe
 		UserSecretKey: 0,
 		CredentialAuthInfo: circuit.CredentialAuthInfo{
 			Credential: dummy,
-			Period:     period,
+			Period:     signature.Period,
 		},
 		GroupPublicKey: publicKey,
 		SessionTag:     witness.SessionTag(counterBig, periodBig),
