@@ -3,7 +3,7 @@ package witness
 import (
 	"math/big"
 
-	"github.com/akakou/zk-ban/snark"
+	hash "github.com/akakou/zk-ban/primitives/hash/witness"
 )
 
 type SignCommit struct {
@@ -19,12 +19,12 @@ type Signer struct {
 }
 
 func (signer *Signer) CommitSign(m, sessionTag *big.Int) (*SignCommit, error) {
-	commit1, err := snark.CommitHash(m, signer.UserSecretKey.Number)
+	commit1, err := hash.Hash(m, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := snark.CommitHash(sessionTag, signer.UserSecretKey.Number)
+	commit2, err := hash.Hash(sessionTag, signer.UserSecretKey.Number)
 	if err != nil {
 		return nil, err
 	}

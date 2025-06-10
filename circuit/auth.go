@@ -1,6 +1,7 @@
 package circuit
 
 import (
+	hash "github.com/akakou/zk-ban/primitives/hash/circuit"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
 	"github.com/consensys/gnark/std/signature/eddsa"
@@ -19,7 +20,7 @@ type PublicKeyAuthInfo struct {
 }
 
 func authCredential(api frontend.API, info CredentialAuthInfo, usk frontend.Variable, gpk eddsa.PublicKey) error {
-	upk, err := snark.CircuitHash(api, info.Period, usk)
+	upk, err := hash.Hash(api, info.Period, usk)
 	if err != nil {
 		return err
 	}
@@ -29,7 +30,7 @@ func authCredential(api frontend.API, info CredentialAuthInfo, usk frontend.Vari
 		return err
 	}
 
-	hash, err := snark.NewCircuitHash(api)
+	hash, err := hash.HashNew(api)
 	if err != nil {
 		return err
 	}
@@ -43,7 +44,7 @@ func authCredential(api frontend.API, info CredentialAuthInfo, usk frontend.Vari
 }
 
 func authPubKey(api frontend.API, info PublicKeyAuthInfo, usk frontend.Variable) error {
-	upk_dash, err := snark.CircuitHash(api, info.Period, usk)
+	upk_dash, err := hash.Hash(api, info.Period, usk)
 	if err != nil {
 		return err
 	}

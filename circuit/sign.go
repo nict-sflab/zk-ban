@@ -5,6 +5,7 @@ import (
 
 	"github.com/consensys/gnark/std/signature/eddsa"
 
+	hash "github.com/akakou/zk-ban/primitives/hash/circuit"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
@@ -31,12 +32,12 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	signature, err := snark.CircuitHash(api, circuit.Message, circuit.UserSecretKey)
+	signature, err := hash.Hash(api, circuit.Message, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
 
-	nym, err := snark.CircuitHash(api, circuit.SessionTag, circuit.UserSecretKey)
+	nym, err := hash.Hash(api, circuit.SessionTag, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}

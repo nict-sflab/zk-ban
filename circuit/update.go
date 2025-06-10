@@ -1,6 +1,7 @@
 package circuit
 
 import (
+	hash "github.com/akakou/zk-ban/primitives/hash/circuit"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/frontend"
@@ -27,7 +28,7 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 	}
 
 	for _, revokedPerSession := range circuit.RevocationList {
-		nym, err := snark.CircuitHash(api, revokedPerSession.SessionTag, circuit.UserSecretKey)
+		nym, err := hash.Hash(api, revokedPerSession.SessionTag, circuit.UserSecretKey)
 		if err != nil {
 			return err
 		}

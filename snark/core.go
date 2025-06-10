@@ -7,8 +7,8 @@ import (
 	"github.com/consensys/gnark/constraint"
 )
 
-var EcCurve = ecc.BLS12_381
-var TwistededwardsCurve = twistededwards.BLS12_381
+var EcCurve = ecc.BLS12_377
+var TwistededwardsCurve = twistededwards.BLS12_377
 
 type SnarkParams struct {
 	ConstraintSystem constraint.ConstraintSystem
