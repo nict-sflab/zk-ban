@@ -5,15 +5,17 @@ import (
 	"testing"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
+	"github.com/consensys/gnark/frontend"
 )
 
 func BenchmarkUpdate(t *testing.B) {
 	max := 10
-	base := 600
-	session := 270
+	base := 60
+	session := 27
 	revocation := 35100
 
 	for i := 1; i <= max; i++ {
@@ -61,7 +63,14 @@ func benchmarkUpdate(useConstant bool, a, b int, t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, _, err = zkban.UpdateRequest(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+			_, proof2, a, err := zkban.UpdateRequest(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+			panicIfErr(err)
+
+			proof = proof2
+			wit, err := frontend.NewWitness(a, snark.EcCurve.ScalarField())
+			panicIfErr(err)
+
+			pubWit, err = wit.Public()
 			panicIfErr(err)
 		}
 	})

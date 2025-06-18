@@ -6,8 +6,8 @@ import (
 )
 
 type RevokedNymsPerSession struct {
-	Nyms       []frontend.Variable `gnark:",public"`
-	SessionTag frontend.Variable   `gnark:",public"`
+	Nyms       []frontend.Variable
+	SessionTag frontend.Variable
 }
 type RevocationList []RevokedNymsPerSession
 

@@ -1,6 +1,7 @@
 package zkban
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/akakou/zk-ban/circuit"
@@ -15,7 +16,11 @@ func UpdateRequest(nextPeriod *big.Int, signer *zkbanw.Signer, rl zkbanw.Revocat
 		return nil, nil, nil, err
 	}
 
+	rlHash := zkbanw.HashRevocationList(rl)
+	fmt.Printf("rlHash%v\n", rlHash.Text(10))
+
 	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, rl, gpk)
+	w.RevocationListHash = rlHash
 
 	proof, _, _, err := snark.ProveSNARK(w, prover)
 	if err != nil {

@@ -18,7 +18,7 @@ Environments:
 
 Result:
 ```
-akakou@ra-webs:~/zk-ban/test$ go test --bench BenchmarkAll . -timeout 0 -benchtime 20x
+akakou@ra-webs:~/zk-ban/test$ go test -run . -bench BenchmarkAll -timeout 0 -benchtime 20x
 goos: linux
 goarch: amd64
 pkg: github.com/akakou/zk-ban/test
@@ -38,7 +38,7 @@ ok      github.com/akakou/zk-ban/test   102.312s
 ```
 
 ```
-akakou@ra-webs:~/zk-ban/test$ go test --bench BenchmarkUpdate . -timeout 0 -benchtime 20x
+akakou@ra-webs:~/zk-ban/test$ go test -run . -bench BenchmarkAll -timeout 0 -benchtime 20x
 goos: linux
 goarch: amd64
 pkg: github.com/akakou/zk-ban/test

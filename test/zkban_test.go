@@ -14,17 +14,20 @@ import (
 )
 
 func TestAll(t *testing.T) {
+	t.Log("hello")
+
 	assert := test.NewAssert(t)
 	params := prepareParams()
 
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := witness.EmptyConstantRevocationAddList(270, 130)
-	rldash := witness.EmptyConstantRevocationAddList(270, 130)
+	rl := witness.EmptyConstantRevocationAddList(27, 13)
+	rldash := witness.EmptyConstantRevocationAddList(27, 13)
 
 	joinCircuit, signCircuit, updateCircuit := prepareCircuit(rl, false)
 
+	t.Log("hello")
 	t.Run("join req", func(t *testing.T) {
 		var proof groth16.Proof
 		proof, assign, err := zkban.JoinRequest(params.period, joinCircuit.Prover())
@@ -73,6 +76,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("update", func(t *testing.T) {
+		// rl[0].SessionTag = big.NewInt(0)
 		_, proof, assign, err := zkban.UpdateRequest(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
 		assert.NoError(err)
 
