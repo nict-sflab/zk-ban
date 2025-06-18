@@ -52,20 +52,9 @@ func EmptyLinerRevocationAddList(SessionSize, RevocationListSize int) Revocation
 
 func HashRevocationList(rl RevocationList) *big.Int {
 	var aa []*big.Int
-	// h := big.NewInt(0).Bytes()
 	for _, r := range rl {
-		revokedHash, err := snark.CommitHash(r.Nyms...)
-		if err != nil {
-			panic(err)
-		}
-
-		// mimc.Write(h)
-		// mimc.Write(sum2)
 		aa = append(aa, r.SessionTag)
-		aa = append(aa, revokedHash)
-
-		// mimc = hash.MIMC_BLS12_381.New()
-
+		aa = append(aa, r.Nyms...)
 	}
 
 	h, err := snark.CommitHash(aa...)

@@ -35,17 +35,13 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 			return err
 		}
 
-		revokedHash, err := snark.CircuitHash(api, revokedPerSession.Nyms...)
-		if err != nil {
-			return err
-		}
+		base = append(base, revokedPerSession.SessionTag)
 
 		for _, revokedNym := range revokedPerSession.Nyms {
+			base = append(base, revokedNym)
 			api.AssertIsDifferent(nym, revokedNym)
 		}
 
-		base = append(base, revokedPerSession.SessionTag)
-		base = append(base, revokedHash)
 	}
 
 	rlHash, err := snark.CircuitHash(api, base...)
