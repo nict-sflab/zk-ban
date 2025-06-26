@@ -2,6 +2,8 @@ package witness
 
 import (
 	"math/big"
+
+	"github.com/akakou/zk-ban/snark"
 )
 
 type RevocationList []RevokedNymsPerSession
@@ -15,33 +17,26 @@ func EmptyConstantRevocationAddList(SessionSize, NymSizePerSession int) Revocati
 
 	for i := 0; i < SessionSize; i++ {
 		nyms := []*big.Int{}
+
 		for j := 0; j < NymSizePerSession; j++ {
-			nyms = append(nyms, big.NewInt(0))
+			n, err := snark.CommitHash(big.NewInt(202506253))
+			if err != nil {
+				panic(err)
+			}
+			n = big.NewInt(0)
+
+			nyms = append(nyms, n)
 		}
+
+		n, err := snark.CommitHash(big.NewInt(202506253))
+		if err != nil {
+			panic(err)
+		}
+		n = big.NewInt(0)
 
 		rl = append(rl, RevokedNymsPerSession{
 			Nyms:       nyms,
-			SessionTag: big.NewInt(0),
-		})
-	}
-
-	return rl
-}
-
-func EmptyLinerRevocationAddList(SessionSize, RevocationListSize int) RevocationList {
-	rl := RevocationList{}
-
-	a := 2 * RevocationListSize / (SessionSize * SessionSize)
-
-	for i := 0; i < SessionSize; i++ {
-		nyms := []*big.Int{}
-		for j := 0; j < a*i; j++ {
-			nyms = append(nyms, big.NewInt(0))
-		}
-
-		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: big.NewInt(0),
+			SessionTag: n,
 		})
 	}
 

@@ -97,3 +97,32 @@ func prepareParams() TestParams {
 		nextPeriod: nextPeriod,
 	}
 }
+
+func EmptyConstantRevocationAddList(SessionSize, NymSizePerSession int) witness.RevocationList {
+	rl := witness.RevocationList{}
+
+	for i := 0; i < SessionSize; i++ {
+		nyms := []*big.Int{}
+
+		for j := 0; j < NymSizePerSession; j++ {
+			n, err := snark.CommitHash(big.NewInt(202506253))
+			if err != nil {
+				panic(err)
+			}
+
+			nyms = append(nyms, n)
+		}
+
+		n, err := snark.CommitHash(big.NewInt(202506253))
+		if err != nil {
+			panic(err)
+		}
+
+		rl = append(rl, witness.RevokedNymsPerSession{
+			Nyms:       nyms,
+			SessionTag: n,
+		})
+	}
+
+	return rl
+}
