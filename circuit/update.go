@@ -7,6 +7,8 @@ import (
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
+var UpdatePreparableIndex = 5
+
 type UpdateCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
 	CurrentInfo    CredentialAuthInfo
@@ -41,12 +43,7 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 }
 
 func (circuit *UpdateCircuit) PreparableIndex() int {
-	rlSize := 0
-	for _, rl := range circuit.RevocationList {
-		rlSize += len(rl.Nyms) + 1
-	}
-
-	return rlSize
+	return UpdatePreparableIndex
 }
 
 func NewUpdateCircuitWitness(next, last *witness.Signer, revocationList witness.RevocationList, gpk *witness.GroupPublicKey) *UpdateCircuit {
