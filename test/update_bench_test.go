@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	gnarkprecomputes "github.com/akakou/gnark-precomputes"
 	zkban "github.com/akakou/zk-ban"
+	zkbanc "github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
+	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/frontend"
@@ -53,18 +56,25 @@ func benchmarkUpdate(a, b int, t *testing.B) {
 		}
 	})
 
-	// inputs, err := groth16_bls12381.PreparePublicInputs(updateCircuit.VerifyKey.(*groth16_bls12381.VerifyingKey), pubWit.Vector().(fr_bls12381.Vector))
-	// panicIfErr(err)
+	vk, err := gnarkprecomputes.FromBLS12381GnarkKey(updateCircuit.VerifyKey, updateCircuit.Circuit.(*zkbanc.UpdateCircuit))
+	panicIfErr(err)
+
+	var prepare *bls12381.G1Jac
+	t.Run("Verify-Precomputes,"+tag, func(b *testing.B) {
+		for range b.N {
+			prepare, err = vk.PreparePublicInputs(pubWit)
+			panicIfErr(err)
+
+		}
+	})
 
 	t.Run("Verify ,"+tag, func(b *testing.B) {
 		for range b.N {
 			params.gsk.IssueCredential(params.upk)
 
-			// err = groth16_bls12381.VerifyPrepared(proof.(*groth16_bls12381.Proof), updateCircuit.VerifyKey.(*groth16_bls12381.VerifyingKey), inputs)
-			// panicIfErr(err)
-
-			err = groth16.Verify(proof, updateCircuit.VerifyKey, pubWit)
+			err = vk.VerifyPrepared(proof, pubWit, prepare)
 			panicIfErr(err)
+
 		}
 	})
 }

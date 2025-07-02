@@ -1,8 +1,11 @@
 module github.com/akakou/zk-ban
 
-go 1.23.0
+go 1.24.3
+
+replace github.com/akakou/gnark-precomputes => ../gnark-precomputes
 
 require (
+	github.com/akakou/gnark-precomputes v0.0.0-00010101000000-000000000000
 	github.com/consensys/gnark v0.13.0
 	github.com/consensys/gnark-crypto v0.18.0
 	github.com/iden3/go-iden3-crypto v0.0.17

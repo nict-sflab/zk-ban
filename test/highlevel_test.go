@@ -109,6 +109,17 @@ func TestHighLevelApi(t *testing.T) {
 
 	assert.NoError(err)
 
+	prepared, err := highlevel.PrepareVerification(
+		// proof,
+		// updateSigner.UserPublicKey,
+		// params.nextPeriod.Int64(),
+		// params.signer().Period.Int64(),
+		// params.gpk.Bytes(),
+		rl1,
+		updateVerifyKeyBytes,
+	)
+	assert.NoError(err)
+
 	err = highlevel.VerifyUpdateRequest(
 		proof,
 		updateSigner.UserPublicKey,
@@ -116,6 +127,7 @@ func TestHighLevelApi(t *testing.T) {
 		params.signer().Period.Int64(),
 		rl1,
 		params.gpk.Bytes(),
+		prepared,
 		updateVerifyKeyBytes,
 	)
 

@@ -15,9 +15,9 @@ type SignCircuit struct {
 	CredentialAuthInfo CredentialAuthInfo
 	GroupPublicKey     eddsa.PublicKey   `gnark:",public"`
 	SessionTag         frontend.Variable `gnark:",public"`
-	Message            frontend.Variable `gnark:",public"`
-	Signature          frontend.Variable `gnark:",public"`
 	Nym                frontend.Variable `gnark:",public"`
+	Signature          frontend.Variable `gnark:",public"`
+	Message            frontend.Variable `gnark:",public"`
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {

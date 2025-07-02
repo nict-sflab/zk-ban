@@ -11,8 +11,8 @@ type UpdateCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
 	CurrentInfo    CredentialAuthInfo
 	NextInfo       PublicKeyAuthInfo
-	RevocationList RevocationList
 	GroupPublicKey eddsa.PublicKey `gnark:",public"`
+	RevocationList RevocationList
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
@@ -38,6 +38,15 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 	}
 
 	return nil
+}
+
+func (circuit *UpdateCircuit) PreparableIndex() int {
+	rlSize := 0
+	for _, rl := range circuit.RevocationList {
+		rlSize += len(rl.Nyms) + 1
+	}
+
+	return rlSize
 }
 
 func NewUpdateCircuitWitness(next, last *witness.Signer, revocationList witness.RevocationList, gpk *witness.GroupPublicKey) *UpdateCircuit {

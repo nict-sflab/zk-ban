@@ -9,8 +9,8 @@ import (
 )
 
 type CredentialAuthInfo struct {
-	Credential eddsa.Signature   `gnark:",secret"`
 	Period     frontend.Variable `gnark:",public"`
+	Credential eddsa.Signature   `gnark:",secret"`
 }
 
 type PublicKeyAuthInfo struct {
