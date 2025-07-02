@@ -44,6 +44,9 @@ func TestHighLevelApi(t *testing.T) {
 	updateVerifyKeyBytes, err := snark.EncodeVerifierKey(updateCircuit.VerifyKey)
 	assert.NoError(err)
 
+	rl := highlevel.HighLevelRevocationList{}
+	rl.FromRevocationList(&rl1)
+
 	message := params.m.Bytes()
 
 	proof, req, assign, err := highlevel.JoinRequest(
@@ -99,7 +102,7 @@ func TestHighLevelApi(t *testing.T) {
 	updateSigner, proof, err := highlevel.UpdateRequest(
 		params.nextPeriod.Int64(),
 		&signer,
-		rl1,
+		rl,
 		params.gpk.Bytes(),
 		&highlevel.HighLevelSnarkProver{
 			ConstraintSystem: updateCircuitBytes,
@@ -115,7 +118,7 @@ func TestHighLevelApi(t *testing.T) {
 		// params.nextPeriod.Int64(),
 		// params.signer().Period.Int64(),
 		// params.gpk.Bytes(),
-		rl1,
+		&rl,
 		updateVerifyKeyBytes,
 	)
 	assert.NoError(err)
@@ -125,7 +128,6 @@ func TestHighLevelApi(t *testing.T) {
 		updateSigner.UserPublicKey,
 		params.nextPeriod.Int64(),
 		params.signer().Period.Int64(),
-		rl1,
 		params.gpk.Bytes(),
 		prepared,
 		updateVerifyKeyBytes,

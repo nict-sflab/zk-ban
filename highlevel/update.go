@@ -1,6 +1,7 @@
 package highlevel
 
 import (
+	"fmt"
 	"math/big"
 
 	gnarkprecomputes "github.com/akakou/gnark-precomputes"
@@ -17,7 +18,7 @@ import (
 func UpdateRequest(
 	nextPeriod int64,
 	signer *HighLevelSigner,
-	rl witness.RevocationList,
+	rl HighLevelRevocationList,
 	gpk []byte,
 	prover *HighLevelSnarkProver,
 ) (*HighLevelSigner, []byte, error) {
@@ -38,7 +39,12 @@ func UpdateRequest(
 		return nil, nil, err
 	}
 
-	nextSignerObj, proof, _, err := zkban.UpdateRequest(nextPeriodBig, signerObj, rl, gpkObj, proverObj)
+	rlObj, err := rl.ToRevocationList()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nextSignerObj, proof, _, err := zkban.UpdateRequest(nextPeriodBig, signerObj, *rlObj, gpkObj, proverObj)
 
 	if err != nil {
 		return nil, nil, err
@@ -58,12 +64,18 @@ func PrepareVerification(
 	// nextPeriod int64,
 	// beforePeriod int64,
 	// gpk []byte,
-	rl witness.RevocationList,
+	rl *HighLevelRevocationList,
 	verifyKey []byte,
 ) ([]byte, error) {
 	// nextPerioBig := big.NewInt(nextPeriod)
+	fmt.Printf("helloa")
 
 	verifyKeyObj, err := snark.DecodeVerifierKey(verifyKey)
+	if err != nil {
+		return nil, err
+	}
+
+	rlObj, err := rl.ToRevocationList()
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +99,7 @@ func PrepareVerification(
 			Period:        0,
 			UserPublicKey: 0,
 		},
-		RevocationList: circuit.NewRevocationListWitness(rl),
+		RevocationList: circuit.NewRevocationListWitness(*rlObj),
 		GroupPublicKey: eddsa.PublicKey{
 			A: twistededwards.Point{
 				X: 0,
@@ -120,6 +132,8 @@ func PrepareVerification(
 	encoded.FromJacobian(prepare)
 	res := encoded.Bytes()
 
+	fmt.Printf("hello %v %v", res, res[:])
+
 	return res[:], err
 }
 
@@ -128,7 +142,6 @@ func VerifyUpdateRequest(
 	nextupk []byte,
 	nextPeriod int64,
 	beforePeriod int64,
-	rl witness.RevocationList,
 	gpk []byte,
 	prepared []byte,
 	verifyKey []byte,
@@ -141,9 +154,6 @@ func VerifyUpdateRequest(
 
 	var g1Jac bls12381.G1Jac
 	g1Jac.FromAffine(&g1Aff)
-	if err != nil {
-		return err
-	}
 
 	nextPerioBig := big.NewInt(nextPeriod)
 
@@ -173,8 +183,8 @@ func VerifyUpdateRequest(
 			Period:        nextPerioBig,
 			UserPublicKey: big.NewInt(0).SetBytes(nextupk),
 		},
-		RevocationList: circuit.NewRevocationListWitness(rl),
 		GroupPublicKey: eddsa.PublicKey{},
+		RevocationList: circuit.EmptyRevocationList(0, 0),
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk)
