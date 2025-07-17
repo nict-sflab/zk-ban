@@ -93,7 +93,7 @@ func Sign(m []byte, counter int64, signer HighLevelSigner, gpk []byte, prover *H
 	return &result, err
 }
 
-func Verify(signature *Signature, m []byte, gpk, verifyKeyBytes []byte) error {
+func Verify(signature *Signature, m []byte, period int64, gpk, verifyKeyBytes []byte) error {
 	proofObj, err := snark.DecodeProof(signature.Proof)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func Verify(signature *Signature, m []byte, gpk, verifyKeyBytes []byte) error {
 
 	mBig := big.NewInt(0).SetBytes(m)
 	counterBig := big.NewInt(signature.Counter)
-	periodBig := big.NewInt(signature.Period)
+	periodBig := big.NewInt(period)
 
 	publicKey := eddsa.PublicKey{}
 	publicKey.Assign(snark.TwistededwardsCurve, gpk)
