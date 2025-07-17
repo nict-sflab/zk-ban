@@ -93,6 +93,7 @@ func TestHighLevelApi(t *testing.T) {
 	err = highlevel.Verify(
 		signature,
 		params.m.Bytes(),
+		params.period.Int64(),
 		params.gpk.Bytes(),
 		signVerifyKeyBytes,
 	)
