@@ -9,14 +9,14 @@ import (
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-var UpdatePreparableIndex = 6
+var UpdatePreparableIndex = 4
 
 type UpdateCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
 	Credential     eddsa.Signature   `gnark:",secret"`
-	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
-	CurrentInfo    PublicKeyAuthInfo
 	NextInfo       PublicKeyAuthInfo
+	CurrentInfo    PublicKeyAuthInfo
+	GroupPublicKey eddsa.PublicKey `gnark:",public"`
 	RevocationList RevocationList
 }
 

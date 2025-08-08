@@ -70,7 +70,7 @@ func BenchmarkAll(t *testing.B) {
 	var prepared **bls12381.G1Jac
 	t.Run("update-verify-precomputes", func(b *testing.B) {
 		for b.Loop() {
-			prepared, err = vk.PrecomputeVerifyingUpdateRequest(updateRequest, params.nextPeriod, params.period, rl1, params.gpk)
+			prepared, err = vk.PrecomputeVerify(updateRequest, params.nextPeriod, params.period, rl1, params.gpk)
 			panicIfErr(err)
 
 		}

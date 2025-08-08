@@ -3,25 +3,26 @@ package witness
 import (
 	"math/big"
 
+	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 )
 
 type UserPublicKey struct {
-	*big.Int
+	*primitives.BigInt
 }
 
 type OneTimeTicket struct {
-	*big.Int
+	*primitives.BigInt
 }
 
-func (usk *UserSecretKey) PseudoRandom(period int64, name int64) (*big.Int, error) {
+func (usk *UserSecretKey) PseudoRandom(period int64, name int64) (*primitives.BigInt, error) {
 	hash, err := snark.CommitHash(big.NewInt(name), big.NewInt(period), &usk.Int)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return hash, nil
+	return &primitives.BigInt{*hash}, nil
 }
 
 func (usk *UserSecretKey) PublicKey(period int64) (*UserPublicKey, error) {

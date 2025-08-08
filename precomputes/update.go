@@ -4,11 +4,15 @@ import (
 	gnarkprecomputes "github.com/akakou/gnark-precomputes"
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/primitives"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	curve_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
+	"github.com/consensys/gnark-crypto/ecc/bls12-381/twistededwards"
+	"github.com/consensys/gnark-crypto/ecc/bls12-381/twistededwards/eddsa"
 	"github.com/consensys/gnark/backend/groth16"
 	groth16_bls12381 "github.com/consensys/gnark/backend/groth16/bls12-381"
+	"github.com/consensys/gnark/backend/witness"
 )
 
 type PreparedUpdateRequestVerifyingKey[
@@ -28,14 +32,14 @@ func NewUpdateVerificationKeyBLS12381(gk groth16.VerifyingKey) (*PreparedUpdateR
 	return &PreparedUpdateRequestVerifyingKey[fr_bls12381.Vector, *curve_bls12381.G1Jac, *groth16_bls12381.Proof]{vk}, nil
 }
 
-func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) PrecomputeVerifyingUpdateRequest(
+func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) PrecomputeVerify(
 	updateRequest *zkban.UpdateRequest,
 	nextPeriod,
 	lastPeriod int64,
 	rl zkbanw.RevocationList,
 	gpk *zkbanw.GroupPublicKey,
 ) (*G1Jac, error) {
-	pubWit, err := circuit.NewPublicUpdateCircuitWitness(nextPeriod, updateRequest.PublicKey, updateRequest.UpdateTicket, lastPeriod, rl, gpk)
+	pubWit, err := newPublicPrecomputationUpdateCircuitWitness(rl, gpk)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +61,62 @@ func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) VerifyPrepare
 	gsk *zkbanw.GroupSecretKey,
 	gpk *zkbanw.GroupPublicKey,
 ) error {
-	pubWit, err := circuit.NewPublicUpdateCircuitWitness(nextPeriod, updateRequest.PublicKey, updateRequest.UpdateTicket, lastPeriod, rl, gpk)
+	pubWit, err := newPublicPreparedUpdateCircuitWitness(nextPeriod, updateRequest.PublicKey, updateRequest.UpdateTicket, lastPeriod)
 	if err != nil {
 		return err
 	}
 
 	err = vk.PreparedVerifyingKey.VerifyPrepared(updateRequest.Proof, pubWit, prepare)
 	return err
+}
+
+func newPublicPrecomputationUpdateCircuitWitness(
+	revocationList zkbanw.RevocationList,
+	gpk *zkbanw.GroupPublicKey,
+) (witness.Witness, error) {
+	wit, err := circuit.NewUpdateCircuitWitness(0,
+		&zkbanw.UserPublicKey{primitives.NewBigInt(0)},
+		&zkbanw.OneTimeTicket{primitives.NewBigInt(0)},
+		&zkbanw.Signer{
+			UserSecretKey: &zkbanw.UserSecretKey{
+				primitives.NewBigInt(0),
+			},
+			Credential: &zkbanw.Credential{
+				Signature: make([]byte, 32),
+			},
+			Period: 0,
+		}, revocationList, gpk)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return wit.Public()
+}
+
+func newPublicPreparedUpdateCircuitWitness(
+	nextPeriod int64,
+	nextPublicKey *zkbanw.UserPublicKey,
+	updateTicket *zkbanw.OneTimeTicket,
+	lastPeriod int64,
+) (witness.Witness, error) {
+	wit, err := circuit.NewUpdateCircuitWitness(nextPeriod, nextPublicKey, updateTicket, &zkbanw.Signer{
+		UserSecretKey: &zkbanw.UserSecretKey{
+			primitives.NewBigInt(0),
+		},
+		Credential: &zkbanw.Credential{
+			Signature: make([]byte, 32),
+		},
+		Period: lastPeriod,
+	}, zkbanw.EmptyConstantRevocationAddList(0, 0), &zkbanw.GroupPublicKey{
+		PublicKey: &eddsa.PublicKey{
+			A: twistededwards.NewPointAffine([4]uint64{}, [4]uint64{}),
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return wit.Public()
 }
