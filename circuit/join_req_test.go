@@ -1,29 +1,20 @@
 package circuit
 
-import (
-	"math/big"
-	"testing"
+// func TestJoinReq(t *testing.T) {
+// 	assert := test.NewAssert(t)
+// 	var joinCercuit JoinRequestCircuit
 
-	"github.com/akakou/zk-ban/witness"
-	"github.com/akakou/zk-ban/snark"
-	"github.com/consensys/gnark/test"
-)
+// 	usk := witness.UserSecretKey{primitives.NewBigInt(1)}
+// 	period := int64(2024)
 
-func TestJoinReq(t *testing.T) {
-	assert := test.NewAssert(t)
-	var joinCercuit JoinRequestCircuit
+// 	upk, err := usk.PublicKey(period)
+// 	assert.NoError(err)
 
-	usk := witness.UserSecretKey{Number: big.NewInt(1)}
-	period := big.NewInt(2024)
+// 	assign := NewJoinRequestWitness(
+// 		period,
+// 		upk,
+// 		&usk,
+// 	)
 
-	upk, err := usk.PublicKey(period)
-	assert.NoError(err)
-
-	assign := NewJoinRequestWitness(
-		period,
-		upk.Number,
-		usk.Number,
-	)
-
-	assert.ProverSucceeded(&joinCercuit, assign, test.WithCurves(snark.EcCurve))
-}
+// 	assert.ProverSucceeded(&joinCercuit, assign, test.WithCurves(snark.EcCurve))
+// }

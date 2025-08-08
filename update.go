@@ -1,26 +1,54 @@
 package zkban
 
 import (
-	"math/big"
-
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-func UpdateRequest(nextPeriod *big.Int, signer *zkbanw.Signer, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*zkbanw.Signer, groth16.Proof, *circuit.UpdateCircuit, error) {
-	nextSigner, err := signer.NextWithoutCred(nextPeriod)
+type UpdateRequest struct {
+	PublicKey    *zkbanw.UserPublicKey
+	UpdateTicket *zkbanw.OneTimeTicket
+	groth16.Proof
+}
+
+func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*UpdateRequest, error) {
+	ticket, err := signer.UserSecretKey.OneTimeTicket(signer.Period)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	w := circuit.NewUpdateCircuitWitness(nextSigner, signer, rl, gpk)
-
-	proof, _, _, err := snark.ProveSNARK(w, prover)
+	nextPublicKey, err := signer.UserSecretKey.PublicKey(nextPeriod)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	return nextSigner, proof, w, nil
+	wit, err := circuit.NewUpdateCircuitWitness(nextPeriod, nextPublicKey, ticket, signer, rl, gpk)
+	if err != nil {
+		return nil, err
+	}
+
+	proof, err := groth16.Prove(prover.ConstraintSystem, prover.ProveKey, wit)
+	if err != nil {
+		return nil, err
+	}
+
+	updateReq := UpdateRequest{
+		Proof:        proof,
+		PublicKey:    nextPublicKey,
+		UpdateTicket: ticket,
+	}
+
+	return &updateReq, nil
+}
+
+func (request *UpdateRequest) Verify(nextPeriod int64, lastPeriod int64, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
+	pubWit, err := circuit.NewPublicUpdateCircuitWitness(nextPeriod, request.PublicKey, request.UpdateTicket, lastPeriod, rl, gpk)
+	if err != nil {
+		return err
+	}
+
+	err = groth16.Verify(request.Proof, verifyKey, pubWit)
+	return err
 }

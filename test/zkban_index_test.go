@@ -25,17 +25,18 @@ func TestIndex(t *testing.T) {
 	wit, err := frontend.NewWitness(&circuit.UpdateCircuit{
 		RevocationList: circuit.NewRevocationListWitness(rl),
 		UserSecretKey:  1,
-		CurrentInfo: circuit.CredentialAuthInfo{
-			Period: 1,
-			Credential: eddsa.Signature{
-				R: twistededwards.Point{
-					X: 1,
-					Y: 1,
-				},
-				S: 1,
+		Credential: eddsa.Signature{
+			R: twistededwards.Point{
+				X: 1,
+				Y: 1,
 			},
+			S: 1,
 		},
 		NextInfo: circuit.PublicKeyAuthInfo{
+			UserPublicKey: 1,
+			Period:        1,
+		},
+		CurrentInfo: circuit.PublicKeyAuthInfo{
 			UserPublicKey: 1,
 			Period:        1,
 		},
@@ -46,6 +47,7 @@ func TestIndex(t *testing.T) {
 			},
 		},
 	}, ecc.BLS12_381.ScalarField())
+
 	assert.NoError(t, err)
 
 	pubWit, err := wit.Public()

@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
 )
@@ -22,17 +23,16 @@ type TestParams struct {
 	gsk        *witness.GroupSecretKey
 	upk        *witness.UserPublicKey
 	usk        *witness.UserSecretKey
-	m          *big.Int
-	period     *big.Int
-	cnt        *big.Int
+	m          *primitives.BigInt
+	period     int64
+	cnt        int64
 	cert       *witness.Credential
-	nextPeriod *big.Int
+	nextPeriod int64
 }
 
 func (params *TestParams) signer() *witness.Signer {
 	signer := witness.Signer{
 		UserSecretKey: params.usk,
-		UserPublicKey: params.upk,
 		Credential:    params.cert,
 		Period:        params.period,
 	}
@@ -69,18 +69,17 @@ func prepareParams() TestParams {
 	gsk, gpk, err := witness.RandomGroupKeyPair()
 	panicIfErr(err)
 
-	period := big.NewInt(2024)
-	nextPeriod := big.NewInt(2025)
-
+	period := int64(2024)
+	nextPeriod := int64(2025)
 	var usk = &witness.UserSecretKey{
-		Number: big.NewInt(102),
+		primitives.NewBigInt(102),
 	}
 
 	upk, err := usk.PublicKey(period)
 	panicIfErr(err)
 
-	m := big.NewInt(100)
-	cnt := big.NewInt(101)
+	m := primitives.BigInt{*big.NewInt(100)}
+	cnt := int64(101)
 
 	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
@@ -90,7 +89,7 @@ func prepareParams() TestParams {
 		gsk:        gsk,
 		usk:        usk,
 		upk:        upk,
-		m:          m,
+		m:          &m,
 		cnt:        cnt,
 		period:     period,
 		cert:       cert,

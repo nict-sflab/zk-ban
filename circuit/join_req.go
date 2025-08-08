@@ -1,8 +1,10 @@
 package circuit
 
 import (
-	"math/big"
-
+	"github.com/akakou/zk-ban/primitives"
+	"github.com/akakou/zk-ban/snark"
+	zkbanw "github.com/akakou/zk-ban/witness"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/frontend"
 )
 
@@ -12,7 +14,7 @@ type JoinRequestCircuit struct {
 }
 
 func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
-	err := authPubKey(api, circuit.PublicKeyAuthInfo, circuit.UserSecretKey)
+	err := authPubKey(api, circuit.PublicKeyAuthInfo, circuit.UserSecretKey, PUBLIC_KEY)
 
 	if err != nil {
 		return err
@@ -20,14 +22,26 @@ func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewJoinRequestWitness(period, upk, usk *big.Int) *JoinRequestCircuit {
+func NewJoinRequestWitness(period int64, upk *zkbanw.UserPublicKey, usk *zkbanw.UserSecretKey) (witness.Witness, error) {
 	assign := &JoinRequestCircuit{
-		UserSecretKey: usk,
+		UserSecretKey: usk.Int,
 		PublicKeyAuthInfo: PublicKeyAuthInfo{
-			UserPublicKey: upk,
+			UserPublicKey: upk.Int,
 			Period:        period,
 		},
 	}
 
-	return assign
+	return frontend.NewWitness(assign, snark.EcCurve.ScalarField())
+}
+
+func NewPublicJoinRequestWitness(period int64, upk *zkbanw.UserPublicKey) (witness.Witness, error) {
+	wit, err := NewJoinRequestWitness(period, upk, &zkbanw.UserSecretKey{
+		BigInt: primitives.NewBigInt(0),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return wit.Public()
 }

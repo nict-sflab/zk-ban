@@ -7,7 +7,7 @@ type Credential struct {
 }
 
 func (gsk *GroupSecretKey) IssueCredential(upk *UserPublicKey) (*Credential, error) {
-	signature, err := gsk.Sign(upk.Number.Bytes(), snark.NewCommitHash())
+	signature, err := gsk.Sign(upk.Int.Bytes(), snark.NewCommitHash())
 	if err != nil {
 		return nil, err
 	}

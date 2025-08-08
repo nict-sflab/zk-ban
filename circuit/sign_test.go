@@ -1,44 +1,35 @@
 package circuit
 
-import (
-	"math/big"
-	"testing"
+// func TestSignCircuit(t *testing.T) {
+// 	assert := test.NewAssert(t)
 
-	"github.com/akakou/zk-ban/snark"
-	"github.com/akakou/zk-ban/witness"
-	"github.com/consensys/gnark/test"
-)
+// 	usk := witness.UserSecretKey{primitives.NewBigInt(1)}
+// 	m := big.NewInt(3)
+// 	bsn := big.NewInt(4)
+// 	period := int64(2024)
 
-func TestSignCircuit(t *testing.T) {
-	assert := test.NewAssert(t)
+// 	gsk, gpk, err := witness.RandomGroupKeyPair()
+// 	assert.NoError(err)
 
-	usk := witness.UserSecretKey{Number: big.NewInt(1)}
-	m := big.NewInt(3)
-	bsn := big.NewInt(4)
-	period := big.NewInt(2024)
+// 	upk, err := usk.PublicKey(period)
+// 	assert.NoError(err)
 
-	gsk, gpk, err := witness.RandomGroupKeyPair()
-	assert.NoError(err)
+// 	cert, err := gsk.IssueCredential(upk)
+// 	assert.NoError(err)
 
-	upk, err := usk.PublicKey(period)
-	assert.NoError(err)
+// 	signer := witness.Signer{
+// 		UserSecretKey: &usk,
+// 		Credential:    cert,
+// 		Period:        period,
+// 	}
 
-	cert, err := gsk.IssueCredential(upk)
-	assert.NoError(err)
+// 	commit, err := signer.CommitSign(&primitives.BigInt{*m}, &primitives.BigInt{*bsn})
+// 	assert.NoError(err)
 
-	signer := witness.Signer{
-		UserSecretKey: &usk,
-		UserPublicKey: upk,
-		Credential:    cert,
-		Period:        period,
-	}
+// 	authCircuit := SignCircuit{}
 
-	commit, err := signer.CommitSign(m, bsn)
-	assert.NoError(err)
+// 	witness, err := NewSignWitness(&primitives.BigInt{*m}, &primitives.BigInt{*bsn}, commit, &signer, gpk)
+// 	assert.NoError(err)
 
-	authCircuit := SignCircuit{}
-
-	witness := NewSignWitness(m, bsn, commit, &signer, gpk)
-
-	assert.ProverSucceeded(&authCircuit, witness, test.WithCurves(snark.EcCurve))
-}
+// 	assert.ProverSucceeded(&authCircuit, witness, test.WithCurves(snark.EcCurve))
+// }

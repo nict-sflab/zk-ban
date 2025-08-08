@@ -1,30 +1,32 @@
 package circuit
 
 import (
-	"math/big"
-
 	"github.com/consensys/gnark/std/signature/eddsa"
 
+	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
-	"github.com/akakou/zk-ban/witness"
+	zkbanw "github.com/akakou/zk-ban/witness"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/frontend"
 )
 
 type SignCircuit struct {
-	UserSecretKey      frontend.Variable `gnark:",secret"`
-	CredentialAuthInfo CredentialAuthInfo
-	GroupPublicKey     eddsa.PublicKey   `gnark:",public"`
-	SessionTag         frontend.Variable `gnark:",public"`
-	Nym                frontend.Variable `gnark:",public"`
-	Signature          frontend.Variable `gnark:",public"`
-	Message            frontend.Variable `gnark:",public"`
+	UserSecretKey  frontend.Variable `gnark:",secret"`
+	Credential     eddsa.Signature   `gnark:",secret"`
+	SessionTag     frontend.Variable `gnark:",public"`
+	Nym            frontend.Variable `gnark:",public"`
+	Signature      frontend.Variable `gnark:",public"`
+	Message        frontend.Variable `gnark:",public"`
+	Period         frontend.Variable `gnark:",public"`
+	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
 }
 
 func (circuit *SignCircuit) Define(api frontend.API) error {
 	err := authCredential(
 		api,
-		circuit.CredentialAuthInfo,
 		circuit.UserSecretKey,
+		circuit.Credential,
+		circuit.Period,
 		circuit.GroupPublicKey)
 
 	if err != nil {
@@ -47,21 +49,35 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, sessionTag *big.Int, commit *witness.SignCommit, signer *witness.Signer, gpk *witness.GroupPublicKey) *SignCircuit {
+func NewSignWitness(m, sessionTag *primitives.BigInt, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey) (witness.Witness, error) {
 	assign := &SignCircuit{
-		UserSecretKey: signer.UserSecretKey.Number,
-		CredentialAuthInfo: CredentialAuthInfo{
-			Period: signer.Period,
-		},
-
-		SessionTag: sessionTag,
-		Message:    m,
-		Signature:  commit.Sigma,
-		Nym:        commit.Nym,
+		UserSecretKey: signer.UserSecretKey.Int,
+		Period:        signer.Period,
+		SessionTag:    sessionTag.Int,
+		Message:       m.Int,
+		Signature:     commit.Sigma.Int,
+		Nym:           commit.Nym.Int,
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.CredentialAuthInfo.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
+	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
-	return assign
+	return frontend.NewWitness(assign, snark.EcCurve.ScalarField())
+}
+
+func NewPublicSignWitness(m, sessionTag *primitives.BigInt, commit *zkbanw.SignCommit, period int64, gpk *zkbanw.GroupPublicKey) (witness.Witness, error) {
+	wit, err := NewSignWitness(m, sessionTag, commit, &zkbanw.Signer{
+		UserSecretKey: &zkbanw.UserSecretKey{
+			primitives.NewBigInt(0),
+		},
+		Credential: &zkbanw.Credential{
+			Signature: make([]byte, 32),
+		},
+		Period: period,
+	}, gpk)
+	if err != nil {
+		return nil, err
+	}
+
+	return wit.Public()
 }

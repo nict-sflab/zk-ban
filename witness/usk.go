@@ -1,5 +1,5 @@
 package witness
 
-import "math/big"
+import "github.com/akakou/zk-ban/primitives"
 
-type UserSecretKey struct{ Number *big.Int }
+type UserSecretKey struct{ *primitives.BigInt }

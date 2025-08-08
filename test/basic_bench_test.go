@@ -7,11 +7,8 @@ import (
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/circuit"
 	zkbanc "github.com/akakou/zk-ban/circuit"
-	"github.com/akakou/zk-ban/snark"
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
-	"github.com/consensys/gnark/backend/groth16"
 	"github.com/consensys/gnark/backend/witness"
-	"github.com/consensys/gnark/frontend"
 )
 
 func BenchmarkAll(t *testing.B) {
@@ -21,16 +18,14 @@ func BenchmarkAll(t *testing.B) {
 
 	joinCircuit, signCircuit, updateCircuit1 := prepareCircuit(rl1, false)
 
-	var proof groth16.Proof
 	var err error
 
-	var joinAssign *circuit.JoinRequestCircuit
-
+	var joinReq *zkban.JoinRequest
 	t.Run("join req", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			proof, joinAssign, err = zkban.JoinRequest(params.period, joinCircuit.Prover())
+			joinReq, _, err = zkban.RequestJoin(params.period, joinCircuit.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -39,23 +34,17 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			wit, err := frontend.NewWitness(joinAssign, snark.EcCurve.ScalarField())
-			panicIfErr(err)
-
-			pubWit, err := wit.Public()
-			panicIfErr(err)
-
-			err = groth16.Verify(proof, joinCircuit.VerifyKey, pubWit)
+			err := joinReq.Verify(params.period, joinCircuit.VerifyKey)
 			panicIfErr(err)
 		}
 	})
 
-	var signAssign *circuit.SignCircuit
+	var signature *zkban.Signature
 	t.Run("sign", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			proof, signAssign, err = zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
+			signature, err = zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -64,30 +53,16 @@ func BenchmarkAll(t *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			wit, err := frontend.NewWitness(signAssign, snark.EcCurve.ScalarField())
-			panicIfErr(err)
-
-			pubWit, err := wit.Public()
-			panicIfErr(err)
-
-			err = groth16.Verify(proof, signCircuit.VerifyKey, pubWit)
-			panicIfErr(err)
+			signature.Verify(params.m, params.cnt, params.period, params.gpk, signCircuit.VerifyKey)
 		}
 	})
 
-	var updateAssign *circuit.UpdateCircuit
-	var pubWit witness.Witness
+	var updateRequest *zkban.UpdateRequest
 	t.Run("update-req (constant)", func(b *testing.B) {
 		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			_, proof, updateAssign, err = zkban.UpdateRequest(params.nextPeriod, params.signer(), rl1, params.gpk, updateCircuit1.Prover())
-			panicIfErr(err)
-
-			wit, err := frontend.NewWitness(updateAssign, snark.EcCurve.ScalarField())
-			panicIfErr(err)
-
-			pubWit, err = wit.Public()
+			updateRequest, err = zkban.RequestUpdate(params.nextPeriod, params.signer(), rl1, params.gpk, updateCircuit1.Prover())
 			panicIfErr(err)
 		}
 	})
@@ -96,11 +71,14 @@ func BenchmarkAll(t *testing.B) {
 	panicIfErr(err)
 
 	var prepare *bls12381.G1Jac
+	var pubWit witness.Witness
 	t.Run("update-verify-precomputes", func(b *testing.B) {
 		for range b.N {
-			prepare, err = vk.PreparePublicInputs(pubWit)
+			pubWit, err = circuit.NewPublicUpdateCircuitWitness(params.nextPeriod, updateRequest.PublicKey, updateRequest.UpdateTicket, params.period, rl1, params.gpk)
 			panicIfErr(err)
 
+			prepare, err = vk.PreparePublicInputs(pubWit)
+			panicIfErr(err)
 		}
 	})
 
@@ -109,7 +87,7 @@ func BenchmarkAll(t *testing.B) {
 
 		for range b.N {
 			params.gsk.IssueCredential(params.upk)
-			err = vk.VerifyPrepared(proof, pubWit, prepare)
+			err = vk.VerifyPrepared(updateRequest.Proof, pubWit, prepare)
 			panicIfErr(err)
 		}
 	})

@@ -1,29 +1,37 @@
 package circuit
 
 import (
+	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
-	"github.com/akakou/zk-ban/witness"
+	zkbanw "github.com/akakou/zk-ban/witness"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/signature/eddsa"
 )
 
-var UpdatePreparableIndex = 5
+var UpdatePreparableIndex = 6
 
 type UpdateCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
-	CurrentInfo    CredentialAuthInfo
+	Credential     eddsa.Signature   `gnark:",secret"`
+	GroupPublicKey eddsa.PublicKey   `gnark:",public"`
+	CurrentInfo    PublicKeyAuthInfo
 	NextInfo       PublicKeyAuthInfo
-	GroupPublicKey eddsa.PublicKey `gnark:",public"`
 	RevocationList RevocationList
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
-	err := authCredential(api, circuit.CurrentInfo, circuit.UserSecretKey, circuit.GroupPublicKey)
+	err := authCredential(api, circuit.UserSecretKey, circuit.Credential, circuit.CurrentInfo.Period, circuit.GroupPublicKey)
 	if err != nil {
 		return err
 	}
 
-	err = authPubKey(api, circuit.NextInfo, circuit.UserSecretKey)
+	err = authPubKey(api, circuit.CurrentInfo, circuit.UserSecretKey, ONE_TIME_TICKET)
+	if err != nil {
+		return err
+	}
+
+	err = authPubKey(api, circuit.NextInfo, circuit.UserSecretKey, PUBLIC_KEY)
 	if err != nil {
 		return err
 	}
@@ -46,20 +54,28 @@ func (circuit *UpdateCircuit) PreparableIndex() int {
 	return UpdatePreparableIndex
 }
 
-func NewUpdateCircuitWitness(next, last *witness.Signer, revocationList witness.RevocationList, gpk *witness.GroupPublicKey) *UpdateCircuit {
+func NewUpdateCircuitWitness(
+	nextPeriod int64,
+	nextPublicKey *zkbanw.UserPublicKey,
+	ticket *zkbanw.OneTimeTicket,
+	signer *zkbanw.Signer,
+	revocationList zkbanw.RevocationList,
+	gpk *zkbanw.GroupPublicKey,
+) (witness.Witness, error) {
 	assign := &UpdateCircuit{
-		UserSecretKey: last.UserSecretKey.Number,
-		CurrentInfo: CredentialAuthInfo{
-			Period: last.Period,
+		UserSecretKey: signer.UserSecretKey.Int,
+		CurrentInfo: PublicKeyAuthInfo{
+			Period:        signer.Period,
+			UserPublicKey: ticket.Int,
 		},
 		NextInfo: PublicKeyAuthInfo{
-			Period:        next.Period,
-			UserPublicKey: next.UserPublicKey.Number,
+			Period:        nextPeriod,
+			UserPublicKey: nextPublicKey.Int,
 		},
 	}
 
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
-	assign.CurrentInfo.Credential.Assign(snark.TwistededwardsCurve, last.Credential.Signature)
+	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
 	rl := RevocationList{}
 
@@ -77,5 +93,30 @@ func NewUpdateCircuitWitness(next, last *witness.Signer, revocationList witness.
 
 	assign.RevocationList = rl
 
-	return assign
+	return frontend.NewWitness(assign, snark.EcCurve.ScalarField())
+}
+
+func NewPublicUpdateCircuitWitness(
+	nextPeriod int64,
+	nextPublicKey *zkbanw.UserPublicKey,
+	updateTicket *zkbanw.OneTimeTicket,
+	lastPeriod int64,
+	revocationList zkbanw.RevocationList,
+	gpk *zkbanw.GroupPublicKey,
+) (witness.Witness, error) {
+	wit, err := NewUpdateCircuitWitness(nextPeriod, nextPublicKey, updateTicket, &zkbanw.Signer{
+		UserSecretKey: &zkbanw.UserSecretKey{
+			primitives.NewBigInt(0),
+		},
+		Credential: &zkbanw.Credential{
+			Signature: make([]byte, 32),
+		},
+		Period: lastPeriod,
+	}, revocationList, gpk)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return wit.Public()
 }

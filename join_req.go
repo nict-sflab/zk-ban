@@ -2,22 +2,27 @@ package zkban
 
 import (
 	"crypto/rand"
-	"math/big"
 
 	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof, *circuit.JoinRequestCircuit, error) {
+type JoinRequest struct {
+	UserPublicKey *zkbanw.UserPublicKey
+	groth16.Proof
+}
+
+func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *zkbanw.UserSecretKey, error) {
 	u, err := rand.Int(rand.Reader, max())
 	if err != nil {
 		return nil, nil, err
 	}
 
 	usk := zkbanw.UserSecretKey{
-		Number: u,
+		BigInt: &primitives.BigInt{*u},
 	}
 
 	upk, err := usk.PublicKey(period)
@@ -25,12 +30,27 @@ func JoinRequest(period *big.Int, snarkProver *snark.SnarkProver) (groth16.Proof
 		return nil, nil, err
 	}
 
-	assign := circuit.NewJoinRequestWitness(period, upk.Number, usk.Number)
+	wit, err := circuit.NewJoinRequestWitness(period, upk, &usk)
 
-	proof, _, _, err := snark.ProveSNARK(assign, snarkProver)
+	proof, err := groth16.Prove(snarkProver.ConstraintSystem, snarkProver.ProveKey, wit)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return proof, assign, nil
+	return &JoinRequest{UserPublicKey: upk, Proof: proof}, &usk, nil
+}
+
+func (req *JoinRequest) Verify(period int64, verifyKey groth16.VerifyingKey) error {
+	wit, err := circuit.NewPublicJoinRequestWitness(period, req.UserPublicKey)
+	if err != nil {
+		return err
+	}
+
+	pubWit, err := wit.Public()
+	if err != nil {
+		return err
+	}
+
+	err = groth16.Verify(req.Proof, verifyKey, pubWit)
+	return err
 }
