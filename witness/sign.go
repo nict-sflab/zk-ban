@@ -19,12 +19,12 @@ type Signer struct {
 }
 
 func (signer *Signer) CommitSign(m, sessionTag *primitives.BigInt) (*SignCommit, error) {
-	commit1, err := snark.CommitHash(&m.Int, &signer.UserSecretKey.Int)
+	commit1, err := snark.CommitHash(&m.Int, &signer.UserSecretKey.Number.Int)
 	if err != nil {
 		return nil, err
 	}
 
-	commit2, err := snark.CommitHash(&sessionTag.Int, &signer.UserSecretKey.Int)
+	commit2, err := snark.CommitHash(&sessionTag.Int, &signer.UserSecretKey.Number.Int)
 	if err != nil {
 		return nil, err
 	}

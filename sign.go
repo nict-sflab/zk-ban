@@ -19,7 +19,7 @@ func max() *big.Int {
 
 type Signature struct {
 	Commit *zkbanw.SignCommit
-	Proof  groth16.Proof
+	Proof  snark.Proof
 }
 
 func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*Signature, error) {
@@ -42,7 +42,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 
 	signature := Signature{
 		Commit: comm,
-		Proof:  proof,
+		Proof:  snark.Proof{proof},
 	}
 	return &signature, nil
 }
@@ -55,6 +55,6 @@ func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, 
 		return err
 	}
 
-	err = groth16.Verify(signature.Proof, verifyKey, pubWit)
+	err = groth16.Verify(signature.Proof.Proof, verifyKey, pubWit)
 	return err
 }

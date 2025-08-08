@@ -9,15 +9,15 @@ import (
 )
 
 type Json struct {
-	A   primitives.BigInt `json:"a"`
-	B   primitives.BigInt `json:"b"`
-	Int int               `json:"short"`
+	A   *primitives.BigInt `json:"a"`
+	B   *primitives.BigInt `json:"b"`
+	Int int                `json:"short"`
 }
 
 func TestEncode(t *testing.T) {
 	a := Json{
-		A:   *primitives.NewBigInt(1900),
-		B:   *primitives.NewBigInt(3923),
+		A:   primitives.NewBigInt(1900),
+		B:   primitives.NewBigInt(3923),
 		Int: 2,
 	}
 

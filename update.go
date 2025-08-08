@@ -10,7 +10,7 @@ import (
 type UpdateRequest struct {
 	PublicKey    *zkbanw.UserPublicKey
 	UpdateTicket *zkbanw.OneTimeTicket
-	groth16.Proof
+	Proof        snark.Proof
 }
 
 func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*UpdateRequest, error) {
@@ -35,7 +35,7 @@ func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.Revocation
 	}
 
 	updateReq := UpdateRequest{
-		Proof:        proof,
+		Proof:        snark.Proof{proof},
 		PublicKey:    nextPublicKey,
 		UpdateTicket: ticket,
 	}
@@ -49,9 +49,6 @@ func (request *UpdateRequest) Verify(nextPeriod int64, lastPeriod int64, rl zkba
 		return err
 	}
 
-	err = groth16.Verify(request.Proof, verifyKey, pubWit)
+	err = groth16.Verify(request.Proof.Proof, verifyKey, pubWit)
 	return err
 }
-
-
-

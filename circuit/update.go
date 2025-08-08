@@ -63,14 +63,14 @@ func NewUpdateCircuitWitness(
 	gpk *zkbanw.GroupPublicKey,
 ) (witness.Witness, error) {
 	assign := &UpdateCircuit{
-		UserSecretKey: signer.UserSecretKey.Int,
+		UserSecretKey: signer.UserSecretKey.Number.Int,
 		CurrentInfo: PublicKeyAuthInfo{
 			Period:        signer.Period,
-			UserPublicKey: ticket.Int,
+			UserPublicKey: ticket.Number.Int,
 		},
 		NextInfo: PublicKeyAuthInfo{
 			Period:        nextPeriod,
-			UserPublicKey: nextPublicKey.Int,
+			UserPublicKey: nextPublicKey.Number.Int,
 		},
 	}
 

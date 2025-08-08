@@ -11,8 +11,8 @@ import (
 )
 
 type JoinRequest struct {
-	UserPublicKey *zkbanw.UserPublicKey
-	groth16.Proof
+	UserPublicKey *zkbanw.UserPublicKey `json:"user_public_key"`
+	Proof         *snark.Proof          `json:"proof"`
 }
 
 func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *zkbanw.UserSecretKey, error) {
@@ -22,7 +22,7 @@ func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *z
 	}
 
 	usk := zkbanw.UserSecretKey{
-		BigInt: &primitives.BigInt{*u},
+		Number: &primitives.BigInt{Int: *u},
 	}
 
 	upk, err := usk.PublicKey(period)
@@ -31,13 +31,16 @@ func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *z
 	}
 
 	wit, err := circuit.NewJoinRequestWitness(period, upk, &usk)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	proof, err := groth16.Prove(snarkProver.ConstraintSystem, snarkProver.ProveKey, wit)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return &JoinRequest{UserPublicKey: upk, Proof: proof}, &usk, nil
+	return &JoinRequest{UserPublicKey: upk, Proof: &snark.Proof{proof}}, &usk, nil
 }
 
 func (req *JoinRequest) Verify(period int64, verifyKey groth16.VerifyingKey) error {
@@ -51,6 +54,6 @@ func (req *JoinRequest) Verify(period int64, verifyKey groth16.VerifyingKey) err
 		return err
 	}
 
-	err = groth16.Verify(req.Proof, verifyKey, pubWit)
+	err = groth16.Verify(req.Proof.Proof, verifyKey, pubWit)
 	return err
 }

@@ -8,15 +8,24 @@ import (
 )
 
 type UserPublicKey struct {
-	*primitives.BigInt
+	Number *primitives.BigInt
 }
 
+// func (b UserPublicKey) MarshalJSON() ([]byte, error) {
+// 	return b.BigInt.MarshalJSON()
+// }
+
+// func (b *UserPublicKey) UnmarshalJSON(p []byte) error {
+// 	return b.BigInt.UnmarshalJSON(p)
+
+// }
+
 type OneTimeTicket struct {
-	*primitives.BigInt
+	Number *primitives.BigInt
 }
 
 func (usk *UserSecretKey) PseudoRandom(period int64, name int64) (*primitives.BigInt, error) {
-	hash, err := snark.CommitHash(big.NewInt(name), big.NewInt(period), &usk.Int)
+	hash, err := snark.CommitHash(big.NewInt(name), big.NewInt(period), &usk.Number.Int)
 
 	if err != nil {
 		return nil, err

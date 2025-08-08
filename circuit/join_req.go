@@ -19,14 +19,15 @@ func (circuit *JoinRequestCircuit) Define(api frontend.API) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func NewJoinRequestWitness(period int64, upk *zkbanw.UserPublicKey, usk *zkbanw.UserSecretKey) (witness.Witness, error) {
 	assign := &JoinRequestCircuit{
-		UserSecretKey: usk.Int,
+		UserSecretKey: usk.Number.Int,
 		PublicKeyAuthInfo: PublicKeyAuthInfo{
-			UserPublicKey: upk.Int,
+			UserPublicKey: upk.Number.Int,
 			Period:        period,
 		},
 	}
@@ -36,7 +37,7 @@ func NewJoinRequestWitness(period int64, upk *zkbanw.UserPublicKey, usk *zkbanw.
 
 func NewPublicJoinRequestWitness(period int64, upk *zkbanw.UserPublicKey) (witness.Witness, error) {
 	wit, err := NewJoinRequestWitness(period, upk, &zkbanw.UserSecretKey{
-		BigInt: primitives.NewBigInt(0),
+		Number: primitives.NewBigInt(0),
 	})
 
 	if err != nil {

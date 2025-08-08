@@ -68,4 +68,14 @@ func TestEncode(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+
+	buf2, err := json.Marshal(j)
+	if err != nil {
+		panic(err)
+	}
+
+	if string(buf) != string(buf2) {
+		panic("not match")
+	}
+
 }

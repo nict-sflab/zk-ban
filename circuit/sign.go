@@ -51,7 +51,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 
 func NewSignWitness(m, sessionTag *primitives.BigInt, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey) (witness.Witness, error) {
 	assign := &SignCircuit{
-		UserSecretKey: signer.UserSecretKey.Int,
+		UserSecretKey: signer.UserSecretKey.Number.Int,
 		Period:        signer.Period,
 		SessionTag:    sessionTag.Int,
 		Message:       m.Int,

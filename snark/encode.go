@@ -9,11 +9,11 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-type Proof struct{ groth16.Proof }
+type Proof struct{ Proof groth16.Proof }
 
 func (proof Proof) MarshalJSON() ([]byte, error) {
 	var buffer bytes.Buffer
-	_, err := proof.WriteTo(&buffer)
+	_, err := proof.Proof.WriteTo(&buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -28,6 +28,10 @@ func (proof Proof) MarshalJSON() ([]byte, error) {
 func (proof *Proof) UnmarshalJSON(buf []byte) error {
 	if string(buf) == "null" {
 		return nil
+	}
+
+	if proof == nil {
+		proof = &Proof{}
 	}
 
 	fmt.Printf("\n\nthis is msg \n-----\n%v\n-----\n\n", string(buf))
@@ -45,6 +49,8 @@ func (proof *Proof) UnmarshalJSON(buf []byte) error {
 	z := groth16.NewProof(EcCurve)
 	reader := bytes.NewReader(raw)
 	_, err = z.ReadFrom(reader)
+
+	proof.Proof = z
 
 	return err
 	// return err

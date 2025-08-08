@@ -2,4 +2,4 @@ package witness
 
 import "github.com/akakou/zk-ban/primitives"
 
-type UserSecretKey struct{ *primitives.BigInt }
+type UserSecretKey struct{ Number *primitives.BigInt }

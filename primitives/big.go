@@ -2,7 +2,6 @@ package primitives
 
 import (
 	"encoding/base64"
-	"fmt"
 	"math/big"
 	"strconv"
 )
@@ -11,7 +10,11 @@ type BigInt struct {
 	big.Int
 }
 
-func (b BigInt) MarshalJSON() ([]byte, error) {
+func (b *BigInt) MarshalJSON() ([]byte, error) {
+	if b == nil {
+		return []byte("null"), nil
+	}
+
 	raw := b.Bytes()
 
 	enc := base64.URLEncoding.EncodeToString(raw)
@@ -22,9 +25,9 @@ func (b BigInt) MarshalJSON() ([]byte, error) {
 
 func (b *BigInt) UnmarshalJSON(p []byte) error {
 	if string(p) == "null" {
+		b = nil
 		return nil
 	}
-	fmt.Printf("\n\nthis is msg \n-----\n%v\n-----\n\n", string(p))
 
 	unq, err := strconv.Unquote(string(p))
 	if err != nil {
@@ -36,7 +39,12 @@ func (b *BigInt) UnmarshalJSON(p []byte) error {
 		return err
 	}
 
+	if b == nil {
+		b = NewBigInt(0)
+	}
+
 	b.SetBytes(raw)
+
 	return nil
 }
 
