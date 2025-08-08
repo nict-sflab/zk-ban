@@ -31,3 +31,8 @@ func NewBigInt(number int64) *BigInt {
 		*big.NewInt(number),
 	}
 }
+
+func BigIntFromBytes(buf []byte) *BigInt {
+	b := big.NewInt(0).SetBytes(buf)
+	return &BigInt{*b}
+}
