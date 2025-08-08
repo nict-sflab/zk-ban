@@ -3,18 +3,15 @@ package zkbantest
 import (
 	"testing"
 
-	gnarkprecomputes "github.com/akakou/gnark-precomputes"
 	zkban "github.com/akakou/zk-ban"
-	"github.com/akakou/zk-ban/circuit"
-	zkbanc "github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/precomputes"
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
-	"github.com/consensys/gnark/backend/witness"
 )
 
 func BenchmarkAll(t *testing.B) {
 	params := prepareParams()
 
-	rl1 := EmptyConstantRevocationAddList(270, 130)
+	rl1 := EmptyConstantRevocationAddList(60, 300)
 
 	joinCircuit, signCircuit, updateCircuit1 := prepareCircuit(rl1, false)
 
@@ -24,7 +21,7 @@ func BenchmarkAll(t *testing.B) {
 	t.Run("join req", func(b *testing.B) {
 		b.ResetTimer()
 
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			joinReq, _, err = zkban.RequestJoin(params.period, joinCircuit.Prover())
 			panicIfErr(err)
 		}
@@ -33,7 +30,7 @@ func BenchmarkAll(t *testing.B) {
 	t.Run("verify join req", func(b *testing.B) {
 		b.ResetTimer()
 
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			err := joinReq.Verify(params.period, joinCircuit.VerifyKey)
 			panicIfErr(err)
 		}
@@ -43,7 +40,7 @@ func BenchmarkAll(t *testing.B) {
 	t.Run("sign", func(b *testing.B) {
 		b.ResetTimer()
 
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			signature, err = zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
 			panicIfErr(err)
 		}
@@ -52,7 +49,7 @@ func BenchmarkAll(t *testing.B) {
 	t.Run("verify", func(b *testing.B) {
 		b.ResetTimer()
 
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			signature.Verify(params.m, params.cnt, params.period, params.gpk, signCircuit.VerifyKey)
 		}
 	})
@@ -61,35 +58,30 @@ func BenchmarkAll(t *testing.B) {
 	t.Run("update-req (constant)", func(b *testing.B) {
 		b.ResetTimer()
 
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			updateRequest, err = zkban.RequestUpdate(params.nextPeriod, params.signer(), rl1, params.gpk, updateCircuit1.Prover())
 			panicIfErr(err)
 		}
 	})
 
-	vk, err := gnarkprecomputes.FromBLS12381GnarkKey(updateCircuit1.VerifyKey, updateCircuit1.Circuit.(*zkbanc.UpdateCircuit))
+	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit1.VerifyKey)
 	panicIfErr(err)
 
-	var prepare *bls12381.G1Jac
-	var pubWit witness.Witness
+	var prepared **bls12381.G1Jac
 	t.Run("update-verify-precomputes", func(b *testing.B) {
-		for range b.N {
-			pubWit, err = circuit.NewPublicUpdateCircuitWitness(params.nextPeriod, updateRequest.PublicKey, updateRequest.UpdateTicket, params.period, rl1, params.gpk)
+		for b.Loop() {
+			prepared, err = vk.PrecomputeVerifyingUpdateRequest(updateRequest, params.nextPeriod, params.period, rl1, params.gpk)
 			panicIfErr(err)
 
-			prepare, err = vk.PreparePublicInputs(pubWit)
-			panicIfErr(err)
 		}
 	})
 
 	t.Run("update-verify (constant)", func(b *testing.B) {
 		b.ResetTimer()
 
-		for range b.N {
-			params.gsk.IssueCredential(params.upk)
-			err = vk.VerifyPrepared(updateRequest.Proof, pubWit, prepare)
+		for b.Loop() {
+			err = vk.VerifyPrepared(*prepared, updateRequest, params.nextPeriod, params.period, rl1, params.gsk, params.gpk)
 			panicIfErr(err)
 		}
 	})
-
 }

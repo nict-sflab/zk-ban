@@ -52,3 +52,6 @@ func (request *UpdateRequest) Verify(nextPeriod int64, lastPeriod int64, rl zkba
 	err = groth16.Verify(request.Proof, verifyKey, pubWit)
 	return err
 }
+
+
+

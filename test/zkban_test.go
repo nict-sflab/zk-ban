@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/test"
@@ -50,6 +51,20 @@ func TestAll(t *testing.T) {
 		assert.NoError(err)
 
 		err = req.Verify(params.nextPeriod, params.period, rl, params.gpk, updateCircuit.VerifyKey)
+		assert.NoError(err)
+	})
+
+	t.Run("update-precomputes", func(t *testing.T) {
+		req, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		assert.NoError(err)
+
+		vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
+		assert.NoError(err)
+
+		prepared, err := vk.PrecomputeVerifyingUpdateRequest(req, params.nextPeriod, params.period, rl, params.gpk)
+		assert.NoError(err)
+
+		err = vk.VerifyPrepared(*prepared, req, params.nextPeriod, params.period, rl, params.gsk, params.gpk)
 		assert.NoError(err)
 	})
 
