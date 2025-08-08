@@ -1,8 +1,10 @@
 package primitives
 
 import (
+	"encoding/base64"
 	"fmt"
 	"math/big"
+	"strconv"
 )
 
 type BigInt struct {
@@ -10,19 +12,31 @@ type BigInt struct {
 }
 
 func (b BigInt) MarshalJSON() ([]byte, error) {
-	return []byte(b.String()), nil
+	raw := b.Bytes()
+
+	enc := base64.URLEncoding.EncodeToString(raw)
+	res := strconv.Quote(enc)
+
+	return []byte(res), nil
 }
 
 func (b *BigInt) UnmarshalJSON(p []byte) error {
 	if string(p) == "null" {
 		return nil
 	}
-	var z big.Int
-	_, ok := z.SetString(string(p), 10)
-	if !ok {
-		return fmt.Errorf("not a valid big integer: %s", p)
+	fmt.Printf("\n\nthis is msg \n-----\n%v\n-----\n\n", string(p))
+
+	unq, err := strconv.Unquote(string(p))
+	if err != nil {
+		return err
 	}
-	b.Int = z
+
+	raw, err := base64.URLEncoding.DecodeString(unq)
+	if err != nil {
+		return err
+	}
+
+	b.SetBytes(raw)
 	return nil
 }
 

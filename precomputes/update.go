@@ -33,9 +33,6 @@ func NewUpdateVerificationKeyBLS12381(gk groth16.VerifyingKey) (*PreparedUpdateR
 }
 
 func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) PrecomputeVerify(
-	updateRequest *zkban.UpdateRequest,
-	nextPeriod,
-	lastPeriod int64,
 	rl zkbanw.RevocationList,
 	gpk *zkbanw.GroupPublicKey,
 ) (*G1Jac, error) {
@@ -57,9 +54,6 @@ func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) VerifyPrepare
 	updateRequest *zkban.UpdateRequest,
 	nextPeriod,
 	lastPeriod int64,
-	rl zkbanw.RevocationList,
-	gsk *zkbanw.GroupSecretKey,
-	gpk *zkbanw.GroupPublicKey,
 ) error {
 	pubWit, err := newPublicPreparedUpdateCircuitWitness(nextPeriod, updateRequest.PublicKey, updateRequest.UpdateTicket, lastPeriod)
 	if err != nil {

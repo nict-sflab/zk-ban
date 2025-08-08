@@ -2,6 +2,9 @@ package snark
 
 import (
 	"bytes"
+	"encoding/base64"
+	"fmt"
+	"strconv"
 
 	"github.com/consensys/gnark/backend/groth16"
 )
@@ -14,7 +17,12 @@ func (proof Proof) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buffer.Bytes(), nil
+
+	raw := buffer.Bytes()
+	enc := base64.URLEncoding.EncodeToString(raw)
+	res := strconv.Quote(enc)
+
+	return []byte(res), nil
 }
 
 func (proof *Proof) UnmarshalJSON(buf []byte) error {
@@ -22,15 +30,24 @@ func (proof *Proof) UnmarshalJSON(buf []byte) error {
 		return nil
 	}
 
-	var z groth16.Proof
-	reader := bytes.NewReader(buf)
-	_, err := z.ReadFrom(reader)
+	fmt.Printf("\n\nthis is msg \n-----\n%v\n-----\n\n", string(buf))
 
+	unq, err := strconv.Unquote(string(buf))
 	if err != nil {
-		proof.Proof = z
+		return err
 	}
 
+	raw, err := base64.URLEncoding.DecodeString(unq)
+	if err != nil {
+		return err
+	}
+
+	z := groth16.NewProof(EcCurve)
+	reader := bytes.NewReader(raw)
+	_, err = z.ReadFrom(reader)
+
 	return err
+	// return err
 }
 
 // func EncodeCircuit(circuit constraint.ConstraintSystem) ([]byte, error) {
