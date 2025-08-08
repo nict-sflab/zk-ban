@@ -5,12 +5,12 @@ import (
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
+	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	curve_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 	"github.com/consensys/gnark-crypto/ecc/bls12-381/twistededwards"
 	"github.com/consensys/gnark-crypto/ecc/bls12-381/twistededwards/eddsa"
-	"github.com/consensys/gnark/backend/groth16"
 	groth16_bls12381 "github.com/consensys/gnark/backend/groth16/bls12-381"
 	"github.com/consensys/gnark/backend/witness"
 )
@@ -23,8 +23,8 @@ type PreparedUpdateRequestVerifyingKey[
 	gnarkprecomputes.PreparedVerifyingKey[Vector, G1Jac, Proof]
 }
 
-func NewUpdateVerificationKeyBLS12381(gk groth16.VerifyingKey) (*PreparedUpdateRequestVerifyingKey[fr_bls12381.Vector, *curve_bls12381.G1Jac, *groth16_bls12381.Proof], error) {
-	vk, err := gnarkprecomputes.FromBLS12381GnarkKey(gk, &circuit.UpdateCircuit{})
+func NewUpdateVerificationKeyBLS12381(gk snark.VerifyKey) (*PreparedUpdateRequestVerifyingKey[fr_bls12381.Vector, *curve_bls12381.G1Jac, *groth16_bls12381.Proof], error) {
+	vk, err := gnarkprecomputes.FromBLS12381GnarkKey(gk.VerifyingKey, &circuit.UpdateCircuit{})
 	if err != nil {
 		return nil, err
 	}

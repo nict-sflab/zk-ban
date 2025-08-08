@@ -19,5 +19,5 @@ func InitSNARK[T frontend.Circuit](w T) (*SnarkParams, error) {
 		return nil, err
 	}
 
-	return &SnarkParams{ccs, pk, vk, w}, nil
+	return &SnarkParams{ConstraintSystem{ccs}, ProveKey{pk}, VerifyKey{vk}, w}, nil
 }

@@ -35,7 +35,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 		return nil, err
 	}
 
-	proof, err := groth16.Prove(prover.ConstraintSystem, prover.ProveKey, wit)
+	proof, err := groth16.Prove(prover.ConstraintSystem.ConstraintSystem, prover.ProveKey.ProvingKey, wit)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 	return &signature, nil
 }
 
-func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
+func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, gpk *zkbanw.GroupPublicKey, verifyKey snark.VerifyKey) error {
 	sessionTag := zkbanw.SessionTag(counter, period)
 
 	pubWit, err := circuit.NewPublicSignWitness(m, sessionTag, signature.Commit, period, gpk)
@@ -55,6 +55,6 @@ func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, 
 		return err
 	}
 
-	err = groth16.Verify(signature.Proof, verifyKey, pubWit)
+	err = groth16.Verify(signature.Proof, verifyKey.VerifyingKey, pubWit)
 	return err
 }

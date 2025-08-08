@@ -29,7 +29,7 @@ func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.Revocation
 		return nil, err
 	}
 
-	proof, err := groth16.Prove(prover.ConstraintSystem, prover.ProveKey, wit)
+	proof, err := groth16.Prove(prover.ConstraintSystem.ConstraintSystem, prover.ProveKey.ProvingKey, wit)
 	if err != nil {
 		return nil, err
 	}
@@ -43,15 +43,12 @@ func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.Revocation
 	return &updateReq, nil
 }
 
-func (request *UpdateRequest) Verify(nextPeriod int64, lastPeriod int64, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
+func (request *UpdateRequest) Verify(nextPeriod int64, lastPeriod int64, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, verifyKey snark.VerifyKey) error {
 	pubWit, err := circuit.NewPublicUpdateCircuitWitness(nextPeriod, request.PublicKey, request.UpdateTicket, lastPeriod, rl, gpk)
 	if err != nil {
 		return err
 	}
 
-	err = groth16.Verify(request.Proof, verifyKey, pubWit)
+	err = groth16.Verify(request.Proof, verifyKey.VerifyingKey, pubWit)
 	return err
 }
-
-
-

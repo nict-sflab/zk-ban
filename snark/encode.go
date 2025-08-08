@@ -4,9 +4,8 @@ import (
 	"bytes"
 
 	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/constraint"
 )
-
-type Proof struct{ groth16.Proof }
 
 func (proof Proof) MarshalJSON() ([]byte, error) {
 	var buffer bytes.Buffer
@@ -28,6 +27,81 @@ func (proof *Proof) UnmarshalJSON(buf []byte) error {
 
 	if err != nil {
 		proof.Proof = z
+	}
+
+	return err
+}
+
+func (ccs ConstraintSystem) MarshalJSON() ([]byte, error) {
+	var buffer bytes.Buffer
+	_, err := ccs.WriteTo(&buffer)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
+func (ccs *ConstraintSystem) UnmarshalJSON(buf []byte) error {
+	if string(buf) == "null" {
+		return nil
+	}
+
+	var z constraint.ConstraintSystem
+	reader := bytes.NewReader(buf)
+	_, err := z.ReadFrom(reader)
+
+	if err != nil {
+		ccs.ConstraintSystem = z
+	}
+
+	return err
+}
+
+func (pk ProveKey) MarshalJSON() ([]byte, error) {
+	var buffer bytes.Buffer
+	_, err := pk.WriteTo(&buffer)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
+func (pk *ProveKey) UnmarshalJSON(buf []byte) error {
+	if string(buf) == "null" {
+		return nil
+	}
+
+	var z groth16.ProvingKey
+	reader := bytes.NewReader(buf)
+	_, err := z.ReadFrom(reader)
+
+	if err != nil {
+		pk.ProvingKey = z
+	}
+
+	return err
+}
+
+func (vk VerifyKey) MarshalJSON() ([]byte, error) {
+	var buffer bytes.Buffer
+	_, err := vk.WriteTo(&buffer)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
+func (pk *VerifyKey) UnmarshalJSON(buf []byte) error {
+	if string(buf) == "null" {
+		return nil
+	}
+
+	var z groth16.VerifyingKey
+	reader := bytes.NewReader(buf)
+	_, err := z.ReadFrom(reader)
+
+	if err != nil {
+		pk.VerifyingKey = z
 	}
 
 	return err

@@ -11,10 +11,15 @@ import (
 var EcCurve = ecc.BLS12_381
 var TwistededwardsCurve = twistededwards.BLS12_381
 
+type Proof struct{ groth16.Proof }
+type ConstraintSystem struct{ constraint.ConstraintSystem }
+type ProveKey struct{ groth16.ProvingKey }
+type VerifyKey struct{ groth16.VerifyingKey }
+
 type SnarkParams struct {
-	ConstraintSystem constraint.ConstraintSystem
-	ProveKey         groth16.ProvingKey
-	VerifyKey        groth16.VerifyingKey
+	ConstraintSystem ConstraintSystem
+	ProveKey         ProveKey
+	VerifyKey        VerifyKey
 	Circuit          frontend.Circuit
 }
 
@@ -26,6 +31,6 @@ func (params *SnarkParams) Prover() *SnarkProver {
 }
 
 type SnarkProver struct {
-	ConstraintSystem constraint.ConstraintSystem
-	ProveKey         groth16.ProvingKey
+	ConstraintSystem ConstraintSystem
+	ProveKey         ProveKey
 }
