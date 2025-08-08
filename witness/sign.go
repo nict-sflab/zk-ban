@@ -32,16 +32,6 @@ func (signer *Signer) CommitSign(m, sessionTag *primitives.BigInt) (*SignCommit,
 	return &SignCommit{Sigma: &primitives.BigInt{*commit1}, Nym: &primitives.BigInt{*commit2}}, nil
 }
 
-// func (signer *Signer) NextWithoutCred(nextPeriod *big.Int) (*Signer, error) {
-// 	signer = &Signer{
-// 		UserSecretKey: signer.UserSecretKey,
-// 		Period:        nextPeriod,
-// 		Credential:    nil,
-// 	}
-
-// 	return signer, nil
-// }
-
 func (signer *Signer) SessionTag(counter int64) *primitives.BigInt {
 	sessionTag := SessionTag(counter, signer.Period)
 	return sessionTag
