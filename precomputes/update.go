@@ -13,6 +13,7 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 	groth16_bls12381 "github.com/consensys/gnark/backend/groth16/bls12-381"
 	"github.com/consensys/gnark/backend/witness"
+	"github.com/consensys/gnark/frontend"
 )
 
 var UpdatePreparableIndex = 4
@@ -23,6 +24,10 @@ type UpdateCircuit struct {
 
 func (circuit *UpdateCircuit) PreparableIndex() int {
 	return UpdatePreparableIndex
+}
+
+func (circuit *UpdateCircuit) Define(api frontend.API) error {
+	return circuit.UpdateCircuit.Define(api)
 }
 
 type PreparedUpdateRequestVerifyingKey[
