@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
@@ -55,8 +56,10 @@ func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 
 	witnessRL := circuit.NewRevocationListWitness(rl)
 
-	updateSnark, err := snark.InitSNARK(&circuit.UpdateCircuit{
-		RevocationList: witnessRL,
+	updateSnark, err := snark.InitSNARK(&precomputes.UpdateCircuit{
+		&circuit.UpdateCircuit{
+			RevocationList: witnessRL,
+		},
 	})
 
 	panicIfErr(err)

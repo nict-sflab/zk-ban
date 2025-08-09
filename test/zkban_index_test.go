@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/frontend"
@@ -22,31 +23,34 @@ func TestIndex(t *testing.T) {
 
 	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2
 
-	wit, err := frontend.NewWitness(&circuit.UpdateCircuit{
-		RevocationList: circuit.NewRevocationListWitness(rl),
-		UserSecretKey:  1,
-		Credential: eddsa.Signature{
-			R: twistededwards.Point{
-				X: 1,
-				Y: 1,
+	wit, err := frontend.NewWitness(
+		&precomputes.UpdateCircuit{
+			&circuit.UpdateCircuit{
+				RevocationList: circuit.NewRevocationListWitness(rl),
+				UserSecretKey:  1,
+				Credential: eddsa.Signature{
+					R: twistededwards.Point{
+						X: 1,
+						Y: 1,
+					},
+					S: 1,
+				},
+				NextInfo: circuit.PublicKeyAuthInfo{
+					UserPublicKey: 1,
+					Period:        1,
+				},
+				CurrentInfo: circuit.PublicKeyAuthInfo{
+					UserPublicKey: 1,
+					Period:        1,
+				},
+				GroupPublicKey: eddsa.PublicKey{
+					A: twistededwards.Point{
+						X: 0,
+						Y: 0,
+					},
+				},
 			},
-			S: 1,
-		},
-		NextInfo: circuit.PublicKeyAuthInfo{
-			UserPublicKey: 1,
-			Period:        1,
-		},
-		CurrentInfo: circuit.PublicKeyAuthInfo{
-			UserPublicKey: 1,
-			Period:        1,
-		},
-		GroupPublicKey: eddsa.PublicKey{
-			A: twistededwards.Point{
-				X: 0,
-				Y: 0,
-			},
-		},
-	}, ecc.BLS12_381.ScalarField())
+		}, ecc.BLS12_381.ScalarField())
 
 	assert.NoError(t, err)
 
@@ -54,6 +58,6 @@ func TestIndex(t *testing.T) {
 	assert.NoError(t, err)
 	fmt.Printf("%v", pubWit.Vector())
 
-	assert.Equal(t, circuit.UpdatePreparableIndex, index)
+	assert.Equal(t, precomputes.UpdatePreparableIndex, index)
 
 }

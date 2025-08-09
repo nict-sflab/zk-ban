@@ -15,6 +15,16 @@ import (
 	"github.com/consensys/gnark/backend/witness"
 )
 
+var UpdatePreparableIndex = 4
+
+type UpdateCircuit struct {
+	*circuit.UpdateCircuit
+}
+
+func (circuit *UpdateCircuit) PreparableIndex() int {
+	return UpdatePreparableIndex
+}
+
 type PreparedUpdateRequestVerifyingKey[
 	Vector any,
 	G1Jac any,
@@ -24,7 +34,7 @@ type PreparedUpdateRequestVerifyingKey[
 }
 
 func NewUpdateVerificationKeyBLS12381(gk groth16.VerifyingKey) (*PreparedUpdateRequestVerifyingKey[fr_bls12381.Vector, *curve_bls12381.G1Jac, *groth16_bls12381.Proof], error) {
-	vk, err := gnarkprecomputes.FromBLS12381GnarkKey(gk, &circuit.UpdateCircuit{})
+	vk, err := gnarkprecomputes.FromBLS12381GnarkKey(gk, &UpdateCircuit{})
 	if err != nil {
 		return nil, err
 	}
