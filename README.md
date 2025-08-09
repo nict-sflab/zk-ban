@@ -1,2 +1,5 @@
 # zk-ban
-Ligthweight and Scalable Blocklisiting System with zk-SNARK
+Fast Anonymous Block-Listing Protocol with Flexible Revocation
+
+[![Go](https://github.com/akakou/zk-ban/actions/workflows/go.yml/badge.svg)](https://github.com/akakou/zk-ban/actions/workflows/go.yml)
+
