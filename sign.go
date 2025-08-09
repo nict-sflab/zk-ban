@@ -3,6 +3,7 @@ package zkban
 import (
 	"math/big"
 
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
@@ -19,7 +20,7 @@ func max() *big.Int {
 
 type Signature struct {
 	Commit *zkbanw.SignCommit
-	Proof  snark.Proof
+	Proof  gnarkserializable.Proof
 }
 
 func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*Signature, error) {
@@ -42,7 +43,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 
 	signature := Signature{
 		Commit: comm,
-		Proof:  snark.Proof{proof},
+		Proof:  gnarkserializable.Proof{proof},
 	}
 	return &signature, nil
 }

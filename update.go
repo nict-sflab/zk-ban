@@ -1,6 +1,7 @@
 package zkban
 
 import (
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
@@ -10,7 +11,7 @@ import (
 type UpdateRequest struct {
 	PublicKey    *zkbanw.UserPublicKey
 	UpdateTicket *zkbanw.OneTimeTicket
-	Proof        snark.Proof
+	Proof        gnarkserializable.Proof
 }
 
 func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*UpdateRequest, error) {
@@ -35,7 +36,7 @@ func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.Revocation
 	}
 
 	updateReq := UpdateRequest{
-		Proof:        snark.Proof{proof},
+		Proof:        gnarkserializable.Proof{proof},
 		PublicKey:    nextPublicKey,
 		UpdateTicket: ticket,
 	}

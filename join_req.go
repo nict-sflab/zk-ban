@@ -3,6 +3,7 @@ package zkban
 import (
 	"crypto/rand"
 
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
@@ -11,8 +12,8 @@ import (
 )
 
 type JoinRequest struct {
-	UserPublicKey *zkbanw.UserPublicKey `json:"user_public_key"`
-	Proof         *snark.Proof          `json:"proof"`
+	UserPublicKey *zkbanw.UserPublicKey    `json:"user_public_key"`
+	Proof         *gnarkserializable.Proof `json:"proof"`
 }
 
 func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *zkbanw.UserSecretKey, error) {
@@ -40,7 +41,7 @@ func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *z
 		return nil, nil, err
 	}
 
-	return &JoinRequest{UserPublicKey: upk, Proof: &snark.Proof{proof}}, &usk, nil
+	return &JoinRequest{UserPublicKey: upk, Proof: &gnarkserializable.Proof{proof}}, &usk, nil
 }
 
 func (req *JoinRequest) Verify(period int64, verifyKey groth16.VerifyingKey) error {
