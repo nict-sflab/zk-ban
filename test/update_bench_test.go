@@ -58,8 +58,6 @@ func benchmarkUpdate(a, b int, t *testing.B) {
 
 	t.Run("Verify ,"+tag, func(b *testing.B) {
 		for b.Loop() {
-			params.gsk.IssueCredential(params.upk)
-
 			err = vk.VerifyPrepared(prepare, proof, params.nextPeriod, params.period)
 			panicIfErr(err)
 

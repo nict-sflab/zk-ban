@@ -32,6 +32,12 @@ func BenchmarkAll(t *testing.B) {
 		}
 	})
 
+	t.Run("issue credential", func(b *testing.B) {
+		for b.Loop() {
+			params.gsk.IssueCredential(params.upk)
+		}
+	})
+
 	var signature *zkban.Signature
 	t.Run("sign", func(b *testing.B) {
 		for b.Loop() {
