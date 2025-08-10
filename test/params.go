@@ -57,7 +57,7 @@ func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 	witnessRL := circuit.NewRevocationListWitness(rl)
 
 	updateSnark, err := snark.InitSNARK(&precomputes.UpdateCircuit{
-		&circuit.UpdateCircuit{
+		circuit.UpdateCircuit{
 			RevocationList: witnessRL,
 		},
 	})

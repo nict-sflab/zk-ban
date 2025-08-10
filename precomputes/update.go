@@ -19,7 +19,7 @@ import (
 var UpdatePreparableIndex = 4
 
 type UpdateCircuit struct {
-	*circuit.UpdateCircuit
+	UpdateCircuit circuit.UpdateCircuit
 }
 
 func (circuit *UpdateCircuit) PreparableIndex() int {
