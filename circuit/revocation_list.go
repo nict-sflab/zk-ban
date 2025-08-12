@@ -11,11 +11,6 @@ type RevokedNymsPerSession struct {
 }
 type RevocationList []RevokedNymsPerSession
 
-func EmptyRevocationList(SessionSize, NymSizePerSession int) RevocationList {
-	emptyRL := witness.EmptyConstantRevocationAddList(SessionSize, NymSizePerSession)
-	return NewRevocationListAssigned(emptyRL)
-}
-
 func NewRevocationListAssigned(revocationList witness.RevocationList) RevocationList {
 	rl := RevocationList{}
 

@@ -100,7 +100,9 @@ func prepareParams() TestParams {
 	}
 }
 
-func EmptyConstantRevocationAddList(SessionSize, NymSizePerSession int) witness.RevocationList {
+func EmptyUniformRevocationAddList(sessionSize, nymSizePerSession int) witness.RevocationList {
 	witness.InitBigInt = witness.MimcInitBigInt
-	return witness.EmptyConstantRevocationAddList(SessionSize, NymSizePerSession)
+	rlSize := witness.MakeUniformRLSize(sessionSize, nymSizePerSession)
+
+	return witness.EmptyRevocationList(rlSize)
 }

@@ -24,13 +24,13 @@ var MimcInitBigInt = func() *primitives.BigInt {
 	return &primitives.BigInt{*n}
 }
 
-func EmptyConstantRevocationAddList(sessionSize, nymSizePerSession int) RevocationList {
-	rlSize := make([]int, sessionSize)
-	for i := range sessionSize {
-		rlSize[i] = nymSizePerSession
+func MakeUniformRLSize(sessionNumber, nymsNumberPerSession int) []int {
+	rlSize := make([]int, sessionNumber)
+	for i := range sessionNumber {
+		rlSize[i] = nymsNumberPerSession
 	}
 
-	return EmptyRevocationList(rlSize)
+	return rlSize
 }
 
 func EmptyRevocationList(NymSizePerSessions []int) RevocationList {

@@ -117,7 +117,7 @@ func newPublicPreparedUpdateCircuitWitness(
 			Signature: make([]byte, 32),
 		},
 		Period: lastPeriod,
-	}, zkbanw.EmptyConstantRevocationAddList(0, 0), &zkbanw.GroupPublicKey{
+	}, zkbanw.EmptyRevocationList([]int{}), &zkbanw.GroupPublicKey{
 		PublicKey: &eddsa.PublicKey{
 			A: twistededwards.NewPointAffine([4]uint64{}, [4]uint64{}),
 		},
