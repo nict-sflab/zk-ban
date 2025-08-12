@@ -10,25 +10,13 @@ type RevokedNymsPerSession struct {
 	Nyms       []*big.Int
 }
 
-func EmptyConstantRevocationAddList(SessionSize, NymSizePerSession int) RevocationList {
-	rl := RevocationList{}
-
-	for i := 0; i < SessionSize; i++ {
-		nyms := []*big.Int{}
-
-		for j := 0; j < NymSizePerSession; j++ {
-			n := big.NewInt(0)
-			nyms = append(nyms, n)
-		}
-
-		n := big.NewInt(0)
-		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: n,
-		})
+func EmptyConstantRevocationAddList(sessionSize, nymSizePerSession int) RevocationList {
+	rlSize := make([]int, sessionSize)
+	for i := range sessionSize {
+		rlSize[i] = nymSizePerSession
 	}
 
-	return rl
+	return EmptyRevocationList(rlSize)
 }
 
 func EmptyRevocationList(NymSizePerSessions []int) RevocationList {
