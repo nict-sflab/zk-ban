@@ -6,7 +6,6 @@ import (
 
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
-	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
@@ -18,7 +17,7 @@ func TestIndex(t *testing.T) {
 	x := 10
 	y := 10
 
-	rl := witness.EmptyConstantRevocationAddList(x, y)
+	rl := EmptyUniformRevocationAddList(x, y)
 	_, _, updateCircuit := prepareCircuit(rl, true)
 
 	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2
@@ -26,7 +25,7 @@ func TestIndex(t *testing.T) {
 	wit, err := frontend.NewWitness(
 		&precomputes.UpdateCircuit{
 			circuit.UpdateCircuit{
-				RevocationList: circuit.NewRevocationListWitness(rl),
+				RevocationList: circuit.NewRevocationListAssigned(rl),
 				UserSecretKey:  1,
 				Credential: eddsa.Signature{
 					R: twistededwards.Point{

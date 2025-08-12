@@ -11,23 +11,18 @@ type RevokedNymsPerSession struct {
 }
 type RevocationList []RevokedNymsPerSession
 
-func EmptyRevocationList(SessionSize, NymSizePerSession int) RevocationList {
-	emptyRL := witness.EmptyConstantRevocationAddList(SessionSize, NymSizePerSession)
-	return NewRevocationListWitness(emptyRL)
-}
-
-func NewRevocationListWitness(revocationList witness.RevocationList) RevocationList {
+func NewRevocationListAssigned(revocationList witness.RevocationList) RevocationList {
 	rl := RevocationList{}
 
 	for _, rps := range revocationList {
 		nyms := []frontend.Variable{}
 		for _, nym := range rps.Nyms {
-			nyms = append(nyms, nym)
+			nyms = append(nyms, nym.Int)
 		}
 
 		rl = append(rl, RevokedNymsPerSession{
 			Nyms:       nyms,
-			SessionTag: rps.SessionTag,
+			SessionTag: rps.SessionTag.Int,
 		})
 	}
 

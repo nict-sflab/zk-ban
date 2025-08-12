@@ -17,7 +17,7 @@ func TestAll(t *testing.T) {
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := witness.EmptyConstantRevocationAddList(270, 130)
+	rl := EmptyUniformRevocationAddList(180, 300)
 
 	joinCircuit, signCircuit, updateCircuit := prepareCircuit(rl, false)
 
@@ -69,8 +69,8 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("update-fail", func(t *testing.T) {
-		rl[0].SessionTag = &witness.SessionTag(params.cnt, params.period).Int
-		rl[0].Nyms[0] = &signature.Commit.Nym.Int
+		rl[0].SessionTag = witness.SessionTag(params.cnt, params.period)
+		rl[0].Nyms[0] = signature.Commit.Nym
 
 		_, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)

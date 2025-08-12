@@ -11,7 +11,7 @@ import (
 func BenchmarkAll(t *testing.B) {
 	params := prepareParams()
 
-	rl1 := EmptyConstantRevocationAddList(60, 300)
+	rl1 := EmptyUniformRevocationAddList(60, 300)
 
 	joinCircuit, signCircuit, updateCircuit1 := prepareCircuit(rl1, false)
 

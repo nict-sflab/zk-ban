@@ -76,12 +76,12 @@ func NewUpdateCircuitWitness(
 	for _, rps := range revocationList {
 		nyms := []frontend.Variable{}
 		for _, nym := range rps.Nyms {
-			nyms = append(nyms, nym)
+			nyms = append(nyms, nym.Int)
 		}
 
 		rl = append(rl, RevokedNymsPerSession{
 			Nyms:       nyms,
-			SessionTag: rps.SessionTag,
+			SessionTag: rps.SessionTag.Int,
 		})
 	}
 
