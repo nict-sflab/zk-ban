@@ -26,7 +26,7 @@ func TestIndex(t *testing.T) {
 	wit, err := frontend.NewWitness(
 		&precomputes.UpdateCircuit{
 			circuit.UpdateCircuit{
-				RevocationList: circuit.NewRevocationListWitness(rl),
+				RevocationList: circuit.NewRevocationListAssigned(rl),
 				UserSecretKey:  1,
 				Credential: eddsa.Signature{
 					R: twistededwards.Point{
