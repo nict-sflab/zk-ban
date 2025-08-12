@@ -1,4 +1,4 @@
-package zkbantest
+package test
 
 import (
 	"math/big"
