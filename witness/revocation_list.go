@@ -80,7 +80,7 @@ func EmptyRevocationList(nymSizePerSessions []int) RevocationList {
 			nyms = append(nyms, n)
 		}
 
-		n := primitives.NewBigInt(0)
+		n := InitBigInt()
 		rl = append(rl, RevokedNymsPerSession{
 			Nyms:       nyms,
 			SessionTag: n,
