@@ -15,6 +15,24 @@ type RevokedNymsPerSession struct {
 	Nyms       []*primitives.BigInt
 }
 
+func (rl RevocationList) Size() int {
+	sum := 0
+	for _, r := range rl {
+		sum += len(r.Nyms)
+	}
+
+	return sum
+}
+
+func (rl RevocationList) Sizes() []int {
+	result := []int{}
+	for _, r := range rl {
+		result = append(result, len(r.Nyms))
+	}
+
+	return result
+}
+
 var InitBigInt = ZeroInitBigInt
 var ZeroInitBigInt = func() *primitives.BigInt { return primitives.NewBigInt(0) }
 var MimcInitBigInt = func() *primitives.BigInt {
@@ -40,7 +58,11 @@ func MakeLinearRLSize(sessionNumber, max, min int) []int {
 	rlSize := []int{}
 	for i := range sessionNumber {
 		v := float64(i)*a + float64(min)
-		rlSize = append(rlSize, int(math.Ceil(v)))
+		if v < 1 {
+			v = 1
+		}
+
+		rlSize = append(rlSize, int(v))
 	}
 
 	return rlSize
@@ -64,9 +86,39 @@ func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) []int {
 	rlSize := []int{}
 	for i := range sessionNumber {
 		v := gaussianFunc(float64(i)) * 2 * float64(nymNum)
+		if v < 1 {
+			v = 1
+		}
 		rlSize = append(rlSize, int(v))
 	}
+
 	return rlSize
+}
+
+func AjustRLSize(rlSize []int, nymNum int) []int {
+	sum := 0
+	for _, r := range rlSize {
+		sum += r
+	}
+
+	diff := sum - nymNum
+
+	for {
+		for i, r := range rlSize {
+			if diff == 0 {
+				return rlSize
+			}
+
+			if r == 1 {
+			} else if diff > 0 {
+				rlSize[i]--
+				diff--
+			} else {
+				rlSize[i]++
+				diff++
+			}
+		}
+	}
 }
 
 func EmptyRevocationList(nymSizePerSessions []int) RevocationList {
