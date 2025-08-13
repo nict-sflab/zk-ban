@@ -14,35 +14,59 @@ import (
 
 func BenchmarkUpdate(t *testing.B) {
 	max := 10
-	base := 600
-	session := 180
 
+	baseSessionNum := 180
+	baseNymNum := baseSessionNum * 900
+
+	a := 1
+
+	// increase nym
 	for i := 1; i <= max; i++ {
-		nymSize := session * base * i
-		rl := EmptyUniformRevocationList(session, nymSize)
-		benchmarkUpdate(session, base*session, rl, "uniform", t)
+		nymNum := baseNymNum * i * a
+		rl := EmptyUniformRevocationList(baseSessionNum, nymNum)
+		benchmarkUpdate(baseSessionNum, nymNum, rl, "uniform", t)
 	}
 
 	for i := 1; i <= max; i++ {
-		nymSize := session * base * i
-		rl := EmptyProportionalRevocationList(session, nymSize)
-		benchmarkUpdate(session, nymSize, rl, "proportional", t)
+		nymNum := baseNymNum * i * a
+		rl := EmptyProportionalRevocationList(baseSessionNum, nymNum)
+		benchmarkUpdate(baseSessionNum, nymNum, rl, "proportional", t)
 	}
 
 	for i := 1; i <= max; i++ {
-		nymSize := session * base * i
-		rl := EmptyGaussianRevocationList(session, nymSize)
-		benchmarkUpdate(session, nymSize, rl, "gaussian", t)
+		nymNum := baseNymNum * i * a
+		rl := EmptyGaussianRevocationList(baseSessionNum, nymNum)
+		benchmarkUpdate(baseSessionNum, nymNum, rl, "gaussian", t)
+	}
+
+	// increase sessionNumber
+	b := 1
+	for i := 1; i <= max; i++ {
+		sessionNum := baseSessionNum * i * b
+		rl := EmptyUniformRevocationList(sessionNum, baseNymNum)
+		benchmarkUpdate(sessionNum, baseNymNum, rl, "uniform", t)
+	}
+
+	for i := 1; i <= max; i++ {
+		sessionNum := baseSessionNum * i * b
+		rl := EmptyProportionalRevocationList(sessionNum, baseNymNum)
+		benchmarkUpdate(sessionNum, baseNymNum, rl, "proportional", t)
+	}
+
+	for i := 1; i <= max; i++ {
+		sessionNum := baseSessionNum * i * b
+		rl := EmptyGaussianRevocationList(sessionNum, baseNymNum)
+		benchmarkUpdate(sessionNum, baseNymNum, rl, "gaussian", t)
 	}
 }
 
-func benchmarkUpdate(sessionSize, nymSize int, rl zkbanw.RevocationList, name string, t *testing.B) {
+func benchmarkUpdate(sessionNumberSize, nymNum int, rl zkbanw.RevocationList, name string, t *testing.B) {
 	params := prepareParams()
 
 	var err error
 
 	_, _, updateCircuit := prepareCircuit(rl, true)
-	name += fmt.Sprintf("%s: %v-%v", name, sessionSize, nymSize)
+	name += fmt.Sprintf("%s: %v-%v", name, sessionNumberSize, nymNum)
 
 	var proof *zkban.UpdateRequest
 	t.Run("Prove: "+name, func(b *testing.B) {
