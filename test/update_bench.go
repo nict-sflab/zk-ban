@@ -1,75 +1,75 @@
-package zkbantest
+package test
 
 import (
 	"fmt"
-	"testing"
 
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/precomputes"
+	"github.com/akakou/zk-ban/test/utils/usefulbench"
 	zkbanw "github.com/akakou/zk-ban/witness"
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	// 	groth16_bls12381 "github.com/consensys/gnark/backend/groth16/bls12-381"
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
 
-func BenchmarkUpdate(t *testing.B) {
+func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	max := 10
 
 	baseSessionNum := 180
 	baseNymNum := baseSessionNum * 900
 
-	a := 1
+	alpha := 1
 
 	// increase nym
 	for i := 1; i <= max; i++ {
-		nymNum := baseNymNum * i * a
+		nymNum := baseNymNum * i * alpha
 		rl := EmptyUniformRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(baseSessionNum, nymNum, rl, "uniform", t)
+		benchmarkUpdate(nymNum, rl, "nym-increase-uniform", b)
 	}
 
 	for i := 1; i <= max; i++ {
-		nymNum := baseNymNum * i * a
+		nymNum := baseNymNum * i * alpha
 		rl := EmptyProportionalRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(baseSessionNum, nymNum, rl, "proportional", t)
+		benchmarkUpdate(nymNum, rl, "nym-increase-proportional", b)
 	}
 
 	for i := 1; i <= max; i++ {
-		nymNum := baseNymNum * i * a
+		nymNum := baseNymNum * i * alpha
 		rl := EmptyGaussianRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(baseSessionNum, nymNum, rl, "gaussian", t)
+		benchmarkUpdate(nymNum, rl, "nym-increase-gaussian", b)
 	}
 
 	// increase sessionNumber
-	b := 1
+	beta := 1
 	for i := 1; i <= max; i++ {
-		sessionNum := baseSessionNum * i * b
+		sessionNum := baseSessionNum * i * beta
 		rl := EmptyUniformRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, baseNymNum, rl, "uniform", t)
+		benchmarkUpdate(sessionNum, rl, "sess-increase-uniform", b)
 	}
 
 	for i := 1; i <= max; i++ {
-		sessionNum := baseSessionNum * i * b
+		sessionNum := baseSessionNum * i * beta
 		rl := EmptyProportionalRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, baseNymNum, rl, "proportional", t)
+		benchmarkUpdate(sessionNum, rl, "sess-increase-proportional", b)
 	}
 
 	for i := 1; i <= max; i++ {
-		sessionNum := baseSessionNum * i * b
+		sessionNum := baseSessionNum * i * beta
 		rl := EmptyGaussianRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, baseNymNum, rl, "gaussian", t)
+		benchmarkUpdate(sessionNum, rl, "sess-increase-gaussian", b)
 	}
 }
 
-func benchmarkUpdate(sessionNumberSize, nymNum int, rl zkbanw.RevocationList, name string, t *testing.B) {
+func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
 	params := prepareParams()
 
 	var err error
 
 	_, _, updateCircuit := prepareCircuit(rl, true)
-	name += fmt.Sprintf("%s: %v-%v", name, sessionNumberSize, nymNum)
+	name += fmt.Sprintf("%s:%v", name, param)
 
 	var proof *zkban.UpdateRequest
-	t.Run("Prove: "+name, func(b *testing.B) {
+	b.Run("prove-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			proof, err = zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
 			panicIfErr(err)
@@ -80,14 +80,14 @@ func benchmarkUpdate(sessionNumberSize, nymNum int, rl zkbanw.RevocationList, na
 	panicIfErr(err)
 
 	var prepare **bls12381.G1Jac
-	t.Run("Verify-Precomputes: "+name, func(b *testing.B) {
+	b.Run("precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			prepare, err = vk.PrecomputeVerify(rl, params.gpk)
 			panicIfErr(err)
 		}
 	})
 
-	t.Run("Verify: "+name, func(b *testing.B) {
+	b.Run("verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepare, proof, params.nextPeriod, params.period)
 			panicIfErr(err)
