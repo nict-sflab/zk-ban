@@ -16,7 +16,7 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	max := 10
 
 	baseSessionNum := 180
-	baseNymNum := baseSessionNum * 900
+	baseNymNum := baseSessionNum * 1080
 
 	alpha := 1
 
