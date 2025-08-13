@@ -54,6 +54,7 @@ func (b *UsefulBenchmaker) Run(tag string, target func(b Benchmarker)) bool {
 	b.Result[familyTag][nameTag] = latency
 
 	fmt.Printf("%s takes %d ns\n", tag, latency)
+	fmt.Printf("%s\n\n", b.ResultJson())
 
 	return true
 }
