@@ -11,7 +11,8 @@ import (
 func BenchmarkAll(t *testing.B) {
 	params := prepareParams()
 
-	rl1 := EmptyUniformRevocationAddList(60, 300)
+	rl1 := EmptyUniformRevocationList(180, 90000)
+	rl1 = EmptyProportionalRevocationList(180, 90000)
 
 	joinCircuit, signCircuit, updateCircuit1 := prepareCircuit(rl1, false)
 

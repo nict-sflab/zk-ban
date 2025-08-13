@@ -31,7 +31,7 @@ func benchmarkUpdate(a, b int, t *testing.B) {
 
 	var rl zkbanw.RevocationList
 	var tag = ""
-	rl = EmptyUniformRevocationAddList(a, b)
+	rl = EmptyUniformRevocationList(a, b)
 	tag = fmt.Sprintf("%d,%d,%d,%v", a*b, a, b, "constant")
 
 	_, _, updateCircuit := prepareCircuit(rl, true)

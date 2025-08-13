@@ -2,6 +2,7 @@ package witness
 
 import (
 	"log"
+	"math"
 	"math/big"
 
 	"github.com/akakou/zk-ban/primitives"
@@ -25,21 +26,33 @@ var MimcInitBigInt = func() *primitives.BigInt {
 }
 
 func MakeUniformRLSize(sessionNumber, nymsNumberPerSession int) []int {
-	rlSize := make([]int, sessionNumber)
-	for i := range sessionNumber {
-		rlSize[i] = nymsNumberPerSession
+	rlSize := []int{}
+	for range sessionNumber {
+		rlSize = append(rlSize, nymsNumberPerSession)
 	}
 
 	return rlSize
 }
 
-func EmptyRevocationList(NymSizePerSessions []int) RevocationList {
+func MakeLinearRLSize(sessionNumber, max, min int) []int {
+	a := float64(max-min) / float64(sessionNumber)
+
+	rlSize := []int{}
+	for i := range sessionNumber {
+		v := float64(i)*a + float64(min)
+		rlSize = append(rlSize, int(math.Ceil(v)))
+	}
+
+	return rlSize
+}
+
+func EmptyRevocationList(nymSizePerSessions []int) RevocationList {
 	rl := RevocationList{}
 
-	for _, nymPerSession := range NymSizePerSessions {
+	for _, nymPerSession := range nymSizePerSessions {
 		nyms := []*primitives.BigInt{}
 
-		for i := 0; i < nymPerSession; i++ {
+		for range nymPerSession {
 			n := InitBigInt()
 			nyms = append(nyms, n)
 		}

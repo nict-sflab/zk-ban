@@ -17,7 +17,7 @@ func TestIndex(t *testing.T) {
 	x := 10
 	y := 10
 
-	rl := EmptyUniformRevocationAddList(x, y)
+	rl := EmptyUniformRevocationList(x, y)
 	_, _, updateCircuit := prepareCircuit(rl, true)
 
 	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2

@@ -17,7 +17,7 @@ func TestAll(t *testing.T) {
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := EmptyUniformRevocationAddList(180, 300)
+	rl := EmptyUniformRevocationList(180, 300)
 
 	joinCircuit, signCircuit, updateCircuit := prepareCircuit(rl, false)
 
