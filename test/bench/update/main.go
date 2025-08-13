@@ -13,6 +13,6 @@ func main() {
 	bb := usefulbench.New(COUNT)
 	test.BenchmarkUpdate(bb)
 
-	bb.SaveJson("bench.json")
+	bb.SaveJson("update-bench.json")
 	fmt.Printf("%v\n", bb.ResultJson())
 }
