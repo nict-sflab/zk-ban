@@ -5,36 +5,43 @@
 ### How to work
 
 ```sh
-go test --bench BenchmarkAll . -timeout 0 -benchtime 5x
-go test --bench BenchmarkUpdate . -timeout 0 -benchtime 5x
+go test --bench ^BenchmarkAll$ . -timeout 0 -benchtime 5x
+go test --bench ^BenchmarkUpdate$ . -timeout 0 -benchtime 5x
 ```
 
 ### Our result
 
 Environments:
-- CPU: Intel Xeon Gold 5118 @ 16x 2.295GHz
-- RAM: 1379MiB / 32150MiB
-- OS: Ubuntu 22.04 jammy
+- CPU: Intel Core i9-14900 @ 32x 1.997GHz
+- RAM: 1416MiB / 61592MiB
+- OS: NixOS 25.05 (on the Windows Subsystem for Linux)
 
 Result:
 ```
-akakou@ra-webs:~/zk-ban/test$ go test --bench BenchmarkAll . -timeout 0 -benchtime 20x
+go test --bench ^BenchmarkAll$ . -timeout 0 -benchtime 20x
+[1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]u: [900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900 900]
+p: [1 16 26 36 46 55 65 75 85 95 105 115 125 135 145 155 165 175 185 195 205 215 225 235 245 255 265 275 285 295 305 315 325 335 345 355 365 375 385 395 405 415 425 435 445 455 465 475 485 495 505 515 525 535 545 555 565 575 585 595 605 615 625 635 645 655 665 675 685 695 705 715 725 735 745 755 765 775 785 795 805 815 825 835 845 855 865 875 885 895 905 915 925 935 945 955 965 975 985 995 1005 1015 1025 1035 1045 1055 1065 1075 1085 1095 1105 1115 1125 1135 1145 1155 1165 1175 1185 1195 1205 1215 1225 1235 1245 1255 1265 1275 1285 1295 1305 1315 1325 1335 1345 1355 1365 1375 1385 1395 1405 1415 1425 1435 1445 1455 1465 1475 1485 1495 1505 1515 1525 1535 1545 1555 1565 1575 1585 1595 1605 1615 1625 1635 1645 1655 1665 1675 1685 1695 1705 1715 1725 1735 1745 1755 1765 1775 1785 1795]
+g: [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 3 4 5 6 8 9 10 12 13 15 17 18 20 22 25 27 29 32 35 38 41 44 47 51 55 59 63 68 73 78 83 88 94 100 107 113 120 128 135 143 152 161 170 179 189 200 211 222 234 246 259 272 287 301 316 331 347 363 380 398 416 435 454 474 495 516 538 560 583 607 631 656 682 708 735 762 790 819 848 878 909 940 971 1004 1036 1070 1103 1138 1172 1208 1243 1279 1316 1353 1390 1427 1465 1503 1541 1579 1618 1656 1695 1734 1772 1811 1850 1888 1926 1965 2002 2040 2077 2114 2151 2187 2222 2257 2292 2325 2358 2391 2422 2453 2483 2512 2540 2568 2594 2619 2643 2666 2688 2709 2728 2746 2764 2779 2794 2807 2819 2829 2838 2846 2853 2858 2861 2863 2864]
 goos: linux
 goarch: amd64
 pkg: github.com/akakou/zk-ban/test
-cpu: Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz
-BenchmarkAll/join_req-16                      20          13599889 ns/op
-BenchmarkAll/verify_join_req-16               20           2154118 ns/op
-BenchmarkAll/sign-16                          20          74022378 ns/op
-BenchmarkAll/verify-16                        20           2317964 ns/op
-BenchmarkAll/update-req_(constant)-16                 20        1086758618 ns/op
-BenchmarkAll/update-verify_(constant)-16              20           5903594 ns/op
-BenchmarkAll/update-req_(linear)-16                   20        1008659901 ns/op
-BenchmarkAll/update-verify_(linear)-16                20           2537904 ns/op
-BenchmarkAll/update-req_(one_session)-16              20         244845114 ns/op
-BenchmarkAll/update-verify_(one_session)-16           20           6906016 ns/op
+cpu: Intel(R) Core(TM) i9-14900
+BenchmarkAll/join_req-32                      20           6054634 ns/op
+BenchmarkAll/verify_join_req-32               20            752986 ns/op
+BenchmarkAll/issue_credential-32              20             67578 ns/op
+BenchmarkAll/sign-32                          20          34449133 ns/op
+BenchmarkAll/verify-32                        20            900581 ns/op
+BenchmarkAll/update-req:_uniform-32                   20         705204861 ns/op
+BenchmarkAll/update-verify-precomputes:_uniform-32                    20          84419111 ns/op
+BenchmarkAll/update-verify_:_uniform-32                               20            847144 ns/op
+BenchmarkAll/update-req:_proportional-32                              20         708906138 ns/op
+BenchmarkAll/update-verify-precomputes:_proportional-32               20          83828385 ns/op
+BenchmarkAll/update-verify_:_proportional-32                          20            945367 ns/op
+BenchmarkAll/update-req:_gaussian-32                                  20         839578733 ns/op
+BenchmarkAll/update-verify-precomputes:_gaussian-32                   20          93842770 ns/op
+BenchmarkAll/update-verify_:_gaussian-32                              20           1098266 ns/op
 PASS
-ok      github.com/akakou/zk-ban/test   102.312s
+ok      github.com/akakou/zk-ban/test   90.292s
 ```
 
 ```
