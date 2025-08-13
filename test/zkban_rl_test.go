@@ -22,8 +22,6 @@ func TestRLSize(t *testing.T) {
 	testRLSize(nymNum, uRL, "uniform", 0, t)
 	testRLSize(nymNum, pRL, "propotinal", 0, t)
 	testRLSize(nymNum, gRL, "gaussian", 0, t)
-
-	panic("")
 }
 
 func testRLSize(expected int, rl witness.RevocationList, name string, threshold float64, t *testing.T) {

@@ -105,7 +105,6 @@ func EmptyUniformRevocationList(sessionSize, nymNum int) witness.RevocationList 
 
 	witness.InitBigInt = witness.MimcInitBigInt
 	rlSize := witness.MakeUniformRLSize(sessionSize, nymNumPerSession)
-	rlSize = witness.AjustRLSize(rlSize, nymNum)
 
 	return witness.EmptyRevocationList(rlSize)
 }

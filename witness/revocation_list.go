@@ -104,12 +104,14 @@ func AjustRLSize(rlSize []int, nymNum int) []int {
 	diff := sum - nymNum
 
 	for {
+		oneCount := 0
 		for i, r := range rlSize {
 			if diff == 0 {
 				return rlSize
 			}
 
 			if r == 1 {
+				oneCount++
 			} else if diff > 0 {
 				rlSize[i]--
 				diff--
@@ -117,6 +119,9 @@ func AjustRLSize(rlSize []int, nymNum int) []int {
 				rlSize[i]++
 				diff++
 			}
+		}
+		if oneCount == len(rlSize) {
+			panic("at least one element in rlSize is non-one")
 		}
 	}
 }
