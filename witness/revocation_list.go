@@ -46,6 +46,29 @@ func MakeLinearRLSize(sessionNumber, max, min int) []int {
 	return rlSize
 }
 
+func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) []int {
+	u := float64(sessionNumber) - 1
+
+	var gaussianFunc = func(x float64) float64 {
+		exp1 := (x - u)
+		exp1 *= exp1
+		exp2 := 2 * math.Pow(sigma, 2)
+		exp := -1 * exp1 / exp2
+
+		area := math.Sqrt(2*math.Pi) * sigma
+		result := math.Exp(exp) / area
+
+		return result
+	}
+
+	rlSize := []int{}
+	for i := range sessionNumber {
+		v := gaussianFunc(float64(i)) * 2 * float64(nymNum)
+		rlSize = append(rlSize, int(v))
+	}
+	return rlSize
+}
+
 func EmptyRevocationList(nymSizePerSessions []int) RevocationList {
 	rl := RevocationList{}
 

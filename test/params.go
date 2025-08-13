@@ -116,3 +116,13 @@ func EmptyProportionalRevocationList(sessionSize, nymNum int) witness.Revocation
 
 	return witness.EmptyRevocationList(rlSize)
 }
+
+const GaussianStandarDeviationDiv = 4
+
+func EmptyGaussianRevocationList(sessionSize, nymNum int) witness.RevocationList {
+	witness.InitBigInt = witness.MimcInitBigInt
+	sd := float64(sessionSize) / GaussianStandarDeviationDiv
+	rlSize := witness.MakeGaussianRLSize(sessionSize, nymNum, sd)
+
+	return witness.EmptyRevocationList(rlSize)
+}
