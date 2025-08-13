@@ -1,6 +1,8 @@
 package test
 
 import (
+	"time"
+
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/test/utils/usefulbench"
@@ -49,11 +51,15 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		}
 	})
 
-	rlU := EmptyUniformRevocationList(180, 90000)
+	rlU := EmptyUniformRevocationList(180, 108000)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)
-	rlP := EmptyProportionalRevocationList(180, 90000)
+	time.Sleep(time.Second * 3)
+
+	rlP := EmptyProportionalRevocationList(180, 108000)
 	benchmarkBasicUpdate(rlP, "proportional", &params, b)
-	rlG := EmptyProportionalRevocationList(180, 90000)
+	time.Sleep(time.Second * 3)
+
+	rlG := EmptyGaussianRevocationList(180, 108000)
 	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
 
 }
