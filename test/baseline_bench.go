@@ -51,15 +51,18 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		}
 	})
 
-	rlU := EmptyUniformRevocationList(180, 108000)
+	baseNym := 108000
+	baseSess := 180
+
+	rlU := EmptyUniformRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)
 	time.Sleep(time.Second * 3)
 
-	rlP := EmptyProportionalRevocationList(180, 108000)
+	rlP := EmptyProportionalRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlP, "proportional", &params, b)
 	time.Sleep(time.Second * 3)
 
-	rlG := EmptyGaussianRevocationList(180, 108000)
+	rlG := EmptyGaussianRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
 
 }
