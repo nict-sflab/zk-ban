@@ -47,7 +47,7 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	}
 
 	// increase sessionNumber
-	beta := 1
+	beta := 50
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
 		rl := EmptyUniformRevocationList(sessionNum, baseNymNum)
