@@ -14,10 +14,15 @@ type UsefulBenchmaker struct {
 }
 
 func New(max int) *UsefulBenchmaker {
-	return &UsefulBenchmaker{
+	benchmarker := &UsefulBenchmaker{
 		Max:    max,
 		Result: make(map[string]map[string]time.Duration),
 	}
+
+	benchmarker.Result["env"] = make(map[string]time.Duration)
+
+	return benchmarker
+
 }
 
 func (b *UsefulBenchmaker) Loop() bool {
