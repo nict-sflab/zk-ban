@@ -31,11 +31,11 @@ func TestBench(t *testing.B) {
 	firstResult := b.Result["test"]["1"]
 	secondResult := b.Result["test"]["2"]
 
-	if firstResult < oneSecond || firstResult > threeSecond {
+	if firstResult < int64(oneSecond) || firstResult > int64(threeSecond) {
 		t.Fatalf("First Result is wrong: not match to %s(1s) < %s(firstResult) < %s(3s)", oneSecond, firstResult, threeSecond)
 	}
 
-	if secondResult < twoSecond || secondResult > fourSecond {
+	if secondResult < int64(twoSecond) || secondResult > int64(fourSecond) {
 		t.Fatalf("Second Result is wrong: not match to %s(2s) < %s(secondResult) < %s(4s)", twoSecond, firstResult, fourSecond)
 	}
 

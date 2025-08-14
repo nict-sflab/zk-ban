@@ -10,16 +10,16 @@ import (
 type UsefulBenchmaker struct {
 	Count  int
 	Max    int
-	Result map[string]map[string]time.Duration
+	Result map[string]map[string]int64
 }
 
 func New(max int) *UsefulBenchmaker {
 	benchmarker := &UsefulBenchmaker{
 		Max:    max,
-		Result: make(map[string]map[string]time.Duration),
+		Result: make(map[string]map[string]int64),
 	}
 
-	benchmarker.Result["env"] = make(map[string]time.Duration)
+	benchmarker.Result["env"] = make(map[string]int64)
 
 	return benchmarker
 
@@ -54,9 +54,9 @@ func (b *UsefulBenchmaker) Run(tag string, target func(b Benchmarker)) bool {
 	// process result
 	_, hasFamily := b.Result[familyTag]
 	if !hasFamily {
-		b.Result[familyTag] = make(map[string]time.Duration)
+		b.Result[familyTag] = make(map[string]int64)
 	}
-	b.Result[familyTag][nameTag] = latency
+	b.Result[familyTag][nameTag] = int64(latency)
 
 	fmt.Printf("%s takes %d ns\n", tag, latency)
 	fmt.Printf("%s\n\n", b.ResultJson())
