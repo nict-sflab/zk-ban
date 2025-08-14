@@ -13,10 +13,10 @@ import (
 )
 
 func BenchmarkUpdate(b usefulbench.Benchmarker) {
-	max := 5
+	max := 10
 
-	baseSessionNum := 180
-	baseNymNum := baseSessionNum * 1080
+	baseSessionNum := 60
+	baseNymNum := 108_000
 
 	alpha := 1
 
@@ -40,7 +40,7 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	}
 
 	// increase sessionNumber
-	beta := 10
+	beta := 1
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
 		rl := EmptyUniformRevocationList(sessionNum, baseNymNum)

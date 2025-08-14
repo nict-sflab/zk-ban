@@ -51,8 +51,8 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		}
 	})
 
-	baseNym := 108000
-	baseSess := 180
+	baseNym := 108_000
+	baseSess := 60
 
 	rlU := EmptyUniformRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)
