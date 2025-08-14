@@ -13,6 +13,16 @@ import (
 func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	params := prepareParams()
 
+	baseNym := 108_000
+	baseSess := 60
+
+	ub, ok := b.(*usefulbench.UsefulBenchmaker)
+
+	if ok {
+		ub.Result["env"]["baseSessionNum"] = int64(baseSess)
+		ub.Result["env"]["baseNymNum"] = int64(baseNym)
+	}
+
 	joinCircuit, signCircuit, _ := prepareCircuit(witness.EmptyRevocationList([]int{}), false)
 	var err error
 
@@ -50,9 +60,6 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 			signature.Verify(params.m, params.cnt, params.period, params.gpk, signCircuit.VerifyKey)
 		}
 	})
-
-	baseNym := 108_000
-	baseSess := 60
 
 	rlU := EmptyUniformRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)

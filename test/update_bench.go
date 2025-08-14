@@ -18,6 +18,13 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	baseSessionNum := 60
 	baseNymNum := 108_000
 
+	ub, ok := b.(*usefulbench.UsefulBenchmaker)
+
+	if ok {
+		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
+	}
+
 	alpha := 1
 
 	// increase nym
