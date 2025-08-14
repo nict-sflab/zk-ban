@@ -19,13 +19,15 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	baseNymNum := 108_000
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
+	alpha := 1
+	beta := 50
 
 	if ok {
 		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
 		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
+		ub.Result["env"]["alpha"] = int64(alpha)
+		ub.Result["env"]["beta"] = int64(beta)
 	}
-
-	alpha := 1
 
 	// increase nym
 	for i := 1; i <= max; i++ {
@@ -47,7 +49,6 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	}
 
 	// increase sessionNumber
-	beta := 50
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
 		rl := EmptyUniformRevocationList(sessionNum, baseNymNum)
