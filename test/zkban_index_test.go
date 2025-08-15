@@ -20,7 +20,7 @@ func TestIndex(t *testing.T) {
 
 	rlSize := witness.MakeUniformRLSize(x, y)
 	rl := witness.EmptyRevocationList(rlSize)
-	_, _, updateCircuit := prepareCircuit(rl, true)
+	_, _, updateCircuit := PrepareCircuit(rl, true)
 
 	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2
 

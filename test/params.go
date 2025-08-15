@@ -13,45 +13,45 @@ import (
 var SessionSize = 270
 var RevokedNymsPerSession = 130
 
-func panicIfErr(err error) {
+func PanicIfErr(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
 type TestParams struct {
-	gpk        *witness.GroupPublicKey
-	gsk        *witness.GroupSecretKey
-	upk        *witness.UserPublicKey
-	usk        *witness.UserSecretKey
-	m          *primitives.BigInt
-	period     int64
-	cnt        int64
-	cert       *witness.Credential
-	nextPeriod int64
+	GPK        *witness.GroupPublicKey
+	GSK        *witness.GroupSecretKey
+	UPK        *witness.UserPublicKey
+	USK        *witness.UserSecretKey
+	M          *primitives.BigInt
+	Period     int64
+	CNT        int64
+	Cert       *witness.Credential
+	NextPeriod int64
 }
 
-func (params *TestParams) signer() *witness.Signer {
+func (params *TestParams) Signer() *witness.Signer {
 	signer := witness.Signer{
-		UserSecretKey: params.usk,
-		Credential:    params.cert,
-		Period:        params.period,
+		UserSecretKey: params.USK,
+		Credential:    params.Cert,
+		Period:        params.Period,
 	}
 
 	return &signer
 }
 
-func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
+func PrepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
 	var err error
 	var joinSnark *snark.SnarkParams = nil
 	var signSnark *snark.SnarkParams = nil
 
 	if !omitJoinAndSign {
 		joinSnark, err = snark.InitSNARK(&circuit.JoinRequestCircuit{})
-		panicIfErr(err)
+		PanicIfErr(err)
 
 		signSnark, err = snark.InitSNARK(&circuit.SignCircuit{})
-		panicIfErr(err)
+		PanicIfErr(err)
 	}
 
 	witnessRL := circuit.NewRevocationListAssigned(rl)
@@ -62,15 +62,15 @@ func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 		},
 	})
 
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	return joinSnark, signSnark, updateSnark
 
 }
 
-func prepareParams() TestParams {
+func PrepareParams() TestParams {
 	gsk, gpk, err := witness.RandomGroupKeyPair()
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	period := int64(2024)
 	nextPeriod := int64(2025)
@@ -79,24 +79,24 @@ func prepareParams() TestParams {
 	}
 
 	upk, err := usk.PublicKey(period)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	m := primitives.BigInt{*big.NewInt(100)}
 	cnt := int64(101)
 
 	cert, err := gsk.IssueCredential(upk)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	return TestParams{
-		gpk:        gpk,
-		gsk:        gsk,
-		usk:        usk,
-		upk:        upk,
-		m:          &m,
-		cnt:        cnt,
-		period:     period,
-		cert:       cert,
-		nextPeriod: nextPeriod,
+		GPK:        gpk,
+		GSK:        gsk,
+		USK:        usk,
+		UPK:        upk,
+		M:          &m,
+		CNT:        cnt,
+		Period:     period,
+		Cert:       cert,
+		NextPeriod: nextPeriod,
 	}
 }
 

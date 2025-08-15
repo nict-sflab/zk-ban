@@ -1,8 +1,6 @@
 package test
 
 import (
-	"time"
-
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/test/utils/usefulbench"
@@ -11,7 +9,7 @@ import (
 )
 
 func BenchmarkBaseline(b usefulbench.Benchmarker) {
-	params := prepareParams()
+	params := PrepareParams()
 
 	baseNym := 108_000
 	baseSess := 60
@@ -23,51 +21,49 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		ub.Result["env"]["baseNymNum"] = int64(baseNym)
 	}
 
-	joinCircuit, signCircuit, _ := prepareCircuit(witness.EmptyRevocationList([]int{}), false)
+	joinCircuit, signCircuit, _ := PrepareCircuit(witness.EmptyRevocationList([]int{}), false)
 	var err error
 
 	var joinReq *zkban.JoinRequest
 	b.Run("baseline:request-join", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			joinReq, _, err = zkban.RequestJoin(params.period, joinCircuit.Prover())
-			panicIfErr(err)
+			joinReq, _, err = zkban.RequestJoin(params.Period, joinCircuit.Prover())
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:verify-joinreq", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			err := joinReq.Verify(params.period, joinCircuit.VerifyKey)
-			panicIfErr(err)
+			err := joinReq.Verify(params.Period, joinCircuit.VerifyKey)
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:issue credential", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			params.gsk.IssueCredential(params.upk)
+			params.GSK.IssueCredential(params.UPK)
 		}
 	})
 
 	var signature *zkban.Signature
 	b.Run("baseline:sign", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			signature, err = zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
-			panicIfErr(err)
+			signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:verify", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			signature.Verify(params.m, params.cnt, params.period, params.gpk, signCircuit.VerifyKey)
+			signature.Verify(params.M, params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
 		}
 	})
 
 	rlU := EmptyUniformRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)
-	time.Sleep(time.Second * 3)
 
 	rlP := EmptyProportionalRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlP, "proportional", &params, b)
-	time.Sleep(time.Second * 3)
 
 	rlG := EmptyGaussianRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
@@ -75,32 +71,32 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 }
 
 func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *TestParams, b usefulbench.Benchmarker) {
-	_, _, updateCircuit := prepareCircuit(rl, false)
+	_, _, updateCircuit := PrepareCircuit(rl, false)
 
 	var err error
 	var updateRequest *zkban.UpdateRequest
 	b.Run("baseline:update-req-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			updateRequest, err = zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
-			panicIfErr(err)
+			updateRequest, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
+			PanicIfErr(err)
 		}
 	})
 
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	var prepared **bls12381.G1Jac
 	b.Run("baseline:update-precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			prepared, err = vk.PrecomputeVerify(rl, params.gpk)
-			panicIfErr(err)
+			prepared, err = vk.PrecomputeVerify(rl, params.GPK)
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:update-verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			err = vk.VerifyPrepared(*prepared, updateRequest, params.nextPeriod, params.period)
-			panicIfErr(err)
+			err = vk.VerifyPrepared(*prepared, updateRequest, params.NextPeriod, params.Period)
+			PanicIfErr(err)
 		}
 	})
 }

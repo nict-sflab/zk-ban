@@ -8,14 +8,18 @@ import (
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
+	"github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 	"github.com/consensys/gnark/backend/groth16"
 )
 
 func max() *big.Int {
-	var i, e = big.NewInt(2), big.NewInt(32)
-	i.Exp(i, e, nil)
+	var r fr.Element
+	r.SetRandom()
 
-	return i
+	big := primitives.NewBigInt(0)
+	res := r.BigInt(&big.Int)
+
+	return res
 }
 
 type Signature struct {
