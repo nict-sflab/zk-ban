@@ -1,15 +1,16 @@
-package test
+package latency
 
 import (
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
 	"github.com/akakou/zk-ban/precomputes"
-	"github.com/akakou/zk-ban/test/utils/usefulbench"
+	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 )
 
 func BenchmarkBaseline(b usefulbench.Benchmarker) {
-	params := PrepareParams()
+	params := test.PrepareParams()
 
 	baseNym := 108_000
 	baseSess := 60
@@ -21,21 +22,21 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		ub.Result["env"]["baseNymNum"] = int64(baseNym)
 	}
 
-	joinCircuit, signCircuit, _ := PrepareCircuit(witness.EmptyRevocationList([]int{}), false)
+	joinCircuit, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}), false)
 	var err error
 
 	var joinReq *zkban.JoinRequest
 	b.Run("baseline:request-join", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			joinReq, _, err = zkban.RequestJoin(params.Period, joinCircuit.Prover())
-			PanicIfErr(err)
+			test.PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:verify-joinreq", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err := joinReq.Verify(params.Period, joinCircuit.VerifyKey)
-			PanicIfErr(err)
+			test.PanicIfErr(err)
 		}
 	})
 
@@ -49,7 +50,7 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	b.Run("baseline:sign", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
-			PanicIfErr(err)
+			test.PanicIfErr(err)
 		}
 	})
 
@@ -59,44 +60,44 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		}
 	})
 
-	rlU := EmptyUniformRevocationList(baseSess, baseNym)
+	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)
 
-	rlP := EmptyProportionalRevocationList(baseSess, baseNym)
+	rlP := test.EmptyProportionalRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlP, "proportional", &params, b)
 
-	rlG := EmptyGaussianRevocationList(baseSess, baseNym)
+	rlG := test.EmptyGaussianRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
 
 }
 
-func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *TestParams, b usefulbench.Benchmarker) {
-	_, _, updateCircuit := PrepareCircuit(rl, false)
+func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {
+	_, _, updateCircuit := test.PrepareCircuit(rl, false)
 
 	var err error
 	var updateRequest *zkban.UpdateRequest
 	b.Run("baseline:update-req-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			updateRequest, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
-			PanicIfErr(err)
+			test.PanicIfErr(err)
 		}
 	})
 
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
-	PanicIfErr(err)
+	test.PanicIfErr(err)
 
 	var prepared **bls12381.G1Jac
 	b.Run("baseline:update-precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			prepared, err = vk.PrecomputeVerify(rl, params.GPK)
-			PanicIfErr(err)
+			test.PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:update-verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepared, updateRequest, params.NextPeriod, params.Period)
-			PanicIfErr(err)
+			test.PanicIfErr(err)
 		}
 	})
 }

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/test"
-	"github.com/akakou/zk-ban/test/storage"
 	"github.com/akakou/zk-ban/witness"
 )
 

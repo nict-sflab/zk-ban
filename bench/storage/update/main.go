@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
+	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/test"
-	"github.com/akakou/zk-ban/test/storage"
-	"github.com/akakou/zk-ban/test/utils/usefulbench"
 	"github.com/akakou/zk-ban/witness"
 )
 

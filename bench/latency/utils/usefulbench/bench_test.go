@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/akakou/zk-ban/test/utils/usefulbench"
+	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
 )
 
 func TestBench(t *testing.B) {
