@@ -1,8 +1,6 @@
 package zkban
 
 import (
-	"math/big"
-
 	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
@@ -10,13 +8,6 @@ import (
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 )
-
-func max() *big.Int {
-	var i, e = big.NewInt(2), big.NewInt(32)
-	i.Exp(i, e, nil)
-
-	return i
-}
 
 type Signature struct {
 	Commit *zkbanw.SignCommit
