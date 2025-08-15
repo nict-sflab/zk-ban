@@ -13,12 +13,21 @@ import (
 )
 
 func BenchmarkUpdate(b usefulbench.Benchmarker) {
-	max := 5
+	max := 10
 
-	baseSessionNum := 180
-	baseNymNum := baseSessionNum * 1080
+	baseSessionNum := 60
+	baseNymNum := 108_000
 
+	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 	alpha := 1
+	beta := 50
+
+	if ok {
+		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
+		ub.Result["env"]["alpha"] = int64(alpha)
+		ub.Result["env"]["beta"] = int64(beta)
+	}
 
 	// increase nym
 	for i := 1; i <= max; i++ {
@@ -40,7 +49,6 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	}
 
 	// increase sessionNumber
-	beta := 10
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
 		rl := EmptyUniformRevocationList(sessionNum, baseNymNum)
@@ -72,25 +80,25 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 	b.Run("prove-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			proof, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	var prepare **bls12381.G1Jac
 	b.Run("precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			prepare, err = vk.PrecomputeVerify(rl, params.GPK)
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepare, proof, params.NextPeriod, params.Period)
-			panicIfErr(err)
+			PanicIfErr(err)
 
 		}
 	})

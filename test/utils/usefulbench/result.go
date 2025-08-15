@@ -9,9 +9,8 @@ import (
 
 func (b *UsefulBenchmaker) ResultJson() string {
 	now := time.Now()
-	b.Result["env"] = make(map[string]time.Duration)
-	b.Result["env"]["end"] = time.Duration(now.UnixNano())
-	b.Result["env"]["count"] = time.Duration(b.Max)
+	b.Result["env"]["end"] = now.UnixNano()
+	b.Result["env"]["count"] = int64(b.Max)
 
 	res, err := json.Marshal(b.Result)
 
