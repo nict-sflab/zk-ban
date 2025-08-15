@@ -1,8 +1,6 @@
 package test
 
 import (
-	"math/big"
-
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
@@ -20,28 +18,28 @@ func panicIfErr(err error) {
 }
 
 type TestParams struct {
-	gpk        *witness.GroupPublicKey
-	gsk        *witness.GroupSecretKey
-	upk        *witness.UserPublicKey
-	usk        *witness.UserSecretKey
-	m          *primitives.BigInt
-	period     int64
-	cnt        int64
-	cert       *witness.Credential
-	nextPeriod int64
+	GPK        *witness.GroupPublicKey
+	GSK        *witness.GroupSecretKey
+	UPK        *witness.UserPublicKey
+	USK        *witness.UserSecretKey
+	M          *primitives.BigInt
+	Period     int64
+	CNT        int64
+	Cert       *witness.Credential
+	NextPeriod int64
 }
 
-func (params *TestParams) signer() *witness.Signer {
+func (params *TestParams) Signer() *witness.Signer {
 	signer := witness.Signer{
-		UserSecretKey: params.usk,
-		Credential:    params.cert,
-		Period:        params.period,
+		UserSecretKey: params.USK,
+		Credential:    params.Cert,
+		Period:        params.Period,
 	}
 
 	return &signer
 }
 
-func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
+func PrepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
 	var err error
 	var joinSnark *snark.SnarkParams = nil
 	var signSnark *snark.SnarkParams = nil
@@ -68,35 +66,36 @@ func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 
 }
 
-func prepareParams() TestParams {
+func PrepareParams() TestParams {
 	gsk, gpk, err := witness.RandomGroupKeyPair()
 	panicIfErr(err)
 
-	period := int64(2024)
-	nextPeriod := int64(2025)
+	period := int64(20240101)
+	nextPeriod := int64(20250101)
 	var usk = &witness.UserSecretKey{
-		primitives.NewBigInt(102),
+		primitives.RandBigInt(),
 	}
 
 	upk, err := usk.PublicKey(period)
 	panicIfErr(err)
 
-	m := primitives.BigInt{*big.NewInt(100)}
-	cnt := int64(101)
+	m := witness.MimcInitBigInt()
+
+	cnt := int64(2)
 
 	cert, err := gsk.IssueCredential(upk)
 	panicIfErr(err)
 
 	return TestParams{
-		gpk:        gpk,
-		gsk:        gsk,
-		usk:        usk,
-		upk:        upk,
-		m:          &m,
-		cnt:        cnt,
-		period:     period,
-		cert:       cert,
-		nextPeriod: nextPeriod,
+		GPK:        gpk,
+		GSK:        gsk,
+		USK:        usk,
+		UPK:        upk,
+		M:          m,
+		CNT:        cnt,
+		Period:     period,
+		Cert:       cert,
+		NextPeriod: nextPeriod,
 	}
 }
 
