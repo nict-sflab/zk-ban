@@ -20,14 +20,14 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	b.Run("baseline:request-join", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			joinReq, _, err = zkban.RequestJoin(params.Period, joinCircuit.Prover())
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:verify-joinreq", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err := joinReq.Verify(params.Period, joinCircuit.VerifyKey)
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
@@ -41,7 +41,7 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	b.Run("baseline:sign", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
@@ -75,25 +75,25 @@ func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *TestPa
 	b.Run("baseline:update-req-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			updateRequest, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	var prepared **bls12381.G1Jac
 	b.Run("baseline:update-precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			prepared, err = vk.PrecomputeVerify(rl, params.GPK)
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("baseline:update-verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepared, updateRequest, params.NextPeriod, params.Period)
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 }

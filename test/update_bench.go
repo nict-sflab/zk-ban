@@ -72,25 +72,25 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 	b.Run("prove-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			proof, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	var prepare **bls12381.G1Jac
 	b.Run("precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			prepare, err = vk.PrecomputeVerify(rl, params.GPK)
-			panicIfErr(err)
+			PanicIfErr(err)
 		}
 	})
 
 	b.Run("verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepare, proof, params.NextPeriod, params.Period)
-			panicIfErr(err)
+			PanicIfErr(err)
 
 		}
 	})

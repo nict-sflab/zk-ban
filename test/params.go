@@ -11,7 +11,7 @@ import (
 var SessionSize = 270
 var RevokedNymsPerSession = 130
 
-func panicIfErr(err error) {
+func PanicIfErr(err error) {
 	if err != nil {
 		panic(err)
 	}
@@ -46,10 +46,10 @@ func PrepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 
 	if !omitJoinAndSign {
 		joinSnark, err = snark.InitSNARK(&circuit.JoinRequestCircuit{})
-		panicIfErr(err)
+		PanicIfErr(err)
 
 		signSnark, err = snark.InitSNARK(&circuit.SignCircuit{})
-		panicIfErr(err)
+		PanicIfErr(err)
 	}
 
 	witnessRL := circuit.NewRevocationListAssigned(rl)
@@ -60,7 +60,7 @@ func PrepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 		},
 	})
 
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	return joinSnark, signSnark, updateSnark
 
@@ -68,7 +68,7 @@ func PrepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 
 func PrepareParams() TestParams {
 	gsk, gpk, err := witness.RandomGroupKeyPair()
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	period := int64(20240101)
 	nextPeriod := int64(20250101)
@@ -77,14 +77,14 @@ func PrepareParams() TestParams {
 	}
 
 	upk, err := usk.PublicKey(period)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	m := witness.MimcInitBigInt()
 
 	cnt := int64(2)
 
 	cert, err := gsk.IssueCredential(upk)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	return TestParams{
 		GPK:        gpk,
