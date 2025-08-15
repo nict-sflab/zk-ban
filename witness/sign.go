@@ -1,8 +1,6 @@
 package witness
 
 import (
-	"math/big"
-
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 )
@@ -38,11 +36,14 @@ func (signer *Signer) SessionTag(counter int64) *primitives.BigInt {
 }
 
 func SessionTag(counter int64, period int64) *primitives.BigInt {
-	sessionTagBytes := append(big.NewInt(counter).Bytes(), big.NewInt(period).Bytes()...)
-	sessionTag := big.NewInt(0)
-	sessionTag.SetBytes(sessionTagBytes)
+	var counterBuf = [8]byte{}
+	var periodBuf = [8]byte{}
 
-	return &primitives.BigInt{*sessionTag}
+	copy(counterBuf[:], primitives.NewBigInt(counter).Bytes())
+	copy(periodBuf[:], primitives.NewBigInt(period).Bytes())
+
+	concated := append(counterBuf[:], periodBuf[:]...)
+	return primitives.BigIntFromBytes(concated)
 }
 
 func (signer *Signer) PublicKey() (*UserPublicKey, error) {
