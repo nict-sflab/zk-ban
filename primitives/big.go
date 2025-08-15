@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	serializable "github.com/akakou/gnark-serializable"
+	"github.com/consensys/gnark-crypto/ecc/bls12-377/fr"
 )
 
 type BigInt struct {
@@ -57,4 +58,14 @@ func NewBigInt(number int64) *BigInt {
 func BigIntFromBytes(buf []byte) *BigInt {
 	b := big.NewInt(0).SetBytes(buf)
 	return &BigInt{*b}
+}
+
+func RandBigInt() *BigInt {
+	var r fr.Element
+	r.SetRandom()
+
+	big := NewBigInt(0)
+	res := r.BigInt(&big.Int)
+
+	return &BigInt{*res}
 }

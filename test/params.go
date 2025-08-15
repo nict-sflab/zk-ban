@@ -1,8 +1,6 @@
 package test
 
 import (
-	"math/big"
-
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
@@ -72,17 +70,18 @@ func PrepareParams() TestParams {
 	gsk, gpk, err := witness.RandomGroupKeyPair()
 	PanicIfErr(err)
 
-	period := int64(2024)
-	nextPeriod := int64(2025)
+	period := int64(20240101)
+	nextPeriod := int64(20250101)
 	var usk = &witness.UserSecretKey{
-		primitives.NewBigInt(102),
+		primitives.RandBigInt(),
 	}
 
 	upk, err := usk.PublicKey(period)
 	PanicIfErr(err)
 
-	m := primitives.BigInt{*big.NewInt(100)}
-	cnt := int64(101)
+	m := witness.MimcInitBigInt()
+
+	cnt := int64(2)
 
 	cert, err := gsk.IssueCredential(upk)
 	PanicIfErr(err)
@@ -92,7 +91,7 @@ func PrepareParams() TestParams {
 		GSK:        gsk,
 		USK:        usk,
 		UPK:        upk,
-		M:          &m,
+		M:          m,
 		CNT:        cnt,
 		Period:     period,
 		Cert:       cert,

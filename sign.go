@@ -1,26 +1,13 @@
 package zkban
 
 import (
-	"math/big"
-
 	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
-	"github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 	"github.com/consensys/gnark/backend/groth16"
 )
-
-func max() *big.Int {
-	var r fr.Element
-	r.SetRandom()
-
-	big := primitives.NewBigInt(0)
-	res := r.BigInt(&big.Int)
-
-	return res
-}
 
 type Signature struct {
 	Commit *zkbanw.SignCommit

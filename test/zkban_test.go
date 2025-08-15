@@ -78,12 +78,12 @@ func TestAll(t *testing.T) {
 		// err = req.Verify(params.nextPeriod, params.period, rl, params.gpk, updateCircuit.VerifyKey)
 		// assert.ErrorContains(err, verifyFailedMessage)
 
-		// _, _, _, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		// _, _, _, err := zkban.RequestUpdate(params.nextPeriod, params.Signer(), rl, params.gpk, updateCircuit.Prover())
 		// assert.ErrorContains(err, proveFailedMessage)
 
 		// rl[0].Nyms[0] = big.NewInt(0)
 
-		// _, proof, assign, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		// _, proof, assign, err := zkban.RequestUpdate(params.nextPeriod, params.Signer(), rl, params.gpk, updateCircuit.Prover())
 		// assert.NoError(err)
 
 		// witnessRL := circuit.NewRevocationListWitness(rldash)
