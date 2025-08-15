@@ -32,11 +32,11 @@ func TestBench(t *testing.B) {
 	secondResult := b.Result["test"]["2"]
 
 	if firstResult < int64(oneSecond) || firstResult > int64(threeSecond) {
-		t.Fatalf("First Result is wrong: not match to %s(1s) < %s(firstResult) < %s(3s)", oneSecond, firstResult, threeSecond)
+		t.Fatalf("First Result is wrong: not match to %d(1s) < %d(firstResult) < %d(3s)", oneSecond, firstResult, threeSecond)
 	}
 
 	if secondResult < int64(twoSecond) || secondResult > int64(fourSecond) {
-		t.Fatalf("Second Result is wrong: not match to %s(2s) < %s(secondResult) < %s(4s)", twoSecond, firstResult, fourSecond)
+		t.Fatalf("Second Result is wrong: not match to %d(2s) < %d(secondResult) < %d(4s)", twoSecond, firstResult, fourSecond)
 	}
 
 	fmt.Printf("%s\n", b.ResultJson())
