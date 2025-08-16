@@ -31,7 +31,7 @@ func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *z
 		return nil, nil, err
 	}
 
-	proof, err := groth16.Prove(snarkProver.ConstraintSystem, snarkProver.ProveKey, wit)
+	proof, err := groth16.Prove(snarkProver.ConstraintSystem.ConstraintSystem, snarkProver.ProveKey.ProvingKey, wit)
 	if err != nil {
 		return nil, nil, err
 	}

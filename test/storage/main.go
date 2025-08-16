@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"io"
+	"os"
 
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/test"
@@ -11,7 +12,9 @@ import (
 type Result = map[string]map[string]int
 
 func StoreSize(name, parent string, buf []byte, result Result) {
-	
+	err := os.WriteFile(name+"-"+parent+".bin", buf, 0644)
+	test.PanicIfErr(err)
+
 	result[parent][name] = len(buf)
 }
 

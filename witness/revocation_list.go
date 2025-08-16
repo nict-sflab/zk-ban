@@ -15,6 +15,8 @@ type RevokedNymsPerSession struct {
 	Nyms       []*primitives.BigInt
 }
 
+type RevocationListSize []int
+
 func (rl RevocationList) Size() int {
 	sum := 0
 	for _, r := range rl {
@@ -43,7 +45,7 @@ var MimcInitBigInt = func() *primitives.BigInt {
 	return &primitives.BigInt{*n}
 }
 
-func MakeUniformRLSize(sessionNumber, nymsNumberPerSession int) []int {
+func MakeUniformRLSize(sessionNumber, nymsNumberPerSession int) RevocationListSize {
 	rlSize := []int{}
 	for range sessionNumber {
 		rlSize = append(rlSize, nymsNumberPerSession)
@@ -52,7 +54,7 @@ func MakeUniformRLSize(sessionNumber, nymsNumberPerSession int) []int {
 	return rlSize
 }
 
-func MakeLinearRLSize(sessionNumber, max, min int) []int {
+func MakeLinearRLSize(sessionNumber, max, min int) RevocationListSize {
 	a := float64(max-min) / float64(sessionNumber)
 
 	rlSize := []int{}
@@ -68,7 +70,7 @@ func MakeLinearRLSize(sessionNumber, max, min int) []int {
 	return rlSize
 }
 
-func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) []int {
+func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) RevocationListSize {
 	u := float64(sessionNumber) - 1
 
 	var gaussianFunc = func(x float64) float64 {
@@ -95,7 +97,7 @@ func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) []int {
 	return rlSize
 }
 
-func AjustRLSize(rlSize []int, nymNum int) []int {
+func AjustRLSize(rlSize RevocationListSize, nymNum int) RevocationListSize {
 	sum := 0
 	for _, r := range rlSize {
 		sum += r
@@ -126,10 +128,10 @@ func AjustRLSize(rlSize []int, nymNum int) []int {
 	}
 }
 
-func EmptyRevocationList(nymSizePerSessions []int) RevocationList {
+func EmptyRevocationList(rlSize RevocationListSize) RevocationList {
 	rl := RevocationList{}
 
-	for _, nymPerSession := range nymSizePerSessions {
+	for _, nymPerSession := range rlSize {
 		nyms := []*primitives.BigInt{}
 
 		for range nymPerSession {

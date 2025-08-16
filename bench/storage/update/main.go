@@ -1,16 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	zkban "github.com/akakou/zk-ban"
-	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
 	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
 )
 
-func BenchmarkUpdate(b usefulbench.Benchmarker) {
+func main() {
 	max := 10
 
 	baseSessionNum := 60
@@ -20,6 +21,7 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	beta := 50
 
 	result := make(storage.Result, 0)
+	result["env"] = make(map[string]int, 0)
 	result["env"]["baseSessionNum"] = int(baseSessionNum)
 	result["env"]["baseNymNum"] = int(baseNymNum)
 	result["env"]["alpha"] = int(alpha)
@@ -62,10 +64,19 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
 		benchUpdate(sessionNum, "sess-increase-gaussian", rl, result)
 	}
+
+	j, err := json.Marshal(result)
+	test.PanicIfErr(err)
+	fmt.Printf("%s", j)
+
+	ioutil.WriteFile("update-storage.json", j, 0644)
+
 }
 
 func benchUpdate(v int, name string, rl witness.RevocationList, result storage.Result) {
 	parent := fmt.Sprintf("%v: %d", name, v)
+	result[parent] = make(map[string]int, 0)
+
 	params := test.PrepareParams()
 	_, _, updateCircuit := test.PrepareCircuit(rl, false)
 	storage.StoreCircuitObjectSize("circuit", parent, updateCircuit, result)
