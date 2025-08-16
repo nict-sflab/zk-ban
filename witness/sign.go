@@ -16,8 +16,8 @@ type Signer struct {
 	Period        int64
 }
 
-func (signer *Signer) CommitSign(m, sessionTag *primitives.BigInt) (*SignCommit, error) {
-	commit1, err := snark.CommitHash(&m.Int, &signer.UserSecretKey.Number.Int)
+func (signer *Signer) CommitSign(m, r, sessionTag *primitives.BigInt) (*SignCommit, error) {
+	commit1, err := snark.CommitHash(&m.Int, &r.Int, &signer.UserSecretKey.Number.Int)
 	if err != nil {
 		return nil, err
 	}
