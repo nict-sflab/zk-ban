@@ -13,6 +13,7 @@ import (
 type SignCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
 	Credential     eddsa.Signature   `gnark:",secret"`
+	Random         frontend.Variable `gnark:",secret"`
 	SessionTag     frontend.Variable `gnark:",public"`
 	Nym            frontend.Variable `gnark:",public"`
 	Signature      frontend.Variable `gnark:",public"`
@@ -33,7 +34,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	signature, err := snark.CircuitHash(api, circuit.Message, circuit.UserSecretKey)
+	signature, err := snark.CircuitHash(api, circuit.Message, circuit.Random, circuit.UserSecretKey)
 	if err != nil {
 		return err
 	}
@@ -49,12 +50,13 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-func NewSignWitness(m, sessionTag *primitives.BigInt, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey) (witness.Witness, error) {
+func NewSignWitness(m, r, sessionTag *primitives.BigInt, commit *zkbanw.SignCommit, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey) (witness.Witness, error) {
 	assign := &SignCircuit{
 		UserSecretKey: signer.UserSecretKey.Number.Int,
 		Period:        signer.Period,
 		SessionTag:    sessionTag.Int,
 		Message:       m.Int,
+		Random:        r.Int,
 		Signature:     commit.Sigma.Int,
 		Nym:           commit.Nym.Int,
 	}
@@ -66,7 +68,7 @@ func NewSignWitness(m, sessionTag *primitives.BigInt, commit *zkbanw.SignCommit,
 }
 
 func NewPublicSignWitness(m, sessionTag *primitives.BigInt, commit *zkbanw.SignCommit, period int64, gpk *zkbanw.GroupPublicKey) (witness.Witness, error) {
-	wit, err := NewSignWitness(m, sessionTag, commit, &zkbanw.Signer{
+	wit, err := NewSignWitness(m, primitives.NewBigInt(0), sessionTag, commit, &zkbanw.Signer{
 		UserSecretKey: &zkbanw.UserSecretKey{
 			primitives.NewBigInt(0),
 		},

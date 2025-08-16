@@ -16,13 +16,14 @@ type Signature struct {
 
 func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*Signature, error) {
 	sessionTag := signer.SessionTag(counter)
+	r := primitives.RandBigInt()
 
-	comm, err := signer.CommitSign(m, sessionTag)
+	comm, err := signer.CommitSign(m, r, sessionTag)
 	if err != nil {
 		return nil, err
 	}
 
-	wit, err := circuit.NewSignWitness(m, sessionTag, comm, signer, gpk)
+	wit, err := circuit.NewSignWitness(m, r, sessionTag, comm, signer, gpk)
 	if err != nil {
 		return nil, err
 	}

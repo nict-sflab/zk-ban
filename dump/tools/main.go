@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	path := "./"
-	// path := "../../../zk-ban-system/keys"
+	// path := "./"
+	path := "../../../zk-ban-system/keys/"
 	dump.DumpBasicKeys(path)
 	// dump.DumpUpdateKeys(260, 540)
 	// dump.DumpUpdateKeys(260, 270)
