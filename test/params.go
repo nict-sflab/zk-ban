@@ -1,15 +1,20 @@
 package test
 
 import (
+	"fmt"
+	"os"
+
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/dump"
+	"github.com/akakou/zk-ban/load"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
 )
 
-var SessionSize = 270
-var RevokedNymsPerSession = 130
+var TestKeyPath = "./"
 
 func PanicIfErr(err error) {
 	if err != nil {
@@ -39,18 +44,16 @@ func (params *TestParams) Signer() *witness.Signer {
 	return &signer
 }
 
-func PrepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
+func PrepareCircuit(rl witness.RevocationList) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
 	var err error
 	var joinSnark *snark.SnarkParams = nil
 	var signSnark *snark.SnarkParams = nil
 
-	if !omitJoinAndSign {
-		joinSnark, err = snark.InitSNARK(&circuit.JoinRequestCircuit{})
-		PanicIfErr(err)
+	joinSnark, err = snark.InitSNARK(&circuit.JoinRequestCircuit{})
+	PanicIfErr(err)
 
-		signSnark, err = snark.InitSNARK(&circuit.SignCircuit{})
-		PanicIfErr(err)
-	}
+	signSnark, err = snark.InitSNARK(&circuit.SignCircuit{})
+	PanicIfErr(err)
 
 	witnessRL := circuit.NewRevocationListAssigned(rl)
 
@@ -60,10 +63,49 @@ func PrepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 		},
 	})
 
+	return joinSnark, signSnark, updateSnark
+}
+
+type fileReader struct{}
+
+func (*fileReader) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+func PrepareUpdateKey(rlSize witness.RevocationListSize, _ string) (*snark.SnarkProver, *snark.SizedSnarkVerifier) {
+	rl := circuit.NewRevocationListAssigned(witness.EmptyRevocationList(rlSize))
+	updateSnark, err := snark.InitSNARK(&precomputes.UpdateCircuit{
+		circuit.UpdateCircuit{
+			RevocationList: rl,
+		},
+	})
+
 	PanicIfErr(err)
 
-	return joinSnark, signSnark, updateSnark
+	return updateSnark.Prover(), &snark.SizedSnarkVerifier{
+		RLSize:    rlSize,
+		VerifyKey: &gnarkserializable.VerifyingKey{updateSnark.VerifyKey},
+	}
+}
 
+func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*snark.SnarkProver, *snark.SizedSnarkVerifier) {
+	proverFileName := fmt.Sprintf(dump.UpdateProverKeyFileNameFormat, name)
+	verifierFileName := fmt.Sprintf(dump.UpdateVerifierKeyFileNameFormat, name)
+
+	_, err := os.Stat(proverFileName)
+	if err != nil {
+		dump.DumpUpdateKeys(name, rlSize, TestKeyPath)
+	} else {
+		fmt.Println("compile skip")
+	}
+
+	pk, err := load.LoadUpdateKey(proverFileName, os.DirFS(TestKeyPath), load.DocodeProver)
+	PanicIfErr(err)
+
+	vk, err := load.LoadUpdateKey(verifierFileName, os.DirFS(TestKeyPath), load.DocodeSizedVerifyingKey)
+	PanicIfErr(err)
+
+	return *pk, *vk
 }
 
 func PrepareParams() TestParams {
@@ -99,31 +141,31 @@ func PrepareParams() TestParams {
 	}
 }
 
-func EmptyUniformRevocationList(sessionSize, nymNum int) witness.RevocationList {
+func EmptyUniformRevocationList(sessionSize, nymNum int) (witness.RevocationList, witness.RevocationListSize) {
 	nymNumPerSession := nymNum / sessionSize
 
 	witness.InitBigInt = witness.MimcInitBigInt
 	rlSize := witness.MakeUniformRLSize(sessionSize, nymNumPerSession)
 
-	return witness.EmptyRevocationList(rlSize)
+	return witness.EmptyRevocationList(rlSize), rlSize
 }
 
-func EmptyProportionalRevocationList(sessionSize, nymNum int) witness.RevocationList {
+func EmptyProportionalRevocationList(sessionSize, nymNum int) (witness.RevocationList, witness.RevocationListSize) {
 	witness.InitBigInt = witness.MimcInitBigInt
 	max := nymNum * 2 / sessionSize
 	rlSize := witness.MakeLinearRLSize(sessionSize, max, 1)
 	rlSize = witness.AjustRLSize(rlSize, nymNum)
 
-	return witness.EmptyRevocationList(rlSize)
+	return witness.EmptyRevocationList(rlSize), rlSize
 }
 
 const GaussianStandarDeviationDiv = 4
 
-func EmptyGaussianRevocationList(sessionSize, nymNum int) witness.RevocationList {
+func EmptyGaussianRevocationList(sessionSize, nymNum int) (witness.RevocationList, witness.RevocationListSize) {
 	witness.InitBigInt = witness.MimcInitBigInt
 	sd := float64(sessionSize) / GaussianStandarDeviationDiv
 	rlSize := witness.MakeGaussianRLSize(sessionSize, nymNum, sd)
 	rlSize = witness.AjustRLSize(rlSize, nymNum)
 
-	return witness.EmptyRevocationList(rlSize)
+	return witness.EmptyRevocationList(rlSize), rlSize
 }

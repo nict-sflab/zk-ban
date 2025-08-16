@@ -30,7 +30,7 @@ func main() {
 	storage.StoreSize("gsk", "baseline", gsk.Bytes(), result)
 	storage.StoreSize("gpk", "baseline", gpk.Bytes(), result)
 
-	joinCircuit, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}), false)
+	joinCircuit, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}))
 	storage.StoreCircuitObjectSize("join", "baseline", joinCircuit, result)
 	storage.StoreCircuitObjectSize("sign", "baseline", signCircuit, result)
 
@@ -58,13 +58,13 @@ func main() {
 	baseNym := 108000
 	baseSess := 60
 
-	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
+	rlU, _ := test.EmptyUniformRevocationList(baseSess, baseNym)
 	benchBasicUpdate(rlU, "uniform", &params, result)
 
-	rlP := test.EmptyProportionalRevocationList(baseSess, baseNym)
+	rlP, _ := test.EmptyProportionalRevocationList(baseSess, baseNym)
 	benchBasicUpdate(rlP, "proportional", &params, result)
 
-	rlG := test.EmptyGaussianRevocationList(baseSess, baseNym)
+	rlG, _ := test.EmptyGaussianRevocationList(baseSess, baseNym)
 	benchBasicUpdate(rlG, "gaussian", &params, result)
 
 	j, err := json.Marshal(result)
@@ -74,7 +74,7 @@ func main() {
 
 func benchBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, result storage.Result) {
 	result[name] = make(map[string]int)
-	_, _, updateCircuit := test.PrepareCircuit(rl, false)
+	_, _, updateCircuit := test.PrepareCircuit(rl)
 	storage.StoreCircuitObjectSize(name+"-update", "baseline", updateCircuit, result)
 
 	update, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())

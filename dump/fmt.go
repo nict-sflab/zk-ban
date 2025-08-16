@@ -1,4 +1,4 @@
 package dump
 
-var UpdateProverKeyFileNameFormat = "/update_prover-%v.key.json"
-var UpdateVerifierKeyFileNameFormat = "/update_verifier-%v.key.json"
+var UpdateProverKeyFileNameFormat = "update_prover-%s.key.json"
+var UpdateVerifierKeyFileNameFormat = "update_verifier-%s.key.json"

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/test"
@@ -33,59 +34,59 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	// increase nym
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, "nym-increase-uniform", b)
+		rl, rlSize := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
+		benchmarkUpdate(nymNum, rl, rlSize, bench.NYM_INCREASE_UNIFORM, b)
 	}
 
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, "nym-increase-proportional", b)
+		rl, rlSize := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
+		benchmarkUpdate(nymNum, rl, rlSize, bench.NYM_INCREASE_PROPORTIONAL, b)
 	}
 
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, "nym-increase-gaussian", b)
+		rl, rlSize := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
+		benchmarkUpdate(nymNum, rl, rlSize, bench.NYM_INCREASE_GAUSSIAN, b)
 	}
 
 	// increase sessionNumber
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, "sess-increase-uniform", b)
+		rl, rlSize := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
+		benchmarkUpdate(sessionNum, rl, rlSize, bench.SESS_INCREASE_UNIFORM, b)
 	}
 
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, "sess-increase-proportional", b)
+		rl, rlSize := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
+		benchmarkUpdate(sessionNum, rl, rlSize, bench.SESS_INCREASE_PROPORTIONAL, b)
 	}
 
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, "sess-increase-gaussian", b)
+		rl, rlSize := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
+		benchmarkUpdate(sessionNum, rl, rlSize, bench.SESS_INCREASE_GAUSSIAN, b)
 	}
 }
 
-func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
+func benchmarkUpdate(param int, rl zkbanw.RevocationList, rlSize zkbanw.RevocationListSize, name string, b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
 	var err error
 
-	_, _, updateCircuit := test.PrepareCircuit(rl, true)
 	name += fmt.Sprintf("%s:%v", name, param)
+	prover, veirifer := test.PrepareUpdateKeyCached(rlSize, name)
 
 	var proof *zkban.UpdateRequest
 	b.Run("prove-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			proof, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
+			proof, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
 			test.PanicIfErr(err)
 		}
 	})
 
-	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
+	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(veirifer.VerifyKey.VerifyingKey)
 	test.PanicIfErr(err)
 
 	var prepare **bls12381.G1Jac

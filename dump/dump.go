@@ -3,7 +3,6 @@ package dump
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/akakou/zk-ban/witness"
 )
@@ -47,11 +46,8 @@ func DumpUpdateKeys(name string, rlSize witness.RevocationListSize, path string)
 		fmt.Printf("failed to dump update keys")
 	}
 
-	proverFileName := fmt.Sprintf(UpdateProverKeyFileNameFormat, rlSize)
-	verifierFileName := fmt.Sprintf(UpdateVerifierKeyFileNameFormat, rlSize)
-
-	proverFileName = strings.Replace(proverFileName, " ", ",", -1)
-	verifierFileName = strings.Replace(verifierFileName, " ", ",", -1)
+	proverFileName := fmt.Sprintf(UpdateProverKeyFileNameFormat, name)
+	verifierFileName := fmt.Sprintf(UpdateVerifierKeyFileNameFormat, name)
 
 	err = os.WriteFile(path+proverFileName, updateProver, 0644)
 	if err != nil {

@@ -5,8 +5,8 @@
 ### How to work
 
 ```sh
-go run ./bench/baseline
-go run ./bench/update
+go run ./latency/baseline
+go run ./latency/update
 # go test --bench ^BenchmarkAll$ . -timeout 0 -benchtime 5x
 # go test --bench ^BenchmarkUpdate$ . -timeout 0 -benchtime 5x
 ```

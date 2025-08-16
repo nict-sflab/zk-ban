@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
@@ -30,39 +31,39 @@ func main() {
 	// increase nym
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
-		benchUpdate(nymNum, "nym-increase-uniform", rl, result)
+		rl, rlSize := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rl, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
-		benchUpdate(nymNum, "nym-increase-proportional", rl, result)
+		rl, rlSize := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rl, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
-		benchUpdate(nymNum, "nym-increase-gaussian", rl, result)
+		rl, rlSize := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rl, rlSize, result)
 	}
 
 	// increase sessionNumber
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, "sess-increase-uniform", rl, result)
+		rl, rlSize := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rl, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, "sess-increase-proportional", rl, result)
+		rl, rlSize := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rl, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, "sess-increase-gaussian", rl, result)
+		rl, rlSize := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rl, rlSize, result)
 	}
 
 	j, err := json.Marshal(result)
@@ -73,15 +74,17 @@ func main() {
 
 }
 
-func benchUpdate(v int, name string, rl witness.RevocationList, result storage.Result) {
-	parent := fmt.Sprintf("%v: %d", name, v)
+func benchUpdate(v int, name string, rl witness.RevocationList, rlSize witness.RevocationListSize, result storage.Result) {
+	parent := fmt.Sprintf("%v:%d", name, v)
 	result[parent] = make(map[string]int, 0)
 
 	params := test.PrepareParams()
-	_, _, updateCircuit := test.PrepareCircuit(rl, false)
-	storage.StoreCircuitObjectSize("circuit", parent, updateCircuit, result)
+	prover, verifier := test.PrepareUpdateKeyCached(rlSize, name)
+	storage.StoreWritableSize("cs", parent, &prover.ConstraintSystem, result)
+	storage.StoreWritableSize("pk", parent, &prover.ProveKey, result)
+	storage.StoreWritableSize("vk", parent, verifier.VerifyKey, result)
 
-	update, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
+	update, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
 	test.PanicIfErr(err)
 
 	storage.StoreSize("upk", parent, update.PublicKey.Number.Bytes(), result)

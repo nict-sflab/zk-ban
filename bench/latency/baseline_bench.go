@@ -22,7 +22,7 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		ub.Result["env"]["baseNymNum"] = int64(baseNym)
 	}
 
-	joinCircuit, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}), false)
+	joinCircuit, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}))
 	var err error
 
 	var joinReq *zkban.JoinRequest
@@ -60,30 +60,30 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		}
 	})
 
-	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlU, "uniform", &params, b)
+	rlU, rlUsize := test.EmptyUniformRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlU, rlUsize, "uniform", &params, b)
 
-	rlP := test.EmptyProportionalRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlP, "proportional", &params, b)
+	rlP, rlPSize := test.EmptyProportionalRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlP, rlPSize, "proportional", &params, b)
 
-	rlG := test.EmptyGaussianRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
+	rlG, rlGSize := test.EmptyGaussianRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlG, rlGSize, "gaussian", &params, b)
 
 }
 
-func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {
-	_, _, updateCircuit := test.PrepareCircuit(rl, false)
+func benchmarkBasicUpdate(rl witness.RevocationList, rlSize witness.RevocationListSize, name string, params *test.TestParams, b usefulbench.Benchmarker) {
+	prover, verifier := test.PrepareUpdateKey(rlSize, name)
 
 	var err error
 	var updateRequest *zkban.UpdateRequest
 	b.Run("baseline:update-req-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			updateRequest, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
+			updateRequest, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
 			test.PanicIfErr(err)
 		}
 	})
 
-	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
+	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(verifier.VerifyKey.VerifyingKey)
 	test.PanicIfErr(err)
 
 	var prepared **bls12381.G1Jac

@@ -6,17 +6,17 @@ import (
 	"github.com/akakou/zk-ban/snark"
 )
 
-func LoadUserUpdateKey(readDir fs.ReadDirFS, readFile fs.ReadFileFS) ([]*snark.SnarkProver, error) {
-	return LoadUpdateKeys(readDir, readFile, DocodeProver)
+func LoadUserUpdateKey(fs fs.ReadDirFS) ([]*snark.SnarkProver, error) {
+	return LoadUpdateKeys(fs, DocodeProver)
 }
 
-func LoadGroupManagerUpdateKey(readDir fs.ReadDirFS, readFile fs.ReadFileFS) ([]*snark.SizedSnarkVerifier, error) {
-	return LoadUpdateKeys(readDir, readFile, DocodeSizedVerifyingKey)
+func LoadGroupManagerUpdateKey(fs fs.ReadDirFS) ([]*snark.SizedSnarkVerifier, error) {
+	return LoadUpdateKeys(fs, DocodeSizedVerifyingKey)
 }
 
-func LoadUpdateKeys[T any](readDir fs.ReadDirFS, readFile fs.ReadFileFS, decoder func([]byte) (T, error)) ([]T, error) {
+func LoadUpdateKeys[T any](fs fs.ReadDirFS, decoder func([]byte) (T, error)) ([]T, error) {
 	keys := []T{}
-	files, err := readDir.ReadDir(".")
+	files, err := fs.ReadDir(".")
 	if err != nil {
 		return nil, err
 	}
@@ -24,19 +24,28 @@ func LoadUpdateKeys[T any](readDir fs.ReadDirFS, readFile fs.ReadFileFS, decoder
 	for _, f := range files {
 		name := f.Name()
 
-		buf, err := readFile.ReadFile(name)
+		key, err := LoadUpdateKey(name, fs, decoder)
 		if err != nil {
 			return nil, err
 		}
 
-		key, err := decoder(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		keys = append(keys, key)
+		keys = append(keys, *key)
 	}
 
 	return keys, nil
 
+}
+
+func LoadUpdateKey[T any](name string, f fs.FS, decoder func([]byte) (T, error)) (*T, error) {
+	buf, err := fs.ReadFile(f, name)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := decoder(buf)
+	if err != nil {
+		return nil, err
+	}
+
+	return &key, nil
 }
