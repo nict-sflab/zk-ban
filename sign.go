@@ -27,7 +27,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 		return nil, err
 	}
 
-	proof, err := groth16.Prove(prover.ConstraintSystem, prover.ProveKey, wit)
+	proof, err := groth16.Prove(prover.ConstraintSystem.ConstraintSystem, prover.ProveKey.ProvingKey, wit)
 	if err != nil {
 		return nil, err
 	}

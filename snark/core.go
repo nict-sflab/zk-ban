@@ -1,6 +1,7 @@
 package snark
 
 import (
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark-crypto/ecc/twistededwards"
 	"github.com/consensys/gnark/backend/groth16"
@@ -20,12 +21,17 @@ type SnarkParams struct {
 
 func (params *SnarkParams) Prover() *SnarkProver {
 	return &SnarkProver{
-		ConstraintSystem: params.ConstraintSystem,
-		ProveKey:         params.ProveKey,
+		ConstraintSystem: gnarkserializable.ConstraintSystem{params.ConstraintSystem},
+		ProveKey:         gnarkserializable.ProvingKey{params.ProveKey},
 	}
 }
 
 type SnarkProver struct {
-	ConstraintSystem constraint.ConstraintSystem
-	ProveKey         groth16.ProvingKey
+	ConstraintSystem gnarkserializable.ConstraintSystem
+	ProveKey         gnarkserializable.ProvingKey
+}
+
+type SizedSnarkVerifier struct {
+	VerifyKey *gnarkserializable.VerifyingKey
+	RLSize    []int
 }

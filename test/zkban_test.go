@@ -17,9 +17,9 @@ func TestAll(t *testing.T) {
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := EmptyUniformRevocationList(180, 300)
+	rl, _ := EmptyUniformRevocationList(180, 300)
 
-	joinCircuit, signCircuit, updateCircuit := PrepareCircuit(rl, false)
+	joinCircuit, signCircuit, updateCircuit := PrepareCircuit(rl)
 
 	var signature *zkban.Signature
 	var err error

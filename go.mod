@@ -14,7 +14,6 @@ require (
 	github.com/iden3/go-iden3-crypto v0.0.17
 	github.com/liyue201/gnark-circomlib v0.0.0-20241024021655-892bf7c71a20
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/text v0.28.0
 )
 
 require (
