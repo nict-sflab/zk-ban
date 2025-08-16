@@ -75,11 +75,11 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, rlSize zkbanw.Revocati
 
 	var err error
 
-	name += fmt.Sprintf("%s:%v", name, param)
-	prover, veirifer := test.PrepareUpdateKeyCached(rlSize, name)
+	parent := fmt.Sprintf("%s:%v", name, param)
+	prover, veirifer := test.PrepareUpdateKeyCached(rlSize, parent)
 
 	var proof *zkban.UpdateRequest
-	b.Run("prove-"+name, func(b usefulbench.Benchmarker) {
+	b.Run("prove-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			proof, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
 			test.PanicIfErr(err)
@@ -90,14 +90,14 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, rlSize zkbanw.Revocati
 	test.PanicIfErr(err)
 
 	var prepare **bls12381.G1Jac
-	b.Run("precomputes-"+name, func(b usefulbench.Benchmarker) {
+	b.Run("precomputes-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			prepare, err = vk.PrecomputeVerify(rl, params.GPK)
 			test.PanicIfErr(err)
 		}
 	})
 
-	b.Run("verify-"+name, func(b usefulbench.Benchmarker) {
+	b.Run("verify-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepare, proof, params.NextPeriod, params.Period)
 			test.PanicIfErr(err)

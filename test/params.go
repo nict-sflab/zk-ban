@@ -94,6 +94,7 @@ func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*sn
 
 	_, err := os.Stat(proverFileName)
 	if err != nil {
+		fmt.Println("compile")
 		dump.DumpUpdateKeys(name, rlSize, TestKeyPath)
 	} else {
 		fmt.Println("compile skip")

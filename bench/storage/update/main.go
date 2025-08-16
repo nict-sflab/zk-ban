@@ -3,7 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
+	"strconv"
 
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench"
@@ -22,11 +23,12 @@ func main() {
 	beta := 50
 
 	result := make(storage.Result, 0)
-	result["env"] = make(map[string]int, 0)
-	result["env"]["baseSessionNum"] = int(baseSessionNum)
-	result["env"]["baseNymNum"] = int(baseNymNum)
-	result["env"]["alpha"] = int(alpha)
-	result["env"]["beta"] = int(beta)
+	result["env"] = make(map[string]map[string]int)
+	result["env"]["default"] = make(map[string]int)
+	result["env"]["default"]["baseSessionNum"] = int(baseSessionNum)
+	result["env"]["default"]["baseNymNum"] = int(baseNymNum)
+	result["env"]["default"]["alpha"] = int(alpha)
+	result["env"]["default"]["beta"] = int(beta)
 
 	// increase nym
 	for i := 1; i <= max; i++ {
@@ -70,24 +72,29 @@ func main() {
 	test.PanicIfErr(err)
 	fmt.Printf("%s", j)
 
-	ioutil.WriteFile("update-storage.json", j, 0644)
-
+	os.WriteFile("update-storage.json", j, 0644)
 }
 
-func benchUpdate(v int, name string, rl witness.RevocationList, rlSize witness.RevocationListSize, result storage.Result) {
-	parent := fmt.Sprintf("%v:%d", name, v)
-	result[parent] = make(map[string]int, 0)
+func benchUpdate(v int, root string, rl witness.RevocationList, rlSize witness.RevocationListSize, result storage.Result) {
+	parent := fmt.Sprintf("%v:%d", root, v)
+	result[root] = make(map[string]map[string]int)
+
+	vs := strconv.Itoa(v)
 
 	params := test.PrepareParams()
-	prover, verifier := test.PrepareUpdateKeyCached(rlSize, name)
-	storage.StoreWritableSize("cs", parent, &prover.ConstraintSystem, result)
-	storage.StoreWritableSize("pk", parent, &prover.ProveKey, result)
-	storage.StoreWritableSize("vk", parent, verifier.VerifyKey, result)
+	prover, verifier := test.PrepareUpdateKeyCached(rlSize, parent)
+	storage.StoreWritableSize(vs, "cs", root, &prover.ConstraintSystem, result)
+	storage.StoreWritableSize(vs, "pk", root, &prover.ProveKey, result)
+	storage.StoreWritableSize(vs, "vk", root, verifier.VerifyKey, result)
 
 	update, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
 	test.PanicIfErr(err)
 
-	storage.StoreSize("upk", parent, update.PublicKey.Number.Bytes(), result)
-	storage.StoreSize("ticket", parent, update.UpdateTicket.Number.Bytes(), result)
-	storage.StoreWritableSize("update-proof", parent, &update.Proof, result)
+	storage.StoreBufSize(vs, "upk", parent, update.PublicKey.Number.Bytes(), result)
+	storage.StoreBufSize(vs, "ticket", parent, update.UpdateTicket.Number.Bytes(), result)
+	storage.StoreWritableSize(vs, "update-proof", parent, &update.Proof, result)
+
+	res, err := json.Marshal(result)
+	test.PanicIfErr(err)
+	fmt.Printf("%s\n", res)
 }
