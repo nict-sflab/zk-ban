@@ -1,6 +1,8 @@
 package latency
 
 import (
+	"runtime"
+
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
 	"github.com/akakou/zk-ban/precomputes"
@@ -24,6 +26,10 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 
 	joinCircuit, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}))
 	var err error
+
+	if NoParallel {
+		runtime.GOMAXPROCS(1)
+	}
 
 	var joinReq *zkban.JoinRequest
 	b.Run("baseline:request-join", func(b usefulbench.Benchmarker) {
@@ -60,6 +66,10 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		}
 	})
 
+	if NoParallel {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
+
 	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)
 
@@ -73,6 +83,10 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 
 func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {
 	prover, verifier := test.PrepareUpdateKey(rl.Sizes(), name)
+
+	if NoParallel {
+		runtime.GOMAXPROCS(1)
+	}
 
 	var err error
 	var updateRequest *zkban.UpdateRequest
@@ -100,4 +114,8 @@ func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.T
 			test.PanicIfErr(err)
 		}
 	})
+
+	if NoParallel {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
 }
