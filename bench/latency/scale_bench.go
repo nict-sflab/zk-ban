@@ -15,7 +15,7 @@ import (
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
 
-func BenchmarkUpdate(b usefulbench.Benchmarker) {
+func BenchmarkScalability(b usefulbench.Benchmarker) {
 	max := 10
 
 	baseSessionNum := 60
@@ -83,6 +83,8 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 	}
 }
 
+var NoParallel = false
+
 func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
@@ -90,6 +92,10 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 
 	parent := fmt.Sprintf("%s:%v", name, param)
 	prover, veirifer := test.PrepareUpdateKeyCached(rl.Sizes(), parent)
+
+	if NoParallel {
+		runtime.GOMAXPROCS(1)
+	}
 
 	var proof *zkban.UpdateRequest
 	b.Run("prove-"+parent, func(b usefulbench.Benchmarker) {
@@ -116,4 +122,8 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 			test.PanicIfErr(err)
 		}
 	})
+
+	if NoParallel {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
 }

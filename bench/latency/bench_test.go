@@ -12,5 +12,5 @@ func BenchmarkBaselineRun(b *testing.B) {
 }
 
 func BenchmarkUpdateRun(b *testing.B) {
-	BenchmarkUpdate(&usefulbench.StandardBenchMarker{B: b})
+	BenchmarkScalability(&usefulbench.StandardBenchMarker{B: b})
 }

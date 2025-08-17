@@ -14,8 +14,8 @@ func main() {
 	gnarkserializable.Unsafe = true
 
 	bb := usefulbench.New(COUNT)
-	latency.BenchmarkUpdate(bb)
+	latency.BenchmarkForCompare(bb)
 
-	bb.SaveJson("update-bench.json")
+	bb.SaveJson("compare-bench.json")
 	fmt.Printf("%v\n", bb.ResultJson())
 }
