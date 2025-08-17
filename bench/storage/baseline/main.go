@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/test"
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+	gnarkserializable.Unsafe = true
 	params := test.PrepareParams()
 
 	result := make(storage.Result, 0)
