@@ -15,7 +15,7 @@ func main() {
 	latency.NoParallel = true
 
 	bb := usefulbench.New(COUNT)
-	latency.BenchmarkBaseline(bb)
+	latency.BenchmarkCompare(bb)
 
 	bb.SaveJson("compare-bench.json")
 	fmt.Printf("%v\n", bb.ResultJson())
