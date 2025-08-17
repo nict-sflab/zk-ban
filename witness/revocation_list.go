@@ -15,24 +15,30 @@ type RevokedNymsPerSession struct {
 	Nyms       []*primitives.BigInt
 }
 
-type RevocationListSize []int
-
 func (rl RevocationList) Size() int {
-	sum := 0
-	for _, r := range rl {
-		sum += len(r.Nyms)
-	}
+	sum := rl.Sizes().Size()
 
 	return sum
 }
 
-func (rl RevocationList) Sizes() []int {
-	result := []int{}
+func (rl RevocationList) Sizes() RevocationListSize {
+	result := RevocationListSize{}
 	for _, r := range rl {
 		result = append(result, len(r.Nyms))
 	}
 
 	return result
+}
+
+type RevocationListSize []int
+
+func (rl RevocationListSize) Size() int {
+	sum := 0
+	for _, r := range rl {
+		sum += r
+	}
+
+	return sum
 }
 
 var InitBigInt = ZeroInitBigInt
@@ -98,10 +104,16 @@ func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) RevocationList
 }
 
 func MakeUniformRLSizeFromTotal(sessionSize, nymNum int) RevocationListSize {
+	if sessionSize > nymNum {
+		log.Fatalf("wrong session size and nym num: %v(sess) > %v(nym)\n", sessionSize, nymNum)
+	}
 	nymNumPerSession := nymNum / sessionSize
 
 	rlSize := MakeUniformRLSize(sessionSize, nymNumPerSession)
-	rlSize = AjustRLSize(rlSize, nymNum)
+
+	for i := range nymNum - rlSize.Size() {
+		rlSize[i] += 1
+	}
 
 	return rlSize
 }
