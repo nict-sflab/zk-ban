@@ -97,6 +97,31 @@ func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) RevocationList
 	return rlSize
 }
 
+func MakeUniformRLSizeFromTotal(sessionSize, nymNum int) RevocationListSize {
+	nymNumPerSession := nymNum / sessionSize
+
+	rlSize := MakeUniformRLSize(sessionSize, nymNumPerSession)
+	rlSize = AjustRLSize(rlSize, nymNum)
+
+	return rlSize
+}
+
+func MakeProportionalRLSizeFromTotal(sessionSize, nymNum int) RevocationListSize {
+	max := nymNum * 2 / sessionSize
+
+	rlSize := MakeLinearRLSize(sessionSize, max, 1)
+	rlSize = AjustRLSize(rlSize, nymNum)
+
+	return rlSize
+}
+
+func MakeGaussianRLSizeFromTotal(sessionSize, nymNum int, sd float64) RevocationListSize {
+	rlSize := MakeGaussianRLSize(sessionSize, nymNum, sd)
+	rlSize = AjustRLSize(rlSize, nymNum)
+
+	return rlSize
+}
+
 func AjustRLSize(rlSize RevocationListSize, nymNum int) RevocationListSize {
 	sum := 0
 	for _, r := range rlSize {

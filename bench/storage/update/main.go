@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 
-	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/test"
@@ -33,39 +32,39 @@ func main() {
 	// increase nym
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl, rlSize := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rl, rlSize, result)
+		rlSize := witness.MakeUniformRLSizeFromTotal(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl, rlSize := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rl, rlSize, result)
+		rlSize := witness.MakeProportionalRLSizeFromTotal(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		nymNum := baseNymNum * i * alpha
-		rl, rlSize := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rl, rlSize, result)
+		rlSize := test.EmptyGaussianRevocationListSize(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rlSize, result)
 	}
 
 	// increase sessionNumber
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl, rlSize := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rl, rlSize, result)
+		rlSize := witness.MakeUniformRLSizeFromTotal(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl, rlSize := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rl, rlSize, result)
+		rlSize := witness.MakeProportionalRLSizeFromTotal(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
 		sessionNum := baseSessionNum * i * beta
-		rl, rlSize := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rl, rlSize, result)
+		rlSize := test.EmptyGaussianRevocationListSize(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rlSize, result)
 	}
 
 	j, err := json.Marshal(result)
@@ -75,24 +74,25 @@ func main() {
 	os.WriteFile("update-storage.json", j, 0644)
 }
 
-func benchUpdate(v int, root string, rl witness.RevocationList, rlSize witness.RevocationListSize, result storage.Result) {
+func benchUpdate(v int, root string, rlSize witness.RevocationListSize, result storage.Result) {
 	parent := fmt.Sprintf("%v:%d", root, v)
 	result[root] = make(map[string]map[string]int)
 
 	vs := strconv.Itoa(v)
 
-	params := test.PrepareParams()
 	prover, verifier := test.PrepareUpdateKeyCached(rlSize, parent)
 	storage.StoreWritableSize(vs, "cs", root, &prover.ConstraintSystem, result)
 	storage.StoreWritableSize(vs, "pk", root, &prover.ProveKey, result)
 	storage.StoreWritableSize(vs, "vk", root, verifier.VerifyKey, result)
 
-	update, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
-	test.PanicIfErr(err)
+	// params := test.PrepareParams()
 
-	storage.StoreBufSize(vs, "upk", parent, update.PublicKey.Number.Bytes(), result)
-	storage.StoreBufSize(vs, "ticket", parent, update.UpdateTicket.Number.Bytes(), result)
-	storage.StoreWritableSize(vs, "update-proof", parent, &update.Proof, result)
+	// update, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
+	// test.PanicIfErr(err)
+
+	// storage.StoreBufSize(vs, "upk", parent, update.PublicKey.Number.Bytes(), result)
+	// storage.StoreBufSize(vs, "ticket", parent, update.UpdateTicket.Number.Bytes(), result)
+	// storage.StoreWritableSize(vs, "update-proof", parent, &update.Proof, result)
 
 	res, err := json.Marshal(result)
 	test.PanicIfErr(err)
