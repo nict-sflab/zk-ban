@@ -60,19 +60,19 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		}
 	})
 
-	rlU, rlUsize := test.EmptyUniformRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlU, rlUsize, "uniform", &params, b)
+	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlU, "uniform", &params, b)
 
-	rlP, rlPSize := test.EmptyProportionalRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlP, rlPSize, "proportional", &params, b)
+	rlP := test.EmptyProportionalRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlP, "proportional", &params, b)
 
-	rlG, rlGSize := test.EmptyGaussianRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlG, rlGSize, "gaussian", &params, b)
+	rlG := test.EmptyGaussianRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
 
 }
 
-func benchmarkBasicUpdate(rl witness.RevocationList, rlSize witness.RevocationListSize, name string, params *test.TestParams, b usefulbench.Benchmarker) {
-	prover, verifier := test.PrepareUpdateKey(rlSize, name)
+func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {
+	prover, verifier := test.PrepareUpdateKey(rl.Sizes(), name)
 
 	var err error
 	var updateRequest *zkban.UpdateRequest

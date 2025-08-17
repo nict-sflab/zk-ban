@@ -142,31 +142,34 @@ func PrepareParams() TestParams {
 	}
 }
 
-func EmptyUniformRevocationList(sessionSize, nymNum int) (witness.RevocationList, witness.RevocationListSize) {
+var InitBigInt = witness.MimcInitBigInt
+
+func EmptyUniformRevocationList(sessionSize, nymNum int) witness.RevocationList {
 	nymNumPerSession := nymNum / sessionSize
 
-	witness.InitBigInt = witness.MimcInitBigInt
+	witness.InitBigInt = InitBigInt
 	rlSize := witness.MakeUniformRLSize(sessionSize, nymNumPerSession)
-
-	return witness.EmptyRevocationList(rlSize), rlSize
+	return witness.EmptyRevocationList(rlSize)
 }
 
-func EmptyProportionalRevocationList(sessionSize, nymNum int) (witness.RevocationList, witness.RevocationListSize) {
-	witness.InitBigInt = witness.MimcInitBigInt
-	max := nymNum * 2 / sessionSize
-	rlSize := witness.MakeLinearRLSize(sessionSize, max, 1)
-	rlSize = witness.AjustRLSize(rlSize, nymNum)
+func EmptyProportionalRevocationList(sessionSize, nymNum int) witness.RevocationList {
+	witness.InitBigInt = InitBigInt
+	rlSize := witness.MakeProportionalRLSizeFromTotal(sessionSize, nymNum)
 
-	return witness.EmptyRevocationList(rlSize), rlSize
+	return witness.EmptyRevocationList(rlSize)
 }
 
 const GaussianStandarDeviationDiv = 4
 
-func EmptyGaussianRevocationList(sessionSize, nymNum int) (witness.RevocationList, witness.RevocationListSize) {
-	witness.InitBigInt = witness.MimcInitBigInt
+func EmptyGaussianRevocationListSize(sessionSize, nymNum int) witness.RevocationListSize {
+	witness.InitBigInt = InitBigInt
 	sd := float64(sessionSize) / GaussianStandarDeviationDiv
-	rlSize := witness.MakeGaussianRLSize(sessionSize, nymNum, sd)
-	rlSize = witness.AjustRLSize(rlSize, nymNum)
+	rlSize := witness.MakeGaussianRLSizeFromTotal(sessionSize, nymNum, sd)
+	return rlSize
+}
 
-	return witness.EmptyRevocationList(rlSize), rlSize
+func EmptyGaussianRevocationList(sessionSize, nymNum int) witness.RevocationList {
+	witness.InitBigInt = InitBigInt
+	rlSize := EmptyGaussianRevocationListSize(sessionSize, nymNum)
+	return witness.EmptyRevocationList(rlSize)
 }

@@ -11,9 +11,9 @@ import (
 func TestRLSize(t *testing.T) {
 	sessNum := 60
 	nymNum := 108_000
-	uRL, _ := EmptyUniformRevocationList(sessNum, nymNum)
-	pRL, _ := EmptyProportionalRevocationList(sessNum, nymNum)
-	gRL, _ := EmptyGaussianRevocationList(sessNum, nymNum)
+	uRL := EmptyUniformRevocationList(sessNum, nymNum)
+	pRL := EmptyProportionalRevocationList(sessNum, nymNum)
+	gRL := EmptyGaussianRevocationList(sessNum, nymNum)
 
 	fmt.Printf("u: %v\n", uRL.Sizes())
 	fmt.Printf("p: %v\n", pRL.Sizes())

@@ -3,14 +3,16 @@ package usefulbench
 import (
 	"fmt"
 	"log"
+	"runtime"
 	"strings"
 	"time"
 )
 
 type UsefulBenchmaker struct {
-	Count  int
-	Max    int
-	Result map[string]map[string]int64
+	Count    int
+	Max      int
+	Result   map[string]map[string]int64
+	StopTime int64
 }
 
 func New(max int) *UsefulBenchmaker {
@@ -28,6 +30,13 @@ func New(max int) *UsefulBenchmaker {
 func (b *UsefulBenchmaker) Loop() bool {
 	res := b.Count < b.Max
 	b.Count++
+
+	start := time.Now()
+	runtime.GC()
+	stop := time.Since(start)
+
+	b.StopTime += int64(stop)
+
 	return res
 }
 
@@ -43,11 +52,14 @@ func (b *UsefulBenchmaker) Run(tag string, target func(b Benchmarker)) bool {
 	familyTag := tags[0]
 	nameTag := tags[1]
 
+	b.StopTime = 0
+
 	// run test
+	runtime.GC()
 	start := time.Now()
 	target(b)
 	end := time.Since(start)
-	latency := end / time.Duration(b.Max)
+	latency := (end - time.Duration(b.StopTime)) / time.Duration(b.Max)
 
 	b.Count = 0
 
