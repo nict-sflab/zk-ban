@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	gnarkserializable.Unsafe = true
 	max := 10
 	gnarkserializable.Unsafe = true
 
@@ -22,7 +23,7 @@ func main() {
 	baseNymNum := 108_000
 
 	alpha := 1
-	beta := 50
+	beta := 25
 
 	result := make(storage.Result, 0)
 	result["env"] = make(map[string]map[string]int)
@@ -91,8 +92,6 @@ func main() {
 
 func benchUpdate(v int, root string, rlSize witness.RevocationListSize, result storage.Result) {
 	parent := fmt.Sprintf("%v:%d", root, v)
-	result[root] = make(map[string]map[string]int)
-
 	vs := strconv.Itoa(v)
 
 	prover, verifier := test.PrepareUpdateKeyCached(rlSize, parent)

@@ -24,6 +24,6 @@ go.work.sum
 # env file
 .env
 example/example
-dump/tools/*.json
 *.key.json
 *.pprof
+tmp/
