@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 
 	zkban "github.com/akakou/zk-ban"
@@ -112,6 +113,8 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 	for _, kappa := range kappas {
 		for _, lambda := range lambdas {
 			for i, rlMaker := range rlMakers {
+				runtime.GC()
+
 				count++
 				tag := rlMakerTags[i]
 				rlSize := rlMaker(kappa, lambda)

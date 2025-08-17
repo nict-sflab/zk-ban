@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/test"
@@ -14,6 +16,7 @@ import (
 
 func main() {
 	max := 10
+	gnarkserializable.Unsafe = true
 
 	baseSessionNum := 60
 	baseNymNum := 108_000
@@ -31,18 +34,24 @@ func main() {
 
 	// increase nym
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		nymNum := baseNymNum * i * alpha
 		rlSize := witness.MakeUniformRLSizeFromTotal(baseSessionNum, nymNum)
 		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		nymNum := baseNymNum * i * alpha
 		rlSize := witness.MakeProportionalRLSizeFromTotal(baseSessionNum, nymNum)
 		benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		nymNum := baseNymNum * i * alpha
 		rlSize := test.EmptyGaussianRevocationListSize(baseSessionNum, nymNum)
 		benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rlSize, result)
@@ -50,18 +59,24 @@ func main() {
 
 	// increase sessionNumber
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		sessionNum := baseSessionNum * i * beta
 		rlSize := witness.MakeUniformRLSizeFromTotal(sessionNum, baseNymNum)
 		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		sessionNum := baseSessionNum * i * beta
 		rlSize := witness.MakeProportionalRLSizeFromTotal(sessionNum, baseNymNum)
 		benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rlSize, result)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		sessionNum := baseSessionNum * i * beta
 		rlSize := test.EmptyGaussianRevocationListSize(sessionNum, baseNymNum)
 		benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rlSize, result)

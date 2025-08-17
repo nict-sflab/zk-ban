@@ -2,6 +2,7 @@ package latency
 
 import (
 	"fmt"
+	"runtime"
 
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench"
@@ -33,18 +34,24 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 
 	// increase nym
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		nymNum := baseNymNum * i * alpha
 		rl := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		nymNum := baseNymNum * i * alpha
 		rl := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_PROPORTIONAL, b)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		nymNum := baseNymNum * i * alpha
 		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_GAUSSIAN, b)
@@ -52,18 +59,24 @@ func BenchmarkUpdate(b usefulbench.Benchmarker) {
 
 	// increase sessionNumber
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		sessionNum := baseSessionNum * i * beta
 		rl := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_UNIFORM, b)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		sessionNum := baseSessionNum * i * beta
 		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_PROPORTIONAL, b)
 	}
 
 	for i := 1; i <= max; i++ {
+		runtime.GC()
+
 		sessionNum := baseSessionNum * i * beta
 		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_GAUSSIAN, b)
@@ -101,7 +114,6 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepare, proof, params.NextPeriod, params.Period)
 			test.PanicIfErr(err)
-
 		}
 	})
 }
