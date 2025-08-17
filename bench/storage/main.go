@@ -11,11 +11,10 @@ import (
 type Result = map[string]map[string]map[string]int
 
 func StoreSize(name, parent, root string, size int, result Result) {
-	if result[root] == nil {
+	if _, ok := result[root]; !ok {
 		result[root] = make(map[string]map[string]int)
 	}
-
-	if result[root][parent] == nil {
+	if _, ok := result[root][parent]; !ok {
 		result[root][parent] = make(map[string]int)
 	}
 
