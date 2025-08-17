@@ -33,31 +33,31 @@ func main() {
 	result["env"]["default"]["beta"] = int(beta)
 
 	// increase nym
-	// for i := 1; i <= max; i++ {
-	// 	runtime.GC()
+	for i := 1; i <= max; i++ {
+		runtime.GC()
 
-	// 	nymNum := baseNymNum * i * alpha
-	// 	rlSize := witness.MakeUniformRLSizeFromTotal(baseSessionNum, nymNum)
-	// 	benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
-	// }
-	//
-	// for i := 1; i <= max; i++ {
-	// 	runtime.GC()
+		nymNum := baseNymNum * i * alpha
+		rlSize := witness.MakeUniformRLSizeFromTotal(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
+	}
 
-	// 	nymNum := baseNymNum * i * alpha
-	// 	rlSize := witness.MakeProportionalRLSizeFromTotal(baseSessionNum, nymNum)
-	// 	benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rlSize, result)
-	// }
+	for i := 1; i <= max; i++ {
+		runtime.GC()
 
-	// for i := 1; i <= max; i++ {
-	// 	runtime.GC()
+		nymNum := baseNymNum * i * alpha
+		rlSize := witness.MakeProportionalRLSizeFromTotal(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rlSize, result)
+	}
 
-	// 	nymNum := baseNymNum * i * alpha
-	// 	rlSize := test.EmptyGaussianRevocationListSize(baseSessionNum, nymNum)
-	// 	benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rlSize, result)
-	// }
+	for i := 1; i <= max; i++ {
+		runtime.GC()
 
-	// // increase sessionNumber
+		nymNum := baseNymNum * i * alpha
+		rlSize := test.EmptyGaussianRevocationListSize(baseSessionNum, nymNum)
+		benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rlSize, result)
+	}
+
+	// increase sessionNumber
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
@@ -66,21 +66,21 @@ func main() {
 		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rlSize, result)
 	}
 
-	// for i := 1; i <= max; i++ {
-	// 	runtime.GC()
+	for i := 1; i <= max; i++ {
+		runtime.GC()
 
-	// 	sessionNum := baseSessionNum * i * beta
-	// 	rlSize := witness.MakeProportionalRLSizeFromTotal(sessionNum, baseNymNum)
-	// 	benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rlSize, result)
-	// }
+		sessionNum := baseSessionNum * i * beta
+		rlSize := witness.MakeProportionalRLSizeFromTotal(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rlSize, result)
+	}
 
-	// for i := 1; i <= max; i++ {
-	// 	runtime.GC()
+	for i := 1; i <= max; i++ {
+		runtime.GC()
 
-	// 	sessionNum := baseSessionNum * i * beta
-	// 	rlSize := test.EmptyGaussianRevocationListSize(sessionNum, baseNymNum)
-	// 	benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rlSize, result)
-	// }
+		sessionNum := baseSessionNum * i * beta
+		rlSize := test.EmptyGaussianRevocationListSize(sessionNum, baseNymNum)
+		benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rlSize, result)
+	}
 
 	j, err := json.Marshal(result)
 	test.PanicIfErr(err)
