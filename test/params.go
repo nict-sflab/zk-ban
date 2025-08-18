@@ -92,7 +92,8 @@ func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*sn
 	proverFileName := fmt.Sprintf(dump.UpdateProverKeyFileNameFormat, name)
 	verifierFileName := fmt.Sprintf(dump.UpdateVerifierKeyFileNameFormat, name)
 
-	_, err := os.Stat(proverFileName)
+	fmt.Printf("search key at %s\n", TestKeyPath+proverFileName)
+	_, err := os.Stat(TestKeyPath + proverFileName)
 	if err != nil {
 		fmt.Println("compile")
 		dump.DumpUpdateKeys(name, rlSize, TestKeyPath)
