@@ -23,13 +23,23 @@ func BenchmarkScalability(b usefulbench.Benchmarker) {
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 	alpha := 1
-	beta := 50
+	beta := 25
 
 	if ok {
 		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
 		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
+	}
+
+	BenchmarkNymScalability(alpha, max, baseSessionNum, baseNymNum, b)
+	BenchSessScalability(beta, max, baseSessionNum, baseNymNum, b)
+}
+
+func BenchmarkNymScalability(alpha, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
+	ub, ok := b.(*usefulbench.UsefulBenchmaker)
+	if ok {
+		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
 		ub.Result["env"]["alpha"] = int64(alpha)
-		ub.Result["env"]["beta"] = int64(beta)
 	}
 
 	// increase nym
@@ -56,8 +66,25 @@ func BenchmarkScalability(b usefulbench.Benchmarker) {
 		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_GAUSSIAN, b)
 	}
+}
 
+func BenchSessScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
 	// increase sessionNumber
+	BenchSessUniformScalability(beta, max, baseSessionNum, baseNymNum, b)
+	BenchSessProportionalScalability(beta, max, baseSessionNum, baseNymNum, b)
+	BenchSessGaussScalability(beta, max, baseSessionNum, baseNymNum, b)
+
+}
+
+func BenchSessUniformScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
+	ub, ok := b.(*usefulbench.UsefulBenchmaker)
+
+	if ok {
+		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
+		ub.Result["env"]["beta"] = int64(beta)
+	}
+
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
@@ -66,12 +93,33 @@ func BenchmarkScalability(b usefulbench.Benchmarker) {
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_UNIFORM, b)
 	}
 
+}
+
+func BenchSessProportionalScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
+	ub, ok := b.(*usefulbench.UsefulBenchmaker)
+
+	if ok {
+		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
+		ub.Result["env"]["beta"] = int64(beta)
+	}
+
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
 		sessionNum := baseSessionNum * i * beta
 		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_PROPORTIONAL, b)
+	}
+}
+
+func BenchSessGaussScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
+	ub, ok := b.(*usefulbench.UsefulBenchmaker)
+
+	if ok {
+		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
+		ub.Result["env"]["beta"] = int64(beta)
 	}
 
 	for i := 1; i <= max; i++ {
