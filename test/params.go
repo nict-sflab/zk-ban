@@ -145,10 +145,8 @@ func PrepareParams() TestParams {
 var InitBigInt = witness.MimcInitBigInt
 
 func EmptyUniformRevocationList(sessionSize, nymNum int) witness.RevocationList {
-	nymNumPerSession := nymNum / sessionSize
-
 	witness.InitBigInt = InitBigInt
-	rlSize := witness.MakeUniformRLSizeFromTotal(sessionSize, nymNumPerSession)
+	rlSize := witness.MakeUniformRLSizeFromTotal(sessionSize, nymNum)
 	return witness.EmptyRevocationList(rlSize)
 }
 
