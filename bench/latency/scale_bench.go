@@ -114,18 +114,25 @@ func BenchSessGaussScalability(b usefulbench.Benchmarker) {
 }
 
 var NoParallel = false
+var SkipVerify = false
 
 func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
 	var err error
 
-	parent := fmt.Sprintf("%s:%v", name, param)
+	parent := fmt.Sprintf("%s-%v", name, param)
 	prover, veirifer := test.PrepareUpdateKeyCached(rl.Sizes(), parent)
 
 	if NoParallel {
 		runtime.GOMAXPROCS(1)
 	}
+
+	defer func() {
+		if NoParallel {
+			runtime.GOMAXPROCS(runtime.NumCPU())
+		}
+	}()
 
 	var proof *zkban.UpdateRequest
 	b.Run("prove-"+parent, func(b usefulbench.Benchmarker) {
@@ -134,6 +141,10 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 			test.PanicIfErr(err)
 		}
 	})
+
+	if SkipVerify {
+		return
+	}
 
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(veirifer.VerifyKey.VerifyingKey)
 	test.PanicIfErr(err)
@@ -153,7 +164,4 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 		}
 	})
 
-	if NoParallel {
-		runtime.GOMAXPROCS(runtime.NumCPU())
-	}
 }
