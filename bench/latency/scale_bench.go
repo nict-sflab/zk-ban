@@ -15,32 +15,32 @@ import (
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
 
-func BenchmarkScalability(b usefulbench.Benchmarker) {
-	max := 10
+var alpha = 1
+var beta = 25
+var max = 10
 
-	baseSessionNum := 60
-	baseNymNum := 108_000
+var baseSessionNum = 60
+var baseNymNum = 108_000
 
+func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
-	alpha := 1
-	beta := 25
 
-	if ok {
-		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
-		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
-	}
-
-	BenchmarkNymScalability(alpha, max, baseSessionNum, baseNymNum, b)
-	BenchSessScalability(beta, max, baseSessionNum, baseNymNum, b)
-}
-
-func BenchmarkNymScalability(alpha, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
-	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 	if ok {
 		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
 		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
 		ub.Result["env"]["alpha"] = int64(alpha)
+		ub.Result["env"]["beta"] = int64(beta)
+		ub.Result["env"]["max"] = int64(max)
 	}
+}
+
+func BenchmarkScalability(b usefulbench.Benchmarker) {
+	BenchmarkNymScalability(b)
+	BenchSessScalability(b)
+}
+
+func BenchmarkNymScalability(b usefulbench.Benchmarker) {
+	logIfUsefulBenchInScaleBench(b)
 
 	// increase nym
 	for i := 1; i <= max; i++ {
@@ -68,22 +68,16 @@ func BenchmarkNymScalability(alpha, max, baseSessionNum, baseNymNum int, b usefu
 	}
 }
 
-func BenchSessScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
+func BenchSessScalability(b usefulbench.Benchmarker) {
 	// increase sessionNumber
-	BenchSessUniformScalability(beta, max, baseSessionNum, baseNymNum, b)
-	BenchSessProportionalScalability(beta, max, baseSessionNum, baseNymNum, b)
-	BenchSessGaussScalability(beta, max, baseSessionNum, baseNymNum, b)
+	BenchSessUniformScalability(b)
+	BenchSessProportionalScalability(b)
+	BenchSessGaussScalability(b)
 
 }
 
-func BenchSessUniformScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
-	ub, ok := b.(*usefulbench.UsefulBenchmaker)
-
-	if ok {
-		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
-		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
-		ub.Result["env"]["beta"] = int64(beta)
-	}
+func BenchSessUniformScalability(b usefulbench.Benchmarker) {
+	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
 		runtime.GC()
@@ -95,14 +89,8 @@ func BenchSessUniformScalability(beta, max, baseSessionNum, baseNymNum int, b us
 
 }
 
-func BenchSessProportionalScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
-	ub, ok := b.(*usefulbench.UsefulBenchmaker)
-
-	if ok {
-		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
-		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
-		ub.Result["env"]["beta"] = int64(beta)
-	}
+func BenchSessProportionalScalability(b usefulbench.Benchmarker) {
+	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
 		runtime.GC()
@@ -113,14 +101,8 @@ func BenchSessProportionalScalability(beta, max, baseSessionNum, baseNymNum int,
 	}
 }
 
-func BenchSessGaussScalability(beta, max, baseSessionNum, baseNymNum int, b usefulbench.Benchmarker) {
-	ub, ok := b.(*usefulbench.UsefulBenchmaker)
-
-	if ok {
-		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
-		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
-		ub.Result["env"]["beta"] = int64(beta)
-	}
+func BenchSessGaussScalability(b usefulbench.Benchmarker) {
+	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
 		runtime.GC()
