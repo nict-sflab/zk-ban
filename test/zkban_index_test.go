@@ -1,4 +1,4 @@
-package zkbantest
+package test
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
+	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/frontend"
 	"github.com/consensys/gnark/std/algebra/native/twistededwards"
@@ -17,8 +18,9 @@ func TestIndex(t *testing.T) {
 	x := 10
 	y := 10
 
-	rl := EmptyUniformRevocationAddList(x, y)
-	_, _, updateCircuit := prepareCircuit(rl, true)
+	rlSize := witness.MakeUniformRLSize(x, y)
+	rl := witness.EmptyRevocationList(rlSize)
+	_, _, updateCircuit := PrepareCircuit(rl)
 
 	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2
 

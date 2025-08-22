@@ -1,8 +1,6 @@
 package zkban
 
 import (
-	"crypto/rand"
-
 	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
@@ -17,13 +15,10 @@ type JoinRequest struct {
 }
 
 func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *zkbanw.UserSecretKey, error) {
-	u, err := rand.Int(rand.Reader, max())
-	if err != nil {
-		return nil, nil, err
-	}
+	u := primitives.RandBigInt()
 
 	usk := zkbanw.UserSecretKey{
-		Number: &primitives.BigInt{Int: *u},
+		Number: u,
 	}
 
 	upk, err := usk.PublicKey(period)
@@ -36,7 +31,7 @@ func RequestJoin(period int64, snarkProver *snark.SnarkProver) (*JoinRequest, *z
 		return nil, nil, err
 	}
 
-	proof, err := groth16.Prove(snarkProver.ConstraintSystem, snarkProver.ProveKey, wit)
+	proof, err := groth16.Prove(snarkProver.ConstraintSystem.ConstraintSystem, snarkProver.ProveKey.ProvingKey, wit)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -1,58 +1,59 @@
-package zkbantest
+package test
 
 import (
-	"math/big"
+	"fmt"
+	"os"
 
+	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/dump"
+	"github.com/akakou/zk-ban/load"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
 )
 
-var SessionSize = 270
-var RevokedNymsPerSession = 130
+var TestKeyPath = "./"
 
-func panicIfErr(err error) {
+func PanicIfErr(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
 type TestParams struct {
-	gpk        *witness.GroupPublicKey
-	gsk        *witness.GroupSecretKey
-	upk        *witness.UserPublicKey
-	usk        *witness.UserSecretKey
-	m          *primitives.BigInt
-	period     int64
-	cnt        int64
-	cert       *witness.Credential
-	nextPeriod int64
+	GPK        *witness.GroupPublicKey
+	GSK        *witness.GroupSecretKey
+	UPK        *witness.UserPublicKey
+	USK        *witness.UserSecretKey
+	M          *primitives.BigInt
+	Period     int64
+	CNT        int64
+	Cert       *witness.Credential
+	NextPeriod int64
 }
 
-func (params *TestParams) signer() *witness.Signer {
+func (params *TestParams) Signer() *witness.Signer {
 	signer := witness.Signer{
-		UserSecretKey: params.usk,
-		Credential:    params.cert,
-		Period:        params.period,
+		UserSecretKey: params.USK,
+		Credential:    params.Cert,
+		Period:        params.Period,
 	}
 
 	return &signer
 }
 
-func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
+func PrepareCircuit(rl witness.RevocationList) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
 	var err error
 	var joinSnark *snark.SnarkParams = nil
 	var signSnark *snark.SnarkParams = nil
 
-	if !omitJoinAndSign {
-		joinSnark, err = snark.InitSNARK(&circuit.JoinRequestCircuit{})
-		panicIfErr(err)
+	joinSnark, err = snark.InitSNARK(&circuit.JoinRequestCircuit{})
+	PanicIfErr(err)
 
-		signSnark, err = snark.InitSNARK(&circuit.SignCircuit{})
-		panicIfErr(err)
-	}
+	signSnark, err = snark.InitSNARK(&circuit.SignCircuit{})
+	PanicIfErr(err)
 
 	witnessRL := circuit.NewRevocationListAssigned(rl)
 
@@ -62,47 +63,112 @@ func prepareCircuit(rl witness.RevocationList, omitJoinAndSign bool) (*snark.Sna
 		},
 	})
 
-	panicIfErr(err)
-
 	return joinSnark, signSnark, updateSnark
-
 }
 
-func prepareParams() TestParams {
-	gsk, gpk, err := witness.RandomGroupKeyPair()
-	panicIfErr(err)
+type fileReader struct{}
 
-	period := int64(2024)
-	nextPeriod := int64(2025)
+func (*fileReader) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+func PrepareUpdateKey(rlSize witness.RevocationListSize, _ string) (*snark.SnarkProver, *snark.SizedSnarkVerifier) {
+	rl := circuit.NewRevocationListAssigned(witness.EmptyRevocationList(rlSize))
+	updateSnark, err := snark.InitSNARK(&precomputes.UpdateCircuit{
+		circuit.UpdateCircuit{
+			RevocationList: rl,
+		},
+	})
+
+	PanicIfErr(err)
+
+	return updateSnark.Prover(), &snark.SizedSnarkVerifier{
+		RLSize:    rlSize,
+		VerifyKey: &gnarkserializable.VerifyingKey{updateSnark.VerifyKey},
+	}
+}
+
+func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*snark.SnarkProver, *snark.SizedSnarkVerifier) {
+	proverFileName := fmt.Sprintf(dump.UpdateProverKeyFileNameFormat, name)
+	verifierFileName := fmt.Sprintf(dump.UpdateVerifierKeyFileNameFormat, name)
+
+	fmt.Printf("search key at %s\n", TestKeyPath+proverFileName)
+	_, err := os.Stat(TestKeyPath + proverFileName)
+	if err != nil {
+		fmt.Println("compile")
+		dump.DumpUpdateKeys(name, rlSize, TestKeyPath)
+	} else {
+		fmt.Println("compile skip")
+	}
+
+	pk, err := load.LoadUpdateKey(proverFileName, os.DirFS(TestKeyPath), load.DocodeProver)
+	PanicIfErr(err)
+
+	vk, err := load.LoadUpdateKey(verifierFileName, os.DirFS(TestKeyPath), load.DocodeSizedVerifyingKey)
+	PanicIfErr(err)
+
+	return *pk, *vk
+}
+
+func PrepareParams() TestParams {
+	gsk, gpk, err := witness.RandomGroupKeyPair()
+	PanicIfErr(err)
+
+	period := int64(20240101)
+	nextPeriod := int64(20250101)
 	var usk = &witness.UserSecretKey{
-		primitives.NewBigInt(102),
+		primitives.RandBigInt(),
 	}
 
 	upk, err := usk.PublicKey(period)
-	panicIfErr(err)
+	PanicIfErr(err)
 
-	m := primitives.BigInt{*big.NewInt(100)}
-	cnt := int64(101)
+	m := witness.MimcInitBigInt()
+
+	cnt := int64(2)
 
 	cert, err := gsk.IssueCredential(upk)
-	panicIfErr(err)
+	PanicIfErr(err)
 
 	return TestParams{
-		gpk:        gpk,
-		gsk:        gsk,
-		usk:        usk,
-		upk:        upk,
-		m:          &m,
-		cnt:        cnt,
-		period:     period,
-		cert:       cert,
-		nextPeriod: nextPeriod,
+		GPK:        gpk,
+		GSK:        gsk,
+		USK:        usk,
+		UPK:        upk,
+		M:          m,
+		CNT:        cnt,
+		Period:     period,
+		Cert:       cert,
+		NextPeriod: nextPeriod,
 	}
 }
 
-func EmptyUniformRevocationAddList(sessionSize, nymSizePerSession int) witness.RevocationList {
-	witness.InitBigInt = witness.MimcInitBigInt
-	rlSize := witness.MakeUniformRLSize(sessionSize, nymSizePerSession)
+var InitBigInt = witness.MimcInitBigInt
 
+func EmptyUniformRevocationList(sessionSize, nymNum int) witness.RevocationList {
+	witness.InitBigInt = InitBigInt
+	rlSize := witness.MakeUniformRLSizeFromTotal(sessionSize, nymNum)
+	return witness.EmptyRevocationList(rlSize)
+}
+
+func EmptyProportionalRevocationList(sessionSize, nymNum int) witness.RevocationList {
+	witness.InitBigInt = InitBigInt
+	rlSize := witness.MakeProportionalRLSizeFromTotal(sessionSize, nymNum)
+
+	return witness.EmptyRevocationList(rlSize)
+}
+
+const GaussianStandarDeviationDiv = 4
+
+func EmptyGaussianRevocationListSize(sessionSize, nymNum int) witness.RevocationListSize {
+	witness.InitBigInt = InitBigInt
+	sd := float64(sessionSize) / GaussianStandarDeviationDiv
+	rlSize := witness.MakeGaussianRLSizeFromTotal(sessionSize, nymNum, sd)
+	return rlSize
+}
+
+func EmptyGaussianRevocationList(sessionSize, nymNum int) witness.RevocationList {
+	witness.InitBigInt = InitBigInt
+	rlSize := EmptyGaussianRevocationListSize(sessionSize, nymNum)
 	return witness.EmptyRevocationList(rlSize)
 }

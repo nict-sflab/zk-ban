@@ -1,4 +1,4 @@
-package zkbantest
+package test
 
 import (
 	"testing"
@@ -12,78 +12,78 @@ import (
 
 func TestAll(t *testing.T) {
 	assert := test.NewAssert(t)
-	params := prepareParams()
+	params := PrepareParams()
 
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := EmptyUniformRevocationAddList(180, 300)
+	rl := EmptyUniformRevocationList(180, 300)
 
-	joinCircuit, signCircuit, updateCircuit := prepareCircuit(rl, false)
+	joinCircuit, signCircuit, updateCircuit := PrepareCircuit(rl)
 
 	var signature *zkban.Signature
 	var err error
 	t.Run("join req", func(t *testing.T) {
-		req, _, err := zkban.RequestJoin(params.period, joinCircuit.Prover())
+		req, _, err := zkban.RequestJoin(params.Period, joinCircuit.Prover())
 		assert.NoError(err)
 
-		req.Verify(params.period, joinCircuit.VerifyKey)
+		req.Verify(params.Period, joinCircuit.VerifyKey)
 	})
 
 	t.Run("sign", func(t *testing.T) {
-		signature, err := zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
+		signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 		assert.NoError(err)
 
-		err = signature.Verify(params.m, params.cnt, params.period, params.gpk, signCircuit.VerifyKey)
+		err = signature.Verify(params.M, params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
 		assert.NoError(err)
 	})
 
 	t.Run("sign-fail", func(t *testing.T) {
-		signature, err = zkban.Sign(params.m, params.cnt, params.signer(), params.gpk, signCircuit.Prover())
+		signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 		assert.NoError(err)
 
-		err = signature.Verify(primitives.NewBigInt(100000000), params.cnt, params.period, params.gpk, signCircuit.VerifyKey)
+		err = signature.Verify(primitives.NewBigInt(100000000), params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
 		assert.ErrorContains(err, verifyFailedMessage)
 	})
 
 	t.Run("update", func(t *testing.T) {
-		req, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 		assert.NoError(err)
 
-		err = req.Verify(params.nextPeriod, params.period, rl, params.gpk, updateCircuit.VerifyKey)
+		err = req.Verify(params.NextPeriod, params.Period, rl, params.GPK, updateCircuit.VerifyKey)
 		assert.NoError(err)
 	})
 
 	t.Run("update-precomputes", func(t *testing.T) {
-		req, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 		assert.NoError(err)
 
 		vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
 		assert.NoError(err)
 
-		prepared, err := vk.PrecomputeVerify(rl, params.gpk)
+		prepared, err := vk.PrecomputeVerify(rl, params.GPK)
 		assert.NoError(err)
 
-		err = vk.VerifyPrepared(*prepared, req, params.nextPeriod, params.period)
+		err = vk.VerifyPrepared(*prepared, req, params.NextPeriod, params.Period)
 		assert.NoError(err)
 	})
 
 	t.Run("update-fail", func(t *testing.T) {
-		rl[0].SessionTag = witness.SessionTag(params.cnt, params.period)
+		rl[0].SessionTag = witness.SessionTag(params.CNT, params.Period)
 		rl[0].Nyms[0] = signature.Commit.Nym
 
-		_, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)
 
 		// err = req.Verify(params.nextPeriod, params.period, rl, params.gpk, updateCircuit.VerifyKey)
 		// assert.ErrorContains(err, verifyFailedMessage)
 
-		// _, _, _, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		// _, _, _, err := zkban.RequestUpdate(params.nextPeriod, params.Signer(), rl, params.gpk, updateCircuit.Prover())
 		// assert.ErrorContains(err, proveFailedMessage)
 
 		// rl[0].Nyms[0] = big.NewInt(0)
 
-		// _, proof, assign, err := zkban.RequestUpdate(params.nextPeriod, params.signer(), rl, params.gpk, updateCircuit.Prover())
+		// _, proof, assign, err := zkban.RequestUpdate(params.nextPeriod, params.Signer(), rl, params.gpk, updateCircuit.Prover())
 		// assert.NoError(err)
 
 		// witnessRL := circuit.NewRevocationListWitness(rldash)

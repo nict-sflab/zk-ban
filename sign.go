@@ -1,8 +1,6 @@
 package zkban
 
 import (
-	"math/big"
-
 	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
@@ -11,13 +9,6 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-func max() *big.Int {
-	var i, e = big.NewInt(2), big.NewInt(32)
-	i.Exp(i, e, nil)
-
-	return i
-}
-
 type Signature struct {
 	Commit *zkbanw.SignCommit
 	Proof  gnarkserializable.Proof
@@ -25,18 +16,19 @@ type Signature struct {
 
 func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*Signature, error) {
 	sessionTag := signer.SessionTag(counter)
+	r := primitives.RandBigInt()
 
-	comm, err := signer.CommitSign(m, sessionTag)
+	comm, err := signer.CommitSign(m, r, sessionTag)
 	if err != nil {
 		return nil, err
 	}
 
-	wit, err := circuit.NewSignWitness(m, sessionTag, comm, signer, gpk)
+	wit, err := circuit.NewSignWitness(m, r, sessionTag, comm, signer, gpk)
 	if err != nil {
 		return nil, err
 	}
 
-	proof, err := groth16.Prove(prover.ConstraintSystem, prover.ProveKey, wit)
+	proof, err := groth16.Prove(prover.ConstraintSystem.ConstraintSystem, prover.ProveKey.ProvingKey, wit)
 	if err != nil {
 		return nil, err
 	}
