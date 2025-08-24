@@ -18,6 +18,7 @@ func BenchmarkCompare(b usefulbench.Benchmarker) {
 		ub.Result["env"]["baseNymNum"] = int64(baseNym)
 	}
 
+	benchmarkBaseline(&params, b)
 	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
 
 	NoParallel = true
