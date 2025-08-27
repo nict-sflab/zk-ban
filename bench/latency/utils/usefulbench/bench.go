@@ -44,7 +44,7 @@ func (b *UsefulBenchmaker) Run(tag string, target func(b Benchmarker)) bool {
 	fmt.Printf("Now measure latency of %s...\n", tag)
 
 	// set up tag
-	tags := strings.Split(tag, ":")
+	tags := strings.Split(tag, "--")
 	if len(tags) != 2 {
 		log.Fatalf("Error: length of %v is not 2", tags)
 	}
