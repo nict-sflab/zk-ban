@@ -8,7 +8,7 @@ import (
 func BenchmarkCompare(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
-	baseNym := 114688
+	baseNym := 8192 * 14 + 16 * 14
 	baseSess := 60
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
@@ -18,6 +18,7 @@ func BenchmarkCompare(b usefulbench.Benchmarker) {
 		ub.Result["env"]["baseNymNum"] = int64(baseNym)
 	}
 
+	benchmarkBaseline(&params, b)
 	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
 
 	NoParallel = true

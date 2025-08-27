@@ -90,7 +90,7 @@ func main() {
 }
 
 func benchUpdate(v int, root string, rlSize witness.RevocationListSize, result storage.Result) {
-	parent := fmt.Sprintf("%v-%d", root, v)
+	parent := fmt.Sprintf("%v--%d", root, v)
 	vs := strconv.Itoa(v)
 
 	prover, verifier := test.PrepareUpdateKeyCached(rlSize, parent)

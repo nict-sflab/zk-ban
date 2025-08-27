@@ -24,6 +24,19 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 		ub.Result["env"]["baseNymNum"] = int64(baseNym)
 	}
 
+	benchmarkBaseline(&params, b)
+
+	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlU, "uniform", &params, b)
+
+	rlP := test.EmptyProportionalRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlP, "proportional", &params, b)
+
+	rlG := test.EmptyGaussianRevocationList(baseSess, baseNym)
+	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
+}
+
+func benchmarkBaseline(params *test.TestParams, b usefulbench.Benchmarker) {
 	joinCircuit, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}))
 	var err error
 
@@ -69,16 +82,6 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	if NoParallel {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
-
-	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlU, "uniform", &params, b)
-
-	rlP := test.EmptyProportionalRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlP, "proportional", &params, b)
-
-	rlG := test.EmptyGaussianRevocationList(baseSess, baseNym)
-	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
-
 }
 
 func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {

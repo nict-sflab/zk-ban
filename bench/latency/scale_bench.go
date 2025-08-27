@@ -121,7 +121,7 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 
 	var err error
 
-	parent := fmt.Sprintf("%s-%v", name, param)
+	parent := fmt.Sprintf("%s--%v", name, param)
 	prover, veirifer := test.PrepareUpdateKeyCached(rl.Sizes(), parent)
 
 	if NoParallel {

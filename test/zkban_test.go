@@ -17,7 +17,7 @@ func TestAll(t *testing.T) {
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := EmptyUniformRevocationList(180, 300)
+	rl := EmptyUniformRevocationList(60, 120)
 
 	joinCircuit, signCircuit, updateCircuit := PrepareCircuit(rl)
 
@@ -68,36 +68,34 @@ func TestAll(t *testing.T) {
 		assert.NoError(err)
 	})
 
-	t.Run("update-fail", func(t *testing.T) {
+	t.Run("update-fail1", func(t *testing.T) {
+		rl := EmptyUniformRevocationList(60, 120)
 		rl[0].SessionTag = witness.SessionTag(params.CNT, params.Period)
 		rl[0].Nyms[0] = signature.Commit.Nym
-
 		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)
+	})
 
-		// err = req.Verify(params.nextPeriod, params.period, rl, params.gpk, updateCircuit.VerifyKey)
-		// assert.ErrorContains(err, verifyFailedMessage)
+	t.Run("update-fail2", func(t *testing.T) {
+		test := func(sessIndex, nymIndex int) {
+			rl := EmptyUniformRevocationList(60, 120)
+			req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
+			assert.NoError(err, proveFailedMessage)
 
-		// _, _, _, err := zkban.RequestUpdate(params.nextPeriod, params.Signer(), rl, params.gpk, updateCircuit.Prover())
-		// assert.ErrorContains(err, proveFailedMessage)
+			rl[sessIndex].SessionTag = witness.SessionTag(params.CNT, params.Period)
+			rl[sessIndex].Nyms[nymIndex] = signature.Commit.Nym
 
-		// rl[0].Nyms[0] = big.NewInt(0)
+			vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
+			assert.NoError(err, proveFailedMessage)
 
-		// _, proof, assign, err := zkban.RequestUpdate(params.nextPeriod, params.Signer(), rl, params.gpk, updateCircuit.Prover())
-		// assert.NoError(err)
+			cache, err := vk.PrecomputeVerify(rl, params.GPK)
+			assert.NoError(err, proveFailedMessage)
 
-		// witnessRL := circuit.NewRevocationListWitness(rldash)
-		// assert.NoError(err)
+			err = vk.VerifyPrepared(*cache, req, params.NextPeriod, params.Period)
+			assert.ErrorContains(err, verifyFailedMessage)
+		}
 
-		// assign.RevocationList = witnessRL
-
-		// wit, err := frontend.NewWitness(assign, snark.EcCurve.ScalarField())
-		// assert.NoError(err)
-
-		// pubWit, err := wit.Public()
-		// assert.NoError(err)
-
-		// err = groth16.Verify(proof, updateCircuit.VerifyKey, pubWit)
-		// assert.ErrorContains(err, verifyFailedMessage)
+		test(0, 0)
+		test(59, 1)
 	})
 }
