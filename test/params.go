@@ -15,6 +15,7 @@ import (
 )
 
 var TestKeyPath = "./"
+var SkipVerify = false
 
 func PanicIfErr(err error) {
 	if err != nil {
@@ -104,8 +105,13 @@ func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*sn
 	pk, err := load.LoadUpdateKey(proverFileName, os.DirFS(TestKeyPath), load.DocodeProver)
 	PanicIfErr(err)
 
-	vk, err := load.LoadUpdateKey(verifierFileName, os.DirFS(TestKeyPath), load.DocodeSizedVerifyingKey)
-	PanicIfErr(err)
+	var v *snark.SizedSnarkVerifier = nil
+	// todo: fix
+	var vk **snark.SizedSnarkVerifier = &v
+	if !SkipVerify {
+		vk, err = load.LoadUpdateKey(verifierFileName, os.DirFS(TestKeyPath), load.DocodeSizedVerifyingKey)
+		PanicIfErr(err)
+	}
 
 	return *pk, *vk
 }

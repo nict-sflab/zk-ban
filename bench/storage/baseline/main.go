@@ -120,7 +120,7 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 				count++
 				tag := rlMakerTags[i]
 				rlSize := rlMaker(kappa, lambda)
-				name := fmt.Sprintf("%d-%d-%s", kappa, lambda, tag)
+				name := fmt.Sprintf("%d-%d_%s", kappa, lambda, tag)
 				pk, vk := test.PrepareUpdateKeyCached(rlSize, name)
 
 				storage.StoreWritableSize(name, "pk", root, pk.ProveKey, result)

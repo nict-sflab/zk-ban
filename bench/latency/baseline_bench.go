@@ -32,35 +32,35 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	}
 
 	var joinReq *zkban.JoinRequest
-	b.Run("baseline:request-join", func(b usefulbench.Benchmarker) {
+	b.Run("baseline_request-join", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			joinReq, _, err = zkban.RequestJoin(params.Period, joinCircuit.Prover())
 			test.PanicIfErr(err)
 		}
 	})
 
-	b.Run("baseline:verify-joinreq", func(b usefulbench.Benchmarker) {
+	b.Run("baseline_verify-joinreq", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err := joinReq.Verify(params.Period, joinCircuit.VerifyKey)
 			test.PanicIfErr(err)
 		}
 	})
 
-	b.Run("baseline:issue credential", func(b usefulbench.Benchmarker) {
+	b.Run("baseline_issue credential", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			params.GSK.IssueCredential(params.UPK)
 		}
 	})
 
 	var signature *zkban.Signature
-	b.Run("baseline:sign", func(b usefulbench.Benchmarker) {
+	b.Run("baseline_sign", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 			test.PanicIfErr(err)
 		}
 	})
 
-	b.Run("baseline:verify", func(b usefulbench.Benchmarker) {
+	b.Run("baseline_verify", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			signature.Verify(params.M, params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
 		}
@@ -90,7 +90,7 @@ func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.T
 
 	var err error
 	var updateRequest *zkban.UpdateRequest
-	b.Run("baseline:update-req-"+name, func(b usefulbench.Benchmarker) {
+	b.Run("baseline_update-req-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			updateRequest, err = zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
 			test.PanicIfErr(err)
@@ -101,14 +101,14 @@ func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.T
 	test.PanicIfErr(err)
 
 	var prepared **bls12381.G1Jac
-	b.Run("baseline:update-precomputes-"+name, func(b usefulbench.Benchmarker) {
+	b.Run("baseline_update-precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			prepared, err = vk.PrecomputeVerify(rl, params.GPK)
 			test.PanicIfErr(err)
 		}
 	})
 
-	b.Run("baseline:update-verify-"+name, func(b usefulbench.Benchmarker) {
+	b.Run("baseline_update-verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepared, updateRequest, params.NextPeriod, params.Period)
 			test.PanicIfErr(err)

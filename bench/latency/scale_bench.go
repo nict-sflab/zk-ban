@@ -15,9 +15,9 @@ import (
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
 
-var alpha = 1
-var beta = 25
-var max = 10
+var Alpha = 1
+var Beta = 25
+var Max = 10
 
 var baseSessionNum = 60
 var baseNymNum = 108_000
@@ -28,9 +28,9 @@ func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 	if ok {
 		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
 		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
-		ub.Result["env"]["alpha"] = int64(alpha)
-		ub.Result["env"]["beta"] = int64(beta)
-		ub.Result["env"]["max"] = int64(max)
+		ub.Result["env"]["alpha"] = int64(Alpha)
+		ub.Result["env"]["beta"] = int64(Beta)
+		ub.Result["env"]["max"] = int64(Max)
 	}
 }
 
@@ -43,26 +43,26 @@ func BenchmarkNymScalability(b usefulbench.Benchmarker) {
 	logIfUsefulBenchInScaleBench(b)
 
 	// increase nym
-	for i := 1; i <= max; i++ {
+	for i := 1; i <= Max; i++ {
 		runtime.GC()
 
-		nymNum := baseNymNum * i * alpha
+		nymNum := baseNymNum * i * Alpha
 		rl := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
 	}
 
-	for i := 1; i <= max; i++ {
+	for i := 1; i <= Max; i++ {
 		runtime.GC()
 
-		nymNum := baseNymNum * i * alpha
+		nymNum := baseNymNum * i * Alpha
 		rl := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_PROPORTIONAL, b)
 	}
 
-	for i := 1; i <= max; i++ {
+	for i := 1; i <= Max; i++ {
 		runtime.GC()
 
-		nymNum := baseNymNum * i * alpha
+		nymNum := baseNymNum * i * Alpha
 		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_GAUSSIAN, b)
 	}
@@ -79,10 +79,10 @@ func BenchSessScalability(b usefulbench.Benchmarker) {
 func BenchSessUniformScalability(b usefulbench.Benchmarker) {
 	logIfUsefulBenchInScaleBench(b)
 
-	for i := 1; i <= max; i++ {
+	for i := 1; i <= Max; i++ {
 		runtime.GC()
 
-		sessionNum := baseSessionNum * i * beta
+		sessionNum := baseSessionNum * i * Beta
 		rl := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_UNIFORM, b)
 	}
@@ -92,10 +92,10 @@ func BenchSessUniformScalability(b usefulbench.Benchmarker) {
 func BenchSessProportionalScalability(b usefulbench.Benchmarker) {
 	logIfUsefulBenchInScaleBench(b)
 
-	for i := 1; i <= max; i++ {
+	for i := 1; i <= Max; i++ {
 		runtime.GC()
 
-		sessionNum := baseSessionNum * i * beta
+		sessionNum := baseSessionNum * i * Beta
 		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_PROPORTIONAL, b)
 	}
@@ -104,24 +104,23 @@ func BenchSessProportionalScalability(b usefulbench.Benchmarker) {
 func BenchSessGaussScalability(b usefulbench.Benchmarker) {
 	logIfUsefulBenchInScaleBench(b)
 
-	for i := 1; i <= max; i++ {
+	for i := 1; i <= Max; i++ {
 		runtime.GC()
 
-		sessionNum := baseSessionNum * i * beta
+		sessionNum := baseSessionNum * i * Beta
 		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_GAUSSIAN, b)
 	}
 }
 
 var NoParallel = false
-var SkipVerify = false
 
 func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
 	var err error
 
-	parent := fmt.Sprintf("%s-%v", name, param)
+	parent := fmt.Sprintf("%s_%v", name, param)
 	prover, veirifer := test.PrepareUpdateKeyCached(rl.Sizes(), parent)
 
 	if NoParallel {
@@ -142,7 +141,7 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 		}
 	})
 
-	if SkipVerify {
+	if test.SkipVerify {
 		return
 	}
 
