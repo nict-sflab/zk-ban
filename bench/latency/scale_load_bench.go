@@ -20,9 +20,23 @@ import (
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
 
+const BASELINE_NAME = "load_baseline"
+
 func BenchmarkLoad(b usefulbench.Benchmarker) {
+	BenchmarkBaselineLoad(b)
+
 	BenchmarkNymLoad(b)
 	BenchSessLoad(b)
+}
+
+func BenchmarkBaselineLoad(b usefulbench.Benchmarker) {
+	unifomrRL := test.EmptyUniformRevocationList(baseSessionNum, baseNymNum)
+	proportionalRL := test.EmptyProportionalRevocationList(baseSessionNum, baseNymNum)
+	gaussiunRL := test.EmptyGaussianRevocationList(baseSessionNum, baseNymNum)
+
+	benchmarkLoad(0, unifomrRL, BASELINE_NAME, b)
+	benchmarkLoad(1, proportionalRL, BASELINE_NAME, b)
+	benchmarkLoad(2, gaussiunRL, BASELINE_NAME, b)
 }
 
 func BenchmarkNymLoad(b usefulbench.Benchmarker) {
