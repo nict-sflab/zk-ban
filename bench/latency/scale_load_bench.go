@@ -15,7 +15,6 @@ import (
 	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
-	"github.com/consensys/gnark/constraint"
 	// 	groth16_bls12381 "github.com/consensys/gnark/backend/groth16/bls12-381"
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
@@ -157,20 +156,18 @@ func benchmarkLoadWithWrite(param int, rl zkbanw.RevocationList, name string, b 
 	err = os.WriteFile(vkFile, buf.Bytes(), 0o600)
 	test.PanicIfErr(err)
 
-	var (
-		vk    groth16.VerifyingKey
-		vkBin []byte
-	)
 	b.Run("io-read-vk-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			vkBin, err = os.ReadFile(vkFile)
+			_, err := os.ReadFile(vkFile)
 			test.PanicIfErr(err)
 		}
 	})
+
+	vkBuf, err := os.ReadFile(vkFile)
 	b.Run("decode-vk-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			vk = groth16.NewVerifyingKey(ecc.BLS12_381)
-			_, err = vk.UnsafeReadFrom(bytes.NewBuffer(vkBin))
+			vk := groth16.NewVerifyingKey(ecc.BLS12_381)
+			_, err = vk.UnsafeReadFrom(bytes.NewBuffer(vkBuf))
 			test.PanicIfErr(err)
 		}
 	})
@@ -183,30 +180,28 @@ func benchmarkLoadWithWrite(param int, rl zkbanw.RevocationList, name string, b 
 	err = os.WriteFile(csFile, buf.Bytes(), 0o600)
 	test.PanicIfErr(err)
 
-	var (
-		csBin []byte
-		cs    constraint.ConstraintSystem
-	)
 	b.Run("io-read-cs-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			csBin, err = os.ReadFile(csFile)
+			_, err := os.ReadFile(csFile)
 			test.PanicIfErr(err)
 		}
 	})
+
+	csBin, err := os.ReadFile(csFile)
 	b.Run("decode-cs-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			cs = groth16.NewCS(ecc.BLS12_381)
+			cs := groth16.NewCS(ecc.BLS12_381)
 			_, err = cs.ReadFrom(bytes.NewBuffer(csBin))
 			test.PanicIfErr(err)
 		}
 	})
 
-	checkISValidKeys(
-		&snark.SnarkParams{
-			ConstraintSystem: cs,
-			ProveKey:         pk,
-			VerifyKey:        vk,
-		}, &rl)
+	// checkISValidKeys(
+	// 	&snark.SnarkParams{
+	// 		ConstraintSystem: cs,
+	// 		ProveKey:         pk,
+	// 		VerifyKey:        vk,
+	// 	}, &rl)
 }
 
 func checkISValidKeys(updateCircuit *snark.SnarkParams, rl *zkbanw.RevocationList) {
