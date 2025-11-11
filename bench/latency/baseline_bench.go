@@ -13,6 +13,7 @@ import (
 func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
+	// baseNym := 108_000 * 100
 	baseNym := 108_000
 	baseSess := 60
 
@@ -111,7 +112,7 @@ func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.T
 			test.PanicIfErr(err)
 		}
 	})
-	
+
 	prepared, _ := vk.PrecomputeVerify(rl, params.GPK)
 	b.Run("baseline--update-verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {

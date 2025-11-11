@@ -19,6 +19,8 @@ var beta = 25
 var max = 10
 
 var baseSessionNum = 60
+
+// var baseNymNum = 108_000 * 50
 var baseNymNum = 108_000
 
 func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {

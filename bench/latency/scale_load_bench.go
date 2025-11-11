@@ -23,7 +23,6 @@ const BASELINE_NAME = "load_baseline"
 
 func BenchmarkLoad(b usefulbench.Benchmarker) {
 	BenchmarkBaselineLoad(b)
-
 	BenchmarkNymLoad(b)
 	BenchSessLoad(b)
 }
@@ -115,7 +114,7 @@ func BenchSessGaussLoad(b usefulbench.Benchmarker) {
 var benchmarkLoad = benchmarkLoadWithWrite
 
 func benchmarkLoadWithWrite(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
-	parent := fmt.Sprintf("%s--%v", name, param)
+	parent := fmt.Sprintf("%s--%v-%v-%v", name, param, rl.Size(), len(rl.Sizes()))
 
 	samplePk, sampleVK := test.PrepareUpdateKeyCached(rl.Sizes(), parent)
 
