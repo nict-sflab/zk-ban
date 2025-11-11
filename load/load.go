@@ -37,6 +37,7 @@ func LoadUpdateKeys[T any](fs fs.ReadDirFS, decoder func([]byte) (T, error)) ([]
 }
 
 func LoadUpdateKey[T any](name string, f fs.FS, decoder func([]byte) (T, error)) (*T, error) {
+
 	buf, err := fs.ReadFile(f, name)
 	if err != nil {
 		return nil, err
