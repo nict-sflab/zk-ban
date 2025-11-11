@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench"
@@ -32,9 +33,11 @@ func BenchmarkBaselineLoad(b usefulbench.Benchmarker) {
 	proportionalRL := test.EmptyProportionalRevocationList(baseSessionNum, baseNymNum)
 	gaussiunRL := test.EmptyGaussianRevocationList(baseSessionNum, baseNymNum)
 
-	benchmarkLoad(0, unifomrRL, BASELINE_NAME, b)
-	benchmarkLoad(1, proportionalRL, BASELINE_NAME, b)
-	benchmarkLoad(2, gaussiunRL, BASELINE_NAME, b)
+	parent := fmt.Sprintf("-%d-%d", unifomrRL.Size(), len(unifomrRL.Sizes()))
+
+	benchmarkLoad("uniform"+parent, unifomrRL, BASELINE_NAME, b)
+	benchmarkLoad("proportional"+parent, proportionalRL, BASELINE_NAME, b)
+	benchmarkLoad("gaussian"+parent, gaussiunRL, BASELINE_NAME, b)
 }
 
 func BenchmarkNymLoad(b usefulbench.Benchmarker) {
@@ -46,7 +49,7 @@ func BenchmarkNymLoad(b usefulbench.Benchmarker) {
 
 		nymNum := baseNymNum * i * alpha
 		rl := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
-		benchmarkLoad(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
+		benchmarkLoad(strconv.Itoa(nymNum), rl, bench.NYM_INCREASE_UNIFORM, b)
 	}
 
 	for i := 1; i <= max; i++ {
@@ -54,7 +57,7 @@ func BenchmarkNymLoad(b usefulbench.Benchmarker) {
 
 		nymNum := baseNymNum * i * alpha
 		rl := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
-		benchmarkLoad(nymNum, rl, bench.NYM_INCREASE_PROPORTIONAL, b)
+		benchmarkLoad(strconv.Itoa(nymNum), rl, bench.NYM_INCREASE_PROPORTIONAL, b)
 	}
 
 	for i := 1; i <= max; i++ {
@@ -62,7 +65,7 @@ func BenchmarkNymLoad(b usefulbench.Benchmarker) {
 
 		nymNum := baseNymNum * i * alpha
 		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
-		benchmarkLoad(nymNum, rl, bench.NYM_INCREASE_GAUSSIAN, b)
+		benchmarkLoad(strconv.Itoa(nymNum), rl, bench.NYM_INCREASE_GAUSSIAN, b)
 	}
 }
 
@@ -82,7 +85,7 @@ func BenchSessUniformLoad(b usefulbench.Benchmarker) {
 
 		sessionNum := baseSessionNum * i * beta
 		rl := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
-		benchmarkLoad(sessionNum, rl, bench.SESS_INCREASE_UNIFORM, b)
+		benchmarkLoad(strconv.Itoa(sessionNum), rl, bench.SESS_INCREASE_UNIFORM, b)
 	}
 
 }
@@ -95,7 +98,7 @@ func BenchSessProportionalLoad(b usefulbench.Benchmarker) {
 
 		sessionNum := baseSessionNum * i * beta
 		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
-		benchmarkLoad(sessionNum, rl, bench.SESS_INCREASE_PROPORTIONAL, b)
+		benchmarkLoad(strconv.Itoa(sessionNum), rl, bench.SESS_INCREASE_PROPORTIONAL, b)
 	}
 }
 
@@ -107,14 +110,14 @@ func BenchSessGaussLoad(b usefulbench.Benchmarker) {
 
 		sessionNum := baseSessionNum * i * beta
 		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
-		benchmarkLoad(sessionNum, rl, bench.SESS_INCREASE_GAUSSIAN, b)
+		benchmarkLoad(strconv.Itoa(sessionNum), rl, bench.SESS_INCREASE_GAUSSIAN, b)
 	}
 }
 
 var benchmarkLoad = benchmarkLoadWithWrite
 
-func benchmarkLoadWithWrite(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
-	parent := fmt.Sprintf("%s--%v-%v-%v", name, param, rl.Size(), len(rl.Sizes()))
+func benchmarkLoadWithWrite(param string, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
+	parent := fmt.Sprintf("%s--%v", name, param)
 
 	samplePk, sampleVK := test.PrepareUpdateKeyCached(rl.Sizes(), parent)
 
