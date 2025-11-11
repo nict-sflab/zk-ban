@@ -25,5 +25,6 @@ go.work.sum
 .env
 example/example
 *.key.json
+*.bin
 *.pprof
 tmp/
