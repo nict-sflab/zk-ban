@@ -94,9 +94,9 @@ func benchUpdate(v int, root string, rlSize witness.RevocationListSize, result s
 	vs := strconv.Itoa(v)
 
 	prover, verifier := test.PrepareUpdateKeyCached(rlSize, parent)
-	storage.StoreWritableSize(vs, "cs", root, &prover.ConstraintSystem, result)
-	storage.StoreWritableSize(vs, "pk", root, &prover.ProveKey, result)
-	storage.StoreWritableSize(vs, "vk", root, verifier.VerifyKey, result)
+	storage.StoreWritableSize(vs, "cs", root, prover.ConstraintSystem, result)
+	storage.StoreWritableSize(vs, "pk", root, prover.ProveKey, result)
+	storage.StoreWritableSize(vs, "vk", root, *verifier.VerifyKey, result)
 
 	// params := test.PrepareParams()
 

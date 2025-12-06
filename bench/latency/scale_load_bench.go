@@ -123,7 +123,7 @@ func benchmarkLoadWithWrite(param string, rl zkbanw.RevocationList, name string,
 
 	var buf bytes.Buffer
 	buf.Reset()
-	_, err := samplePk.ProveKey.ProvingKey.WriteRawTo(&buf)
+	_, err := samplePk.ProveKey.WriteRawTo(&buf)
 	test.PanicIfErr(err)
 
 	pkFile := fmt.Sprintf("%s/%s.prover.bin", test.TestKeyPath, parent)
@@ -151,7 +151,7 @@ func benchmarkLoadWithWrite(param string, rl zkbanw.RevocationList, name string,
 	})
 
 	buf.Reset()
-	_, err = sampleVK.VerifyKey.VerifyingKey.WriteRawTo(&buf)
+	_, err = (*sampleVK.VerifyKey).WriteRawTo(&buf)
 	test.PanicIfErr(err)
 
 	vkFile := fmt.Sprintf("%s/%s.verifier.bin", test.TestKeyPath, parent)

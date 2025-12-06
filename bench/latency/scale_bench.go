@@ -148,7 +148,7 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 		return
 	}
 
-	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(veirifer.VerifyKey.VerifyingKey)
+	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(*veirifer.VerifyKey)
 	test.PanicIfErr(err)
 
 	b.Run("precomputes-"+parent, func(b usefulbench.Benchmarker) {
