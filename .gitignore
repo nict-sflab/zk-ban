@@ -26,5 +26,6 @@ go.work.sum
 example/example
 *.key.json
 *.bin
+*.meta.json
 *.pprof
 tmp/

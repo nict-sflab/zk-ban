@@ -17,7 +17,7 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 	csFileName := FileName(name, protocol, CircuitFileNameFormat)
 	verifierFileName := FileName(name, protocol, VerifierKeyFileNameFormat)
 
-	proverKeyFile, err := os.Create(proverFileName)
+	proverKeyFile, err := os.Create(KeyPath + "/" + proverFileName)
 	if err != nil {
 		log.Fatalf("create pk file: %v", err)
 	}
@@ -28,7 +28,7 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 		log.Fatalf("write raw pk: %v", err)
 	}
 
-	constraintSystemFile, err := os.Create(csFileName)
+	constraintSystemFile, err := os.Create(KeyPath + "/" + csFileName)
 	if err != nil {
 		log.Fatalf("create cs file: %v", err)
 	}
@@ -39,7 +39,7 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 		log.Fatalf("write cs: %v", err)
 	}
 
-	verifierKeyFile, err := os.Create(verifierFileName)
+	verifierKeyFile, err := os.Create(KeyPath + "/" + verifierFileName)
 	if err != nil {
 		log.Fatalf("create vk file: %v", err)
 	}
@@ -52,7 +52,7 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 
 }
 
-func DumpBasicKeys(name string) {
+func DumpBasicKeys() {
 	joinParams, err := snark.InitSNARK(&circuit.JoinRequestCircuit{})
 	if err != nil {
 		log.Fatalf("init join snark: %v", err)
@@ -63,13 +63,13 @@ func DumpBasicKeys(name string) {
 		log.Fatalf("init sign snark: %v", err)
 	}
 
-	DumpKeys(name, "join", joinParams)
-	DumpKeys(name, "sign", signParams)
+	DumpKeys("", "join", joinParams)
+	DumpKeys("", "sign", signParams)
 }
 
 func DumpMetadata(name string, rlSize witness.RevocationListSize) {
 	verifierMetaFileName := FileName(name, "update", MetaFileNameFormat)
-	metadataFile, err := os.Create(verifierMetaFileName)
+	metadataFile, err := os.Create(KeyPath + "/" + verifierMetaFileName)
 	if err != nil {
 		log.Fatalf("create vk metadata file: %v", err)
 	}
@@ -86,7 +86,7 @@ func DumpMetadata(name string, rlSize witness.RevocationListSize) {
 	}
 }
 
-func DumpUpdateKeys(name string, rlSize witness.RevocationListSize, path string) {
+func DumpUpdateKeys(name string, rlSize witness.RevocationListSize) {
 	rl := witness.EmptyRevocationList(rlSize)
 	params, err := snark.InitSNARK(&precomputes.UpdateCircuit{
 		UpdateCircuit: circuit.UpdateCircuit{
@@ -100,5 +100,4 @@ func DumpUpdateKeys(name string, rlSize witness.RevocationListSize, path string)
 
 	DumpKeys(name, "update", params)
 	DumpMetadata(name, rlSize)
-
 }
