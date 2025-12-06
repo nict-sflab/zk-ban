@@ -10,5 +10,5 @@ var MetaFileNameFormat = "%s_verifier-%s.meta.json"
 var KeyPath = "./"
 
 func FileName(name, protocol string, format string) string {
-	return fmt.Sprintf(format, protocol, name)
+	return KeyPath + fmt.Sprintf(format, protocol, name)
 }
