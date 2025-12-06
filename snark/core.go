@@ -33,4 +33,5 @@ type SnarkProver struct {
 type SizedSnarkVerifier struct {
 	VerifyKey *groth16.VerifyingKey
 	RLSize    []int
+	Name      string
 }

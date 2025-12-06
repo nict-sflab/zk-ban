@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/akakou/zk-ban/dump"
@@ -13,11 +14,13 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-func LoadUserUpdateKey(name, protocol string) (*snark.SnarkProver, error) {
-	ccsFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat)
+func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
+	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat)
 	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat)
 
-	keyFile, err := os.OpenFile(keyFileName, os.O_RDONLY, 0644)
+	dirFS := os.DirFS(dump.KeyPath)
+
+	keyFile, err := dirFS.Open(keyFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +31,7 @@ func LoadUserUpdateKey(name, protocol string) (*snark.SnarkProver, error) {
 		return nil, err
 	}
 
-	csFile, err := os.OpenFile(ccsFileName, os.O_RDONLY, 0644)
+	csFile, err := dirFS.Open(csFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -48,22 +51,31 @@ func LoadUserUpdateKey(name, protocol string) (*snark.SnarkProver, error) {
 
 }
 
+func LoadUserBasicKey(protocol string) (*snark.SnarkProver, error) {
+	return LoadUserKey("", protocol)
+}
+
 func LoadGroupManagerUpdateKeys() ([]*snark.SizedSnarkVerifier, error) {
 	verifiers := []*snark.SizedSnarkVerifier{}
-	files, err := os.ReadDir(".")
+	files, err := os.ReadDir(dump.KeyPath)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, f := range files {
 		fileName := f.Name()
-
-		if !strings.HasSuffix(fileName, ".metadata.json") {
-			return nil, fmt.Errorf("invalid file name")
+		if !strings.HasSuffix(fileName, ".meta.json") {
+			continue
 		}
 
-		name := strings.TrimPrefix(fileName, ".metadata.json")
+		var verifierRe = regexp.MustCompile(`^(.+)_verifier-(.+)\.meta\.json$`)
 
+		m := verifierRe.FindStringSubmatch(fileName)
+		if len(m) != 3 {
+			return nil, fmt.Errorf("unexpected format: %s", fileName)
+		}
+
+		name := m[2]
 		verifier, err := LoadGroupManagerUpdateKey(name)
 		if err != nil {
 			return nil, err
@@ -88,14 +100,14 @@ func LoadGroupManagerMetadata(name string) (*witness.RevocationListSize, error) 
 	var metadata witness.RevocationListSize
 	err = json.Unmarshal(metadataFile, &metadata)
 	if err != nil {
-		fmt.Printf("failed to marshal rl size")
+		return nil, err
 	}
 
 	return &metadata, nil
 }
 
 func LoadGroupManagerUpdateKey(name string) (*snark.SizedSnarkVerifier, error) {
-	key, err := LoadGroupManagerUpKey(name, "update")
+	key, err := LoadGroupManagerKey(name, "update")
 	if err != nil {
 		return nil, err
 	}
@@ -108,12 +120,17 @@ func LoadGroupManagerUpdateKey(name string) (*snark.SizedSnarkVerifier, error) {
 	verifier := snark.SizedSnarkVerifier{
 		VerifyKey: key,
 		RLSize:    *metadata,
+		Name:      name,
 	}
 
 	return &verifier, nil
 }
 
-func LoadGroupManagerUpKey(name, protocol string) (*groth16.VerifyingKey, error) {
+func LoadBasicGroupManagerKey(protocol string) (*groth16.VerifyingKey, error) {
+	return LoadGroupManagerKey("", protocol)
+}
+
+func LoadGroupManagerKey(name, protocol string) (*groth16.VerifyingKey, error) {
 	keyFileName := dump.FileName(name, protocol, dump.VerifierKeyFileNameFormat)
 	dirFS := os.DirFS(dump.KeyPath)
 
