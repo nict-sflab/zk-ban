@@ -103,7 +103,7 @@ func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.T
 
 	updateRequest, _ := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
 
-	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(verifier.VerifyKey.VerifyingKey)
+	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(*verifier.VerifyKey)
 	test.PanicIfErr(err)
 
 	b.Run("baseline--update-precomputes-"+name, func(b usefulbench.Benchmarker) {

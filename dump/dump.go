@@ -1,9 +1,14 @@
 package dump
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/precomputes"
+	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
 )
 
@@ -41,21 +46,65 @@ func DumpBasicKeys(path string) {
 }
 
 func DumpUpdateKeys(name string, rlSize witness.RevocationListSize, path string) {
-	updateProver, updateVerify, err := MakeUpdateCircuit(rlSize)
+	rl := witness.EmptyRevocationList(rlSize)
+
+	params, err := snark.InitSNARK(&precomputes.UpdateCircuit{
+		UpdateCircuit: circuit.UpdateCircuit{
+			RevocationList: circuit.NewRevocationListAssigned(rl),
+		},
+	})
+
 	if err != nil {
-		fmt.Printf("failed to dump update keys")
+		fmt.Printf("failed to generate update keys")
 	}
 
-	proverFileName := fmt.Sprintf(UpdateProverKeyFileNameFormat, name)
-	verifierFileName := fmt.Sprintf(UpdateVerifierKeyFileNameFormat, name)
+	proverFileName := FileName(name, UpdateProverKeyFileNameFormat)
+	csFileName := FileName(name, UpdateCircuitFileNameFormat)
+	verifierFileName := FileName(name, UpdateVerifierKeyFileNameFormat)
+	verifierMetaFileName := FileName(name, UpdateVKMetaFileNameFormat)
 
-	err = os.WriteFile(path+proverFileName, updateProver, 0644)
+	proverKeyFile, err := os.Create(proverFileName)
 	if err != nil {
-		fmt.Printf("failed to dump update keys")
+		log.Fatalf("create pk file: %v", err)
+	}
+	defer proverKeyFile.Close()
+
+	if _, err := params.ProveKey.WriteRawTo(proverKeyFile); err != nil {
+		log.Fatalf("write raw pk: %v", err)
 	}
 
-	err = os.WriteFile(path+verifierFileName, updateVerify, 0644)
+	constraintSystemFile, err := os.Create(csFileName)
 	if err != nil {
-		fmt.Printf("failed to dump update keys")
+		log.Fatalf("create cs file: %v", err)
+	}
+	defer constraintSystemFile.Close()
+
+	if _, err := params.ConstraintSystem.WriteTo(constraintSystemFile); err != nil {
+		log.Fatalf("write cs: %v", err)
+	}
+
+	verifierKeyFile, err := os.Create(verifierFileName)
+	if err != nil {
+		log.Fatalf("create vk file: %v", err)
+	}
+
+	defer verifierKeyFile.Close()
+	if _, err := params.VerifyKey.WriteRawTo(verifierKeyFile); err != nil {
+		log.Fatalf("write raw vk: %v", err)
+	}
+
+	fMeta, err := os.Create(verifierMetaFileName)
+	if err != nil {
+		log.Fatalf("create vk metadata file: %v", err)
+	}
+	defer constraintSystemFile.Close()
+
+	v, err := json.Marshal(rlSize)
+	if err != nil {
+		fmt.Printf("failed to marshal rl size")
+	}
+
+	if _, err := fMeta.Write(v); err != nil {
+		log.Fatalf("write vk metadata: %v", err)
 	}
 }

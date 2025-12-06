@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/dump"
 	"github.com/akakou/zk-ban/load"
@@ -14,7 +13,7 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-var TestKeyPath = "./"
+const TestKeyPath = "./"
 
 func PanicIfErr(err error) {
 	if err != nil {
@@ -84,16 +83,17 @@ func PrepareUpdateKey(rlSize witness.RevocationListSize, _ string) (*snark.Snark
 
 	return updateSnark.Prover(), &snark.SizedSnarkVerifier{
 		RLSize:    rlSize,
-		VerifyKey: &gnarkserializable.VerifyingKey{updateSnark.VerifyKey},
+		VerifyKey: &updateSnark.VerifyKey,
 	}
 }
 
 func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*snark.SnarkProver, *snark.SizedSnarkVerifier) {
-	proverFileName := fmt.Sprintf(dump.UpdateProverKeyFileNameFormat, name)
-	verifierFileName := fmt.Sprintf(dump.UpdateVerifierKeyFileNameFormat, name)
+	dump.KeyPath = TestKeyPath
 
-	fmt.Printf("search key at %s\n", TestKeyPath+proverFileName)
-	_, err := os.Stat(TestKeyPath + proverFileName)
+	verifierFileName := dump.FileName(name, dump.UpdateVerifierKeyFileNameFormat)
+
+	fmt.Printf("search key at %s\n", TestKeyPath+verifierFileName)
+	_, err := os.Stat(TestKeyPath + verifierFileName)
 	if err != nil {
 		fmt.Println("compile")
 		dump.DumpUpdateKeys(name, rlSize, TestKeyPath)
@@ -101,13 +101,13 @@ func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*sn
 		fmt.Println("compile skip")
 	}
 
-	pk, err := load.LoadUpdateKey(proverFileName, os.DirFS(TestKeyPath), load.DocodeProver)
+	pk, err := load.LoadUserUpdateKey(name)
 	PanicIfErr(err)
 
-	vk, err := load.LoadUpdateKey(verifierFileName, os.DirFS(TestKeyPath), load.DocodeSizedVerifyingKey)
+	vk, err := load.LoadGroupManagerUpdateKey(name)
 	PanicIfErr(err)
 
-	return *pk, *vk
+	return pk, vk
 }
 
 func PrepareParams() TestParams {

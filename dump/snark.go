@@ -23,8 +23,8 @@ func Prepare[T frontend.Circuit](c T) ([]byte, []byte, error) {
 	}
 
 	prover := snark.SnarkProver{
-		ConstraintSystem: gnarkserializable.ConstraintSystem{cc.ConstraintSystem},
-		ProveKey:         gnarkserializable.ProvingKey{cc.ProveKey},
+		ConstraintSystem: cc.ConstraintSystem,
+		ProveKey:         cc.ProveKey,
 	}
 
 	proverBuf, err := json.Marshal(&prover)
@@ -56,9 +56,7 @@ func MakeUpdateCircuit(rlSize witness.RevocationListSize) ([]byte, []byte, error
 	}
 
 	verifier := snark.SizedSnarkVerifier{
-		VerifyKey: &gnarkserializable.VerifyingKey{
-			cc.VerifyKey,
-		},
+		VerifyKey: &cc.VerifyKey,
 		RLSize: rlSize,
 	}
 
@@ -68,8 +66,8 @@ func MakeUpdateCircuit(rlSize witness.RevocationListSize) ([]byte, []byte, error
 	}
 
 	prover := snark.SnarkProver{
-		ConstraintSystem: gnarkserializable.ConstraintSystem{cc.ConstraintSystem},
-		ProveKey:         gnarkserializable.ProvingKey{cc.ProveKey},
+		ConstraintSystem: cc.ConstraintSystem,
+		ProveKey:         cc.ProveKey,
 	}
 
 	proverBuf, err := json.Marshal(&prover)

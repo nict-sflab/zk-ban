@@ -124,8 +124,8 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 				pk, vk := test.PrepareUpdateKeyCached(rlSize, name)
 
 				storage.StoreWritableSize(name, "pk", root, pk.ProveKey, result)
-				storage.StoreWritableSize(name, "cs", root, &pk.ConstraintSystem, result)
-				storage.StoreWritableSize(name, "vk", root, vk.VerifyKey, result)
+				storage.StoreWritableSize(name, "cs", root, pk.ConstraintSystem, result)
+				storage.StoreWritableSize(name, "vk", root, *vk.VerifyKey, result)
 
 				j, err := json.Marshal(result)
 				test.PanicIfErr(err)
