@@ -90,10 +90,10 @@ func PrepareUpdateKey(rlSize witness.RevocationListSize, _ string) (*snark.Snark
 func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*snark.SnarkProver, *snark.SizedSnarkVerifier) {
 	dump.KeyPath = TestKeyPath
 
-	verifierFileName := dump.FileName(name, dump.UpdateVerifierKeyFileNameFormat)
+	metadataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat)
 
-	fmt.Printf("search key at %s\n", TestKeyPath+verifierFileName)
-	_, err := os.Stat(TestKeyPath + verifierFileName)
+	fmt.Printf("search key at %s\n", TestKeyPath+metadataFileName)
+	_, err := os.Stat(TestKeyPath + metadataFileName)
 	if err != nil {
 		fmt.Println("compile")
 		dump.DumpUpdateKeys(name, rlSize, TestKeyPath)
@@ -101,7 +101,7 @@ func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*sn
 		fmt.Println("compile skip")
 	}
 
-	pk, err := load.LoadUserUpdateKey(name)
+	pk, err := load.LoadUserUpdateKey(name, "update")
 	PanicIfErr(err)
 
 	vk, err := load.LoadGroupManagerUpdateKey(name)
