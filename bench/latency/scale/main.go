@@ -3,16 +3,15 @@ package main
 import (
 	"fmt"
 
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/bench/latency"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
+	"github.com/akakou/zk-ban/load"
 )
 
 const COUNT = 20
 
 func main() {
-	gnarkserializable.Unsafe = true
-
+	load.KeyChecked = true
 	bb := usefulbench.New(COUNT)
 	latency.BenchmarkScalability(bb)
 

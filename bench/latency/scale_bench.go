@@ -7,6 +7,7 @@ import (
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
+	"github.com/akakou/zk-ban/load"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/test"
 	zkbanw "github.com/akakou/zk-ban/witness"
@@ -135,6 +136,13 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 		}
 	}()
 
+	b.Run("load-prove-"+parent, func(b usefulbench.Benchmarker) {
+		for b.Loop() {
+			_, err := load.LoadUserKey(parent, "update")
+			test.PanicIfErr(err)
+		}
+	})
+
 	b.Run("prove-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
@@ -147,6 +155,13 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 	if SkipVerify {
 		return
 	}
+
+	b.Run("load-verify-"+parent, func(b usefulbench.Benchmarker) {
+		for b.Loop() {
+			_, err := load.LoadGroupManagerUpdateKey(parent)
+			test.PanicIfErr(err)
+		}
+	})
 
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(*veirifer.VerifyKey)
 	test.PanicIfErr(err)

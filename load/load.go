@@ -1,9 +1,9 @@
 package load
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"os"
 	"regexp"
 	"strings"
@@ -14,30 +14,39 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
+// Loading key safe or unsafe (without checking consistency)
+// If you are sure about the key correctness, you can set it to false for performance.
+var KeyChecked = false
+
 func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
 	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat)
 	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat)
 
-	dirFS := os.DirFS(dump.KeyPath)
-
-	keyFile, err := dirFS.Open(keyFileName)
+	pkBin, err := os.ReadFile(keyFileName)
 	if err != nil {
 		return nil, err
 	}
 
+	buf := bytes.NewBuffer(pkBin)
 	key := groth16.NewProvingKey(snark.EcCurve)
-	_, err = key.ReadFrom(keyFile)
+	if KeyChecked {
+		_, err = key.UnsafeReadFrom(buf)
+	} else {
+		_, err = key.ReadFrom(buf)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	csFile, err := dirFS.Open(csFileName)
+	csBin, err := os.ReadFile(csFileName)
 	if err != nil {
 		return nil, err
 	}
+	csBuf := bytes.NewBuffer(csBin)
 
 	cs := groth16.NewCS(snark.EcCurve)
-	_, err = cs.ReadFrom(csFile)
+	_, err = cs.ReadFrom(csBuf)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +57,6 @@ func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
 	}
 
 	return &prover, nil
-
 }
 
 func LoadUserBasicKey(protocol string) (*snark.SnarkProver, error) {
@@ -88,11 +96,9 @@ func LoadGroupManagerUpdateKeys() ([]*snark.SizedSnarkVerifier, error) {
 }
 
 func LoadGroupManagerMetadata(name string) (*witness.RevocationListSize, error) {
-	dirFS := os.DirFS(dump.KeyPath)
-
 	metaDataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat)
 
-	metadataFile, err := fs.ReadFile(dirFS, metaDataFileName)
+	metadataFile, err := os.ReadFile(metaDataFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -132,15 +138,21 @@ func LoadBasicGroupManagerKey(protocol string) (*groth16.VerifyingKey, error) {
 
 func LoadGroupManagerKey(name, protocol string) (*groth16.VerifyingKey, error) {
 	keyFileName := dump.FileName(name, protocol, dump.VerifierKeyFileNameFormat)
-	dirFS := os.DirFS(dump.KeyPath)
 
-	keyFile, err := dirFS.Open(keyFileName)
+	vkBin, err := os.ReadFile(keyFileName)
 	if err != nil {
 		return nil, err
 	}
 
+	buf := bytes.NewBuffer(vkBin)
+
 	var key = groth16.NewVerifyingKey(snark.EcCurve)
-	_, err = key.ReadFrom(keyFile)
+	if KeyChecked {
+		_, err = key.UnsafeReadFrom(buf)
+	} else {
+		_, err = key.ReadFrom(buf)
+	}
+
 	if err != nil {
 		return nil, err
 	}
