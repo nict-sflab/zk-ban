@@ -96,12 +96,12 @@ func PrepareUpdateKeyCached(rlSize witness.RevocationListSize, name string) (*sn
 	_, err := os.Stat(TestKeyPath + metadataFileName)
 	if err != nil {
 		fmt.Println("compile")
-		dump.DumpUpdateKeys(name, rlSize, TestKeyPath)
+		dump.DumpUpdateKeys(name, rlSize)
 	} else {
 		fmt.Println("compile skip")
 	}
 
-	pk, err := load.LoadUserUpdateKey(name, "update")
+	pk, err := load.LoadUserKey(name, "update")
 	PanicIfErr(err)
 
 	vk, err := load.LoadGroupManagerUpdateKey(name)
