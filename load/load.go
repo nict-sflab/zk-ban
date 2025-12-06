@@ -14,6 +14,10 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
+// Loading key safe or unsafe (without checking consistency)
+// If you are sure about the key correctness, you can set it to false for performance.
+var KeyChecked = false
+
 func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
 	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat)
 	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat)
@@ -26,7 +30,12 @@ func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
 	}
 
 	key := groth16.NewProvingKey(snark.EcCurve)
-	_, err = key.ReadFrom(keyFile)
+	if KeyChecked {
+		_, err = key.UnsafeReadFrom(keyFile)
+	} else {
+		_, err = key.ReadFrom(keyFile)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +149,12 @@ func LoadGroupManagerKey(name, protocol string) (*groth16.VerifyingKey, error) {
 	}
 
 	var key = groth16.NewVerifyingKey(snark.EcCurve)
-	_, err = key.ReadFrom(keyFile)
+	if KeyChecked {
+		_, err = key.UnsafeReadFrom(keyFile)
+	} else {
+		_, err = key.ReadFrom(keyFile)
+	}
+
 	if err != nil {
 		return nil, err
 	}
