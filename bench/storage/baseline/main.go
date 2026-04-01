@@ -93,8 +93,8 @@ func benchBasicUpdate(rl witness.RevocationList, name string, params *test.TestP
 }
 
 func benchBasicUpdateCircuit(root string, result storage.Result) {
-	kappas := []int{15, 30, 60, 120}
-	lambdas := []int{27_000, 54_000, 108_000, 216_000}
+	kappas := []int{30, 60, 120}
+	lambdas := []int{54_000, 108_000, 216_000}
 
 	// rlMakers := []func(int, int) (witness.RevocationList, witness.RevocationListSize){
 	// 	test.EmptyUniformRevocationList,
@@ -123,15 +123,14 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 				name := fmt.Sprintf("%d-%d-%s", kappa, lambda, tag)
 				pk, vk := test.PrepareUpdateKeyCached(rlSize, name)
 
-				storage.StoreWritableSize(name, "pk", root, pk.ProveKey, result)
+				storage.StoreRawWritableSize(name, "pk", root, pk.ProveKey, result)
 				storage.StoreWritableSize(name, "cs", root, pk.ConstraintSystem, result)
-				storage.StoreWritableSize(name, "vk", root, *vk.VerifyKey, result)
+				storage.StoreRawWritableSize(name, "vk", root, *vk.VerifyKey, result)
 
 				j, err := json.Marshal(result)
 				test.PanicIfErr(err)
 				fmt.Printf("result %s\n", j)
-				fmt.Printf("%d/%d is done...", count, 4*4*3)
-
+				fmt.Printf("%d/%d is done...", count, len(kappas)*len(lambdas)*len(rlMakers))
 			}
 		}
 	}
