@@ -10,6 +10,7 @@ import (
 	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/storage"
+	"github.com/akakou/zk-ban/dump"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
 )
@@ -93,10 +94,18 @@ func benchUpdate(v int, root string, rlSize witness.RevocationListSize, result s
 	parent := fmt.Sprintf("%v--%d", root, v)
 	vs := strconv.Itoa(v)
 
-	prover, verifier := test.PrepareUpdateKeyCached(rlSize, parent)
-	storage.StoreWritableSize(vs, "cs", root, prover.ConstraintSystem, result)
-	storage.StoreWritableSize(vs, "pk", root, prover.ProveKey, result)
-	storage.StoreWritableSize(vs, "vk", root, *verifier.VerifyKey, result)
+	test.PrepareUpdateKeyCached(rlSize, parent)
+
+	cs, err := os.Stat(dump.FileName(parent, "update", dump.CircuitFileNameFormat))
+	test.PanicIfErr(err)
+	pk, err := os.Stat(dump.FileName(parent, "update", dump.ProverKeyFileNameFormat))
+	test.PanicIfErr(err)
+	vk, err := os.Stat(dump.FileName(parent, "update", dump.VerifierKeyFileNameFormat))
+	test.PanicIfErr(err)
+
+	storage.StoreSize(vs, "cs", root, int(cs.Size()), result)
+	storage.StoreSize(vs, "pk", root, int(pk.Size()), result)
+	storage.StoreSize(vs, "vk", root, int(vk.Size()), result)
 
 	// params := test.PrepareParams()
 

@@ -10,6 +10,7 @@ import (
 	gnarkserializable "github.com/akakou/gnark-serializable"
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench/storage"
+	"github.com/akakou/zk-ban/dump"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
 )
@@ -121,11 +122,18 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 				tag := rlMakerTags[i]
 				rlSize := rlMaker(kappa, lambda)
 				name := fmt.Sprintf("%d-%d-%s", kappa, lambda, tag)
-				pk, vk := test.PrepareUpdateKeyCached(rlSize, name)
+				test.PrepareUpdateKeyCached(rlSize, name)
 
-				storage.StoreRawWritableSize(name, "pk", root, pk.ProveKey, result)
-				storage.StoreWritableSize(name, "cs", root, pk.ConstraintSystem, result)
-				storage.StoreRawWritableSize(name, "vk", root, *vk.VerifyKey, result)
+				cs, err := os.Stat(dump.FileName(name, "update", dump.CircuitFileNameFormat))
+				test.PanicIfErr(err)
+				pk, err := os.Stat(dump.FileName(name, "update", dump.ProverKeyFileNameFormat))
+				test.PanicIfErr(err)
+				vk, err := os.Stat(dump.FileName(name, "update", dump.VerifierKeyFileNameFormat))
+				test.PanicIfErr(err)
+
+				storage.StoreSize(name, "pk", root, int(pk.Size()), result)
+				storage.StoreSize(name, "cs", root, int(cs.Size()), result)
+				storage.StoreSize(name, "vk", root, int(vk.Size()), result)
 
 				j, err := json.Marshal(result)
 				test.PanicIfErr(err)
