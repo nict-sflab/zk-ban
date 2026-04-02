@@ -15,6 +15,10 @@ import (
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
 
+var NoParallel = false
+var SkipVerify = false
+var OnlyUniform = false
+
 var alpha = 1
 var beta = 25
 var max = 10
@@ -53,6 +57,10 @@ func BenchmarkNymScalability(b usefulbench.Benchmarker) {
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
 	}
 
+	if OnlyUniform {
+		return
+	}
+
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
@@ -73,9 +81,11 @@ func BenchmarkNymScalability(b usefulbench.Benchmarker) {
 func BenchSessScalability(b usefulbench.Benchmarker) {
 	// increase sessionNumber
 	BenchSessUniformScalability(b)
+	if OnlyUniform {
+		return
+	}
 	BenchSessProportionalScalability(b)
 	BenchSessGaussScalability(b)
-
 }
 
 func BenchSessUniformScalability(b usefulbench.Benchmarker) {
@@ -114,9 +124,6 @@ func BenchSessGaussScalability(b usefulbench.Benchmarker) {
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_GAUSSIAN, b)
 	}
 }
-
-var NoParallel = false
-var SkipVerify = false
 
 func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
