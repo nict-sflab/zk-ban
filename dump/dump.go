@@ -17,7 +17,7 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 	csFileName := FileName(name, protocol, CircuitFileNameFormat)
 	verifierFileName := FileName(name, protocol, VerifierKeyFileNameFormat)
 
-	proverKeyFile, err := os.Create(KeyPath + "/" + proverFileName)
+	proverKeyFile, err := os.Create(proverFileName)
 	if err != nil {
 		log.Fatalf("create pk file: %v", err)
 	}
@@ -28,7 +28,7 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 		log.Fatalf("write dump pk: %v", err)
 	}
 
-	constraintSystemFile, err := os.Create(KeyPath + "/" + csFileName)
+	constraintSystemFile, err := os.Create(csFileName)
 	if err != nil {
 		log.Fatalf("create cs file: %v", err)
 	}
@@ -39,7 +39,7 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 		log.Fatalf("write cs: %v", err)
 	}
 
-	verifierKeyFile, err := os.Create(KeyPath + "/" + verifierFileName)
+	verifierKeyFile, err := os.Create(verifierFileName)
 	if err != nil {
 		log.Fatalf("create vk file: %v", err)
 	}
@@ -69,7 +69,7 @@ func DumpBasicKeys() {
 
 func DumpMetadata(name string, rlSize witness.RevocationListSize) {
 	verifierMetaFileName := FileName(name, "update", MetaFileNameFormat)
-	metadataFile, err := os.Create(KeyPath + "/" + verifierMetaFileName)
+	metadataFile, err := os.Create(verifierMetaFileName)
 	if err != nil {
 		log.Fatalf("create vk metadata file: %v", err)
 	}
