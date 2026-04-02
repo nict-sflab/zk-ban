@@ -23,9 +23,9 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 	}
 	defer proverKeyFile.Close()
 
-	_, err = params.ProveKey.WriteRawTo(proverKeyFile)
+	err = params.ProveKey.WriteDump(proverKeyFile)
 	if err != nil {
-		log.Fatalf("write raw pk: %v", err)
+		log.Fatalf("write dump pk: %v", err)
 	}
 
 	constraintSystemFile, err := os.Create(KeyPath + "/" + csFileName)
