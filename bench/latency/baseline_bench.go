@@ -5,6 +5,7 @@ import (
 
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
+	"github.com/akakou/zk-ban/load"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
@@ -88,12 +89,28 @@ func benchmarkBaseline(params *test.TestParams, b usefulbench.Benchmarker) {
 
 func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {
 	prover, verifier := test.PrepareUpdateKey(rl.Sizes(), name)
+	cacheName := "baseline-" + name
+	test.PrepareUpdateKeyCached(rl.Sizes(), cacheName)
 
 	if NoParallel {
 		runtime.GOMAXPROCS(1)
 	}
 
 	var err error
+	b.Run("baseline--update-load-prove-"+name, func(b usefulbench.Benchmarker) {
+		for b.Loop() {
+			_, err = load.LoadUserKey(cacheName, "update")
+			test.PanicIfErr(err)
+		}
+	})
+
+	b.Run("baseline--update-load-verify-"+name, func(b usefulbench.Benchmarker) {
+		for b.Loop() {
+			_, err = load.LoadGroupManagerUpdateKey(cacheName)
+			test.PanicIfErr(err)
+		}
+	})
+
 	b.Run("baseline--update-req-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
