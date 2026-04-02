@@ -13,7 +13,7 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-const TestKeyPath = "./"
+var TestKeyPath = "./"
 
 func PanicIfErr(err error) {
 	if err != nil {
@@ -92,8 +92,8 @@ func PrepareKeyIfNotExist(rlSize witness.RevocationListSize, name string) {
 
 	metadataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat)
 
-	fmt.Printf("search key at %s\n", TestKeyPath+metadataFileName)
-	_, err := os.Stat(TestKeyPath + metadataFileName)
+	fmt.Printf("search key at %s\n", metadataFileName)
+	_, err := os.Stat(metadataFileName)
 	if err != nil {
 		fmt.Println("compile")
 		dump.DumpUpdateKeys(name, rlSize)
