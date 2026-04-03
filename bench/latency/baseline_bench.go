@@ -14,9 +14,8 @@ import (
 func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
-	// baseNym := 108_000 * 100
-	baseNym := 108_000
-	baseSess := 60
+	baseNym := 30000
+	baseSess := 30 * 10
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 
@@ -88,9 +87,8 @@ func benchmarkBaseline(params *test.TestParams, b usefulbench.Benchmarker) {
 }
 
 func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {
-	prover, verifier := test.PrepareUpdateKey(rl.Sizes(), name)
 	cacheName := "baseline-" + name
-	test.PrepareUpdateKeyCached(rl.Sizes(), cacheName)
+	prover, verifier := test.PrepareUpdateKeyCached(rl.Sizes(), cacheName)
 
 	if NoParallel {
 		runtime.GOMAXPROCS(1)

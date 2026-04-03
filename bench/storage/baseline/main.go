@@ -15,6 +15,9 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
+const KAPPA = 300
+const LAMBDA = 1024 * 3
+
 func main() {
 	gnarkserializable.Unsafe = true
 	params := test.PrepareParams()
@@ -94,8 +97,8 @@ func benchBasicUpdate(rl witness.RevocationList, name string, params *test.TestP
 }
 
 func benchBasicUpdateCircuit(root string, result storage.Result) {
-	kappas := []int{30, 60, 120}
-	lambdas := []int{54_000, 108_000, 216_000}
+	kappas := []int{KAPPA / 2, KAPPA, KAPPA * 2}
+	lambdas := []int{LAMBDA / 2, LAMBDA, LAMBDA * 2}
 
 	// rlMakers := []func(int, int) (witness.RevocationList, witness.RevocationListSize){
 	// 	test.EmptyUniformRevocationList,

@@ -20,13 +20,13 @@ var SkipVerify = false
 var OnlyUniform = false
 
 var alpha = 1
-var beta = 25
+var beta = 10
 var max = 10
 
-var baseSessionNum = 60
+var baseSessionNum = 300
 
 // var baseNymNum = 108_000 * 50
-var baseNymNum = 108_000
+var baseNymNum = 30000
 
 func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
