@@ -55,7 +55,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	api.AssertIsLessOrEqual(circuit.Counter, MAX)
+	api.AssertIsLessOrEqual(circuit.Counter, MAX-1)
 
 	api.AssertIsEqual(circuit.Signature, signature)
 	api.AssertIsEqual(circuit.Nym, nym)

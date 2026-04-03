@@ -11,8 +11,8 @@ import (
 
 type RevocationList []RevokedNymsPerSession
 type RevokedNymsPerSession struct {
-	SessionTag *primitives.BigInt
-	Nyms       []*primitives.BigInt
+	Period *primitives.BigInt
+	Nyms   []*primitives.BigInt
 }
 
 func (rl RevocationList) Size() int {
@@ -176,10 +176,11 @@ func EmptyRevocationList(rlSize RevocationListSize) RevocationList {
 			nyms = append(nyms, n)
 		}
 
-		n := InitBigInt()
+		// Period is encoded in 64 bits in the circuit; default to 0 for empty entries.
+		n := primitives.NewBigInt(0)
 		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: n,
+			Nyms:   nyms,
+			Period: n,
 		})
 	}
 

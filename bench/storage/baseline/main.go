@@ -15,8 +15,8 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-const KAPPA = 300
-const LAMBDA = 1024 * 3
+const KAPPA = 30
+const LAMBDA = 30000
 
 func main() {
 	gnarkserializable.Unsafe = true

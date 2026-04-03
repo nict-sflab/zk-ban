@@ -15,7 +15,7 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
 	baseNym := 30000
-	baseSess := 30 * 10
+	baseSess := 30
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 

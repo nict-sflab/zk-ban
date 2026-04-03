@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
-	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/test"
 )
 
@@ -46,6 +46,11 @@ func TestAll(t *testing.T) {
 		assert.ErrorContains(err, verifyFailedMessage)
 	})
 
+	t.Run("sign-counter-max-fail", func(t *testing.T) {
+		_, err = zkban.Sign(params.M, int64(circuit.MAX), params.Signer(), params.GPK, signCircuit.Prover())
+		assert.ErrorContains(err, proveFailedMessage)
+	})
+
 	t.Run("update", func(t *testing.T) {
 		req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 		assert.NoError(err)
@@ -70,7 +75,7 @@ func TestAll(t *testing.T) {
 
 	t.Run("update-fail1", func(t *testing.T) {
 		rl := EmptyUniformRevocationList(60, 120)
-		rl[0].SessionTag = witness.SessionTag(params.CNT, params.Period)
+		rl[0].Period = primitives.NewBigInt(params.Period)
 		rl[0].Nyms[0] = signature.Commit.Nym
 		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)
@@ -82,7 +87,7 @@ func TestAll(t *testing.T) {
 			req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 			assert.NoError(err, proveFailedMessage)
 
-			rl[sessIndex].SessionTag = witness.SessionTag(params.CNT, params.Period)
+			rl[sessIndex].Period = primitives.NewBigInt(params.Period)
 			rl[sessIndex].Nyms[nymIndex] = signature.Commit.Nym
 
 			vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
