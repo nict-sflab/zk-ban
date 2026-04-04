@@ -7,6 +7,7 @@ import (
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
+	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/load"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/test"
@@ -111,6 +112,8 @@ func BenchOneMaxSessScalability(b usefulbench.Benchmarker, name string, EmptyRev
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 		sessNum := baseSessNum * i * gamma
+
+		circuit.MaxSession = sessNum
 
 		rl := EmptyRevocationList(baseNymNum, baseNymNum)
 		benchmarkUpdate(sessNum, rl, bench.PERIOD_INCREASE_PROPORTIONAL, b)

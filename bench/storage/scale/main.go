@@ -10,6 +10,7 @@ import (
 	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/storage"
+	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/dump"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
@@ -80,6 +81,8 @@ func BenchOneMaxSessScalability(result storage.Result, name string, MakeRLSize f
 		runtime.GC()
 
 		maxSess := baseMaxSess * i * gamma
+		circuit.MaxSession = maxSess
+
 		rlSize := MakeRLSize(basePeriodNum, baseNymNum)
 		benchUpdate(maxSess, name, rlSize, result)
 	}
