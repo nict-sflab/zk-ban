@@ -15,15 +15,15 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
+var baseSessionNum = 60
+var baseNymNum = 108_000
+
+var alpha = 1
+var beta = 25
+var max = 10
+
 func main() {
 	gnarkserializable.Unsafe = true
-	max := 10
-
-	baseSessionNum := 60
-	baseNymNum := 108_000
-
-	alpha := 1
-	beta := 25
 
 	result := make(storage.Result, 0)
 	result["env"] = make(map[string]map[string]int)
@@ -34,6 +34,22 @@ func main() {
 	result["env"]["default"]["beta"] = int(beta)
 
 	// increase nym
+	BenchOneNymScalability(result, witness.MakeUniformRLSizeFromTotal)
+	BenchOneNymScalability(result, witness.MakeProportionalRLSizeFromTotal)
+	BenchOneNymScalability(result, test.EmptyGaussianRevocationListSize)
+
+	BenchOneSessScalability(result, witness.MakeUniformRLSizeFromTotal)
+	BenchOneSessScalability(result, witness.MakeProportionalRLSizeFromTotal)
+	BenchOneSessScalability(result, test.EmptyGaussianRevocationListSize)
+
+	j, err := json.Marshal(result)
+	test.PanicIfErr(err)
+	fmt.Printf("%s", j)
+
+	os.WriteFile("update-storage.json", j, 0644)
+}
+
+func BenchOneNymScalability(result storage.Result, MakeRLSize func(int, int) witness.RevocationListSize) {
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
@@ -41,53 +57,16 @@ func main() {
 		rlSize := witness.MakeUniformRLSizeFromTotal(baseSessionNum, nymNum)
 		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
 	}
+}
 
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rlSize := witness.MakeProportionalRLSizeFromTotal(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rlSize, result)
-	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rlSize := test.EmptyGaussianRevocationListSize(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rlSize, result)
-	}
-
-	// increase sessionNumber
+func BenchOneSessScalability(result storage.Result, MakeRLSize func(int, int) witness.RevocationListSize) {
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
 		sessionNum := baseSessionNum * i * beta
-		rlSize := witness.MakeUniformRLSizeFromTotal(sessionNum, baseNymNum)
+		rlSize := MakeRLSize(sessionNum, baseNymNum)
 		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rlSize, result)
 	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rlSize := witness.MakeProportionalRLSizeFromTotal(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rlSize, result)
-	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rlSize := test.EmptyGaussianRevocationListSize(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rlSize, result)
-	}
-
-	j, err := json.Marshal(result)
-	test.PanicIfErr(err)
-	fmt.Printf("%s", j)
-
-	os.WriteFile("update-storage.json", j, 0644)
 }
 
 func benchUpdate(v int, root string, rlSize witness.RevocationListSize, result storage.Result) {

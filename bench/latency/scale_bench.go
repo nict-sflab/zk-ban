@@ -49,80 +49,49 @@ func BenchmarkNymScalability(b usefulbench.Benchmarker) {
 	logIfUsefulBenchInScaleBench(b)
 
 	// increase nym
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
-	}
-
+	BenchmarkOneNymScalability(b, test.EmptyUniformRevocationList)
 	if OnlyUniform {
 		return
 	}
+	BenchmarkOneNymScalability(b, test.EmptyProportionalRevocationList)
+	BenchmarkOneNymScalability(b, test.EmptyGaussianRevocationList)
 
+}
+func BenchmarkOneNymScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
+	logIfUsefulBenchInScaleBench(b)
+
+	// increase nym
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_PROPORTIONAL, b)
+		rl := EmptyRevocationList(baseSessionNum, nymNum)
+		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
 	}
 
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_GAUSSIAN, b)
-	}
 }
 
 func BenchSessScalability(b usefulbench.Benchmarker) {
 	// increase sessionNumber
-	BenchSessUniformScalability(b)
+	BenchOneSessScalability(b, test.EmptyUniformRevocationList)
 	if OnlyUniform {
 		return
 	}
-	BenchSessProportionalScalability(b)
-	BenchSessGaussScalability(b)
+	BenchOneSessScalability(b, test.EmptyProportionalRevocationList)
+	BenchOneSessScalability(b, test.EmptyUniformRevocationList)
 }
 
-func BenchSessUniformScalability(b usefulbench.Benchmarker) {
+func BenchOneSessScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
 		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
+		rl := EmptyRevocationList(sessionNum, baseNymNum)
 		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_UNIFORM, b)
 	}
 
-}
-
-func BenchSessProportionalScalability(b usefulbench.Benchmarker) {
-	logIfUsefulBenchInScaleBench(b)
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_PROPORTIONAL, b)
-	}
-}
-
-func BenchSessGaussScalability(b usefulbench.Benchmarker) {
-	logIfUsefulBenchInScaleBench(b)
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_GAUSSIAN, b)
-	}
 }
 
 func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
