@@ -51,9 +51,6 @@ func main() {
 	test.PanicIfErr(err)
 	storage.StoreBufSize("cred", "baseline", "baseline", cred.Signature, result)
 
-	tag := witness.SessionTag(2, now)
-	fmt.Printf("tag: %v\n", len(tag.Bytes()))
-
 	signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 	test.PanicIfErr(err)
 

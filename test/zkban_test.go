@@ -82,13 +82,13 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("update-fail2", func(t *testing.T) {
-		test := func(sessIndex, nymIndex int) {
+		test := func(periodIndex, nymIndex int) {
 			rl := EmptyUniformRevocationList(60, 120)
 			req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 			assert.NoError(err, proveFailedMessage)
 
-			rl[sessIndex].Period = primitives.NewBigInt(params.Period)
-			rl[sessIndex].Nyms[nymIndex] = signature.Commit.Nym
+			rl[periodIndex].Period = primitives.NewBigInt(params.Period)
+			rl[periodIndex].Nyms[nymIndex] = signature.Commit.Nym
 
 			vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
 			assert.NoError(err, proveFailedMessage)

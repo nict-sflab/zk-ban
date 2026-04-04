@@ -5,11 +5,11 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-type RevokedNymsPerSession struct {
+type RevokedNymsPerPeriod struct {
 	Nyms   []frontend.Variable `gnark:",public"`
 	Period frontend.Variable   `gnark:",public"`
 }
-type RevocationList []RevokedNymsPerSession
+type RevocationList []RevokedNymsPerPeriod
 
 func NewRevocationListAssigned(revocationList witness.RevocationList) RevocationList {
 	rl := RevocationList{}
@@ -20,7 +20,7 @@ func NewRevocationListAssigned(revocationList witness.RevocationList) Revocation
 			nyms = append(nyms, nym.Int)
 		}
 
-		rl = append(rl, RevokedNymsPerSession{
+		rl = append(rl, RevokedNymsPerPeriod{
 			Nyms:   nyms,
 			Period: rps.Period.Int,
 		})

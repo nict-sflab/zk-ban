@@ -15,7 +15,7 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-var baseSessionNum = 60
+var basePeriodNum = 60
 var baseNymNum = 108_000
 
 var alpha = 1
@@ -28,7 +28,7 @@ func main() {
 	result := make(storage.Result, 0)
 	result["env"] = make(map[string]map[string]int)
 	result["env"]["default"] = make(map[string]int)
-	result["env"]["default"]["baseSessionNum"] = int(baseSessionNum)
+	result["env"]["default"]["basePeriodNum"] = int(basePeriodNum)
 	result["env"]["default"]["baseNymNum"] = int(baseNymNum)
 	result["env"]["default"]["alpha"] = int(alpha)
 	result["env"]["default"]["beta"] = int(beta)
@@ -38,9 +38,9 @@ func main() {
 	BenchOneNymScalability(result, witness.MakeProportionalRLSizeFromTotal)
 	BenchOneNymScalability(result, test.EmptyGaussianRevocationListSize)
 
-	BenchOneSessScalability(result, witness.MakeUniformRLSizeFromTotal)
-	BenchOneSessScalability(result, witness.MakeProportionalRLSizeFromTotal)
-	BenchOneSessScalability(result, test.EmptyGaussianRevocationListSize)
+	BenchOnePeriodScalability(result, witness.MakeUniformRLSizeFromTotal)
+	BenchOnePeriodScalability(result, witness.MakeProportionalRLSizeFromTotal)
+	BenchOnePeriodScalability(result, test.EmptyGaussianRevocationListSize)
 
 	j, err := json.Marshal(result)
 	test.PanicIfErr(err)
@@ -54,18 +54,18 @@ func BenchOneNymScalability(result storage.Result, MakeRLSize func(int, int) wit
 		runtime.GC()
 
 		nymNum := baseNymNum * i * alpha
-		rlSize := witness.MakeUniformRLSizeFromTotal(baseSessionNum, nymNum)
+		rlSize := witness.MakeUniformRLSizeFromTotal(basePeriodNum, nymNum)
 		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
 	}
 }
 
-func BenchOneSessScalability(result storage.Result, MakeRLSize func(int, int) witness.RevocationListSize) {
+func BenchOnePeriodScalability(result storage.Result, MakeRLSize func(int, int) witness.RevocationListSize) {
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
-		sessionNum := baseSessionNum * i * beta
-		rlSize := MakeRLSize(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rlSize, result)
+		periodNum := basePeriodNum * i * beta
+		rlSize := MakeRLSize(periodNum, baseNymNum)
+		benchUpdate(periodNum, bench.PERIOD_INCREASE_UNIFORM, rlSize, result)
 	}
 }
 

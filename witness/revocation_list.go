@@ -9,8 +9,8 @@ import (
 	"github.com/akakou/zk-ban/snark"
 )
 
-type RevocationList []RevokedNymsPerSession
-type RevokedNymsPerSession struct {
+type RevocationList []RevokedNymsPerPeriod
+type RevokedNymsPerPeriod struct {
 	Period *primitives.BigInt
 	Nyms   []*primitives.BigInt
 }
@@ -51,20 +51,20 @@ var MimcInitBigInt = func() *primitives.BigInt {
 	return &primitives.BigInt{*n}
 }
 
-func MakeUniformRLSize(sessionNumber, nymsNumberPerSession int) RevocationListSize {
+func MakeUniformRLSize(periodNumber, nymsNumberPerPeriod int) RevocationListSize {
 	rlSize := []int{}
-	for range sessionNumber {
-		rlSize = append(rlSize, nymsNumberPerSession)
+	for range periodNumber {
+		rlSize = append(rlSize, nymsNumberPerPeriod)
 	}
 
 	return rlSize
 }
 
-func MakeLinearRLSize(sessionNumber, max, min int) RevocationListSize {
-	a := float64(max-min) / float64(sessionNumber)
+func MakeLinearRLSize(periodNumber, max, min int) RevocationListSize {
+	a := float64(max-min) / float64(periodNumber)
 
 	rlSize := []int{}
-	for i := range sessionNumber {
+	for i := range periodNumber {
 		v := float64(i)*a + float64(min)
 		if v < 1 {
 			v = 1
@@ -76,8 +76,8 @@ func MakeLinearRLSize(sessionNumber, max, min int) RevocationListSize {
 	return rlSize
 }
 
-func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) RevocationListSize {
-	u := float64(sessionNumber) - 1
+func MakeGaussianRLSize(periodNumber, nymNum int, sigma float64) RevocationListSize {
+	u := float64(periodNumber) - 1
 
 	var gaussianFunc = func(x float64) float64 {
 		exp1 := (x - u)
@@ -92,7 +92,7 @@ func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) RevocationList
 	}
 
 	rlSize := []int{}
-	for i := range sessionNumber {
+	for i := range periodNumber {
 		v := gaussianFunc(float64(i)) * 2 * float64(nymNum)
 		if v < 1 {
 			v = 1
@@ -103,13 +103,13 @@ func MakeGaussianRLSize(sessionNumber, nymNum int, sigma float64) RevocationList
 	return rlSize
 }
 
-func MakeUniformRLSizeFromTotal(sessionSize, nymNum int) RevocationListSize {
-	if sessionSize > nymNum {
-		log.Fatalf("wrong session size and nym num: %v(sess) > %v(nym)\n", sessionSize, nymNum)
+func MakeUniformRLSizeFromTotal(periodSize, nymNum int) RevocationListSize {
+	if periodSize > nymNum {
+		log.Fatalf("wrong period size and nym num: %v(period) > %v(nym)\n", periodSize, nymNum)
 	}
-	nymNumPerSession := nymNum / sessionSize
+	nymNumPerPeriod := nymNum / periodSize
 
-	rlSize := MakeUniformRLSize(sessionSize, nymNumPerSession)
+	rlSize := MakeUniformRLSize(periodSize, nymNumPerPeriod)
 
 	for i := range nymNum - rlSize.Size() {
 		rlSize[i] += 1
@@ -118,17 +118,17 @@ func MakeUniformRLSizeFromTotal(sessionSize, nymNum int) RevocationListSize {
 	return rlSize
 }
 
-func MakeProportionalRLSizeFromTotal(sessionSize, nymNum int) RevocationListSize {
-	max := nymNum * 2 / sessionSize
+func MakeProportionalRLSizeFromTotal(periodSize, nymNum int) RevocationListSize {
+	max := nymNum * 2 / periodSize
 
-	rlSize := MakeLinearRLSize(sessionSize, max, 1)
+	rlSize := MakeLinearRLSize(periodSize, max, 1)
 	rlSize = AjustRLSize(rlSize, nymNum)
 
 	return rlSize
 }
 
-func MakeGaussianRLSizeFromTotal(sessionSize, nymNum int, sd float64) RevocationListSize {
-	rlSize := MakeGaussianRLSize(sessionSize, nymNum, sd)
+func MakeGaussianRLSizeFromTotal(periodSize, nymNum int, sd float64) RevocationListSize {
+	rlSize := MakeGaussianRLSize(periodSize, nymNum, sd)
 	rlSize = AjustRLSize(rlSize, nymNum)
 
 	return rlSize
@@ -168,17 +168,17 @@ func AjustRLSize(rlSize RevocationListSize, nymNum int) RevocationListSize {
 func EmptyRevocationList(rlSize RevocationListSize) RevocationList {
 	rl := RevocationList{}
 
-	for _, nymPerSession := range rlSize {
+	for _, nymPerPeriod := range rlSize {
 		nyms := []*primitives.BigInt{}
 
-		for range nymPerSession {
+		for range nymPerPeriod {
 			n := InitBigInt()
 			nyms = append(nyms, n)
 		}
 
 		// Period is encoded in 64 bits in the circuit; default to 0 for empty entries.
 		n := primitives.NewBigInt(0)
-		rl = append(rl, RevokedNymsPerSession{
+		rl = append(rl, RevokedNymsPerPeriod{
 			Nyms:   nyms,
 			Period: n,
 		})

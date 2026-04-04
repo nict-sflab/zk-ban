@@ -34,15 +34,15 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	for _, revokedPerSession := range circuit.RevocationList {
+	for _, revokedPerPeriod := range circuit.RevocationList {
 		for counter := range MAX {
-			sessionTag := SessionTag(api, revokedPerSession.Period, counter)
+			sessionTag := SessionTag(api, revokedPerPeriod.Period, counter)
 			nym, err := snark.CircuitHash(api, sessionTag, circuit.UserSecretKey)
 			if err != nil {
 				return err
 			}
 
-			for _, revokedNym := range revokedPerSession.Nyms {
+			for _, revokedNym := range revokedPerPeriod.Nyms {
 				api.AssertIsDifferent(nym, revokedNym)
 			}
 		}
@@ -82,7 +82,7 @@ func NewUpdateCircuitWitness(
 			nyms = append(nyms, nym.Int)
 		}
 
-		rl = append(rl, RevokedNymsPerSession{
+		rl = append(rl, RevokedNymsPerPeriod{
 			Nyms:   nyms,
 			Period: rps.Period.Int,
 		})

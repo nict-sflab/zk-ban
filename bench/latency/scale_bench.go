@@ -23,7 +23,7 @@ var alpha = 1
 var beta = 10
 var max = 10
 
-var baseSessionNum = 300
+var basePeriodNum = 300
 
 // var baseNymNum = 108_000 * 50
 var baseNymNum = 30000
@@ -32,7 +32,7 @@ func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 
 	if ok {
-		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["basePeriodNum"] = int64(basePeriodNum)
 		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
 		ub.Result["env"]["alpha"] = int64(alpha)
 		ub.Result["env"]["beta"] = int64(beta)
@@ -42,7 +42,7 @@ func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 
 func BenchmarkScalability(b usefulbench.Benchmarker) {
 	BenchmarkNymScalability(b)
-	BenchSessScalability(b)
+	BenchPeriodScalability(b)
 }
 
 func BenchmarkNymScalability(b usefulbench.Benchmarker) {
@@ -65,31 +65,31 @@ func BenchmarkOneNymScalability(b usefulbench.Benchmarker, EmptyRevocationList f
 		runtime.GC()
 
 		nymNum := baseNymNum * i * alpha
-		rl := EmptyRevocationList(baseSessionNum, nymNum)
+		rl := EmptyRevocationList(basePeriodNum, nymNum)
 		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
 	}
 
 }
 
-func BenchSessScalability(b usefulbench.Benchmarker) {
-	// increase sessionNumber
-	BenchOneSessScalability(b, test.EmptyUniformRevocationList)
+func BenchPeriodScalability(b usefulbench.Benchmarker) {
+	// increase periodNumber
+	BenchOnePeriodScalability(b, test.EmptyUniformRevocationList)
 	if OnlyUniform {
 		return
 	}
-	BenchOneSessScalability(b, test.EmptyProportionalRevocationList)
-	BenchOneSessScalability(b, test.EmptyUniformRevocationList)
+	BenchOnePeriodScalability(b, test.EmptyProportionalRevocationList)
+	BenchOnePeriodScalability(b, test.EmptyUniformRevocationList)
 }
 
-func BenchOneSessScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
+func BenchOnePeriodScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
-		sessionNum := baseSessionNum * i * beta
-		rl := EmptyRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_UNIFORM, b)
+		periodNum := basePeriodNum * i * beta
+		rl := EmptyRevocationList(periodNum, baseNymNum)
+		benchmarkUpdate(periodNum, rl, bench.PERIOD_INCREASE_UNIFORM, b)
 	}
 
 }
