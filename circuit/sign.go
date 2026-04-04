@@ -10,7 +10,7 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-const MAX = 10
+const MAX = 5
 
 type SignCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
