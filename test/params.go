@@ -54,11 +54,12 @@ func PrepareCircuit(rl witness.RevocationList) (*snark.SnarkParams, *snark.Snark
 	signSnark, err = snark.InitSNARK(&circuit.SignCircuit{})
 	PanicIfErr(err)
 
-	witnessRL := circuit.NewRevocationListAssigned(rl)
+	witnessRL, err := circuit.NewRevocationAccumulatorTemplateAssigned(rl, circuit.MAX)
+	PanicIfErr(err)
 
 	updateSnark, err := snark.InitSNARK(&precomputes.UpdateCircuit{
 		circuit.UpdateCircuit{
-			RevocationList: witnessRL,
+			RevocationAccumulator: witnessRL,
 		},
 	})
 
@@ -72,10 +73,11 @@ func (*fileReader) ReadFile(name string) ([]byte, error) {
 }
 
 func PrepareUpdateKey(rlSize witness.RevocationListSize, _ string) (*snark.SnarkProver, *snark.SizedSnarkVerifier) {
-	rl := circuit.NewRevocationListAssigned(witness.EmptyRevocationList(rlSize))
+	rl, err := circuit.NewRevocationAccumulatorTemplateAssigned(witness.EmptyRevocationList(rlSize), circuit.MAX)
+	PanicIfErr(err)
 	updateSnark, err := snark.InitSNARK(&precomputes.UpdateCircuit{
 		circuit.UpdateCircuit{
-			RevocationList: rl,
+			RevocationAccumulator: rl,
 		},
 	})
 
@@ -131,7 +133,7 @@ func PrepareParams() TestParams {
 
 	m := witness.MimcInitBigInt()
 
-	cnt := int64(2)
+	cnt := int64(1)
 
 	cert, err := gsk.IssueCredential(upk)
 	PanicIfErr(err)

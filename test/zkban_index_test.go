@@ -20,15 +20,17 @@ func TestIndex(t *testing.T) {
 
 	rlSize := witness.MakeUniformRLSize(x, y)
 	rl := witness.EmptyRevocationList(rlSize)
+	accumulator, err := circuit.NewRevocationAccumulatorTemplateAssigned(rl, circuit.MAX)
+	assert.NoError(t, err)
 	_, _, updateCircuit := PrepareCircuit(rl)
 
-	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2
+	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*2 - 1 - 2
 
 	wit, err := frontend.NewWitness(
 		&precomputes.UpdateCircuit{
 			circuit.UpdateCircuit{
-				RevocationList: circuit.NewRevocationListAssigned(rl),
-				UserSecretKey:  1,
+				RevocationAccumulator: accumulator,
+				UserSecretKey:         1,
 				Credential: eddsa.Signature{
 					R: twistededwards.Point{
 						X: 1,

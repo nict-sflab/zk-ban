@@ -10,12 +10,12 @@ import (
 )
 
 type UpdateCircuit struct {
-	UserSecretKey  frontend.Variable `gnark:",secret"`
-	Credential     eddsa.Signature   `gnark:",secret"`
-	NextInfo       PublicKeyAuthInfo
-	CurrentInfo    PublicKeyAuthInfo
-	GroupPublicKey eddsa.PublicKey `gnark:",public"`
-	RevocationList RevocationList
+	UserSecretKey         frontend.Variable `gnark:",secret"`
+	Credential            eddsa.Signature   `gnark:",secret"`
+	NextInfo              PublicKeyAuthInfo
+	CurrentInfo           PublicKeyAuthInfo
+	GroupPublicKey        eddsa.PublicKey `gnark:",public"`
+	RevocationAccumulator RevocationAccumulator
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
@@ -34,16 +34,17 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	for _, revokedPerSession := range circuit.RevocationList {
-		for counter := range MAX {
+	for _, revokedPerSession := range circuit.RevocationAccumulator {
+		for counter, proof := range revokedPerSession.CounterProofs {
 			sessionTag := SessionTag(api, revokedPerSession.Period, counter)
 			nym, err := snark.CircuitHash(api, sessionTag, circuit.UserSecretKey)
 			if err != nil {
 				return err
 			}
 
-			for _, revokedNym := range revokedPerSession.Nyms {
-				api.AssertIsDifferent(nym, revokedNym)
+			err = verifyNymNonMembership(api, revokedPerSession.Root, nym, proof)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -74,21 +75,12 @@ func NewUpdateCircuitWitness(
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
-	rl := RevocationList{}
-
-	for _, rps := range revocationList {
-		nyms := []frontend.Variable{}
-		for _, nym := range rps.Nyms {
-			nyms = append(nyms, nym.Int)
-		}
-
-		rl = append(rl, RevokedNymsPerSession{
-			Nyms:   nyms,
-			Period: rps.Period.Int,
-		})
+	revocationAccumulator, err := zkbanw.NewRevocationAccumulator(revocationList, signer, MAX)
+	if err != nil {
+		return nil, err
 	}
 
-	assign.RevocationList = rl
+	assign.RevocationAccumulator = NewRevocationAccumulatorAssigned(revocationAccumulator)
 
 	return frontend.NewWitness(assign, snark.EcCurve.ScalarField())
 }

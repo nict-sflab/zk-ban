@@ -45,10 +45,14 @@ func SignCircuit() ([]byte, []byte, error) {
 
 func MakeUpdateCircuit(rlSize witness.RevocationListSize) ([]byte, []byte, error) {
 	rl := witness.EmptyRevocationList(rlSize)
+	assignedAccumulator, err := circuit.NewRevocationAccumulatorTemplateAssigned(rl, circuit.MAX)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	cc, err := snark.InitSNARK(&precomputes.UpdateCircuit{
 		UpdateCircuit: circuit.UpdateCircuit{
-			RevocationList: circuit.NewRevocationListAssigned(rl),
+			RevocationAccumulator: assignedAccumulator,
 		},
 	})
 	if err != nil {
@@ -57,7 +61,7 @@ func MakeUpdateCircuit(rlSize witness.RevocationListSize) ([]byte, []byte, error
 
 	verifier := snark.SizedSnarkVerifier{
 		VerifyKey: &cc.VerifyKey,
-		RLSize: rlSize,
+		RLSize:    rlSize,
 	}
 
 	verifierBuf, err := json.Marshal(&verifier)

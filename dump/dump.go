@@ -88,9 +88,14 @@ func DumpMetadata(name string, rlSize witness.RevocationListSize) {
 
 func DumpUpdateKeys(name string, rlSize witness.RevocationListSize) {
 	rl := witness.EmptyRevocationList(rlSize)
+	assignedAccumulator, err := circuit.NewRevocationAccumulatorTemplateAssigned(rl, circuit.MAX)
+	if err != nil {
+		log.Fatalf("create revocation accumulator template: %v", err)
+	}
+
 	params, err := snark.InitSNARK(&precomputes.UpdateCircuit{
 		UpdateCircuit: circuit.UpdateCircuit{
-			RevocationList: circuit.NewRevocationListAssigned(rl),
+			RevocationAccumulator: assignedAccumulator,
 		},
 	})
 
