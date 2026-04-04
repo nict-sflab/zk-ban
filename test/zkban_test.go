@@ -47,7 +47,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("sign-counter-max-fail", func(t *testing.T) {
-		_, err = zkban.Sign(params.M, int64(circuit.MAX), params.Signer(), params.GPK, signCircuit.Prover())
+		_, err = zkban.Sign(params.M, int64(circuit.MaxSession), params.Signer(), params.GPK, signCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)
 	})
 

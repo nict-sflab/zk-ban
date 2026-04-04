@@ -10,7 +10,7 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-const MAX = 5
+var MaxSession = 5
 
 type SignCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
@@ -55,7 +55,7 @@ func (circuit *SignCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	api.AssertIsLessOrEqual(circuit.Counter, MAX-1)
+	api.AssertIsLessOrEqual(circuit.Counter, MaxSession-1)
 
 	api.AssertIsEqual(circuit.Signature, signature)
 	api.AssertIsEqual(circuit.Nym, nym)
