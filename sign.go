@@ -23,7 +23,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 		return nil, err
 	}
 
-	wit, err := circuit.NewSignWitness(m, r, sessionTag, comm, signer, gpk)
+	wit, err := circuit.NewSignWitness(m, r, counter, comm, signer, gpk)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +41,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 }
 
 func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
-	sessionTag := zkbanw.SessionTag(counter, period)
-
-	pubWit, err := circuit.NewPublicSignWitness(m, sessionTag, signature.Commit, period, gpk)
+	pubWit, err := circuit.NewPublicSignWitness(m, counter, signature.Commit, period, gpk)
 	if err != nil {
 		return err
 	}

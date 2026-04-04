@@ -151,30 +151,30 @@ func PrepareParams() TestParams {
 
 var InitBigInt = witness.MimcInitBigInt
 
-func EmptyUniformRevocationList(sessionSize, nymNum int) witness.RevocationList {
+func EmptyUniformRevocationList(periodSize, nymNum int) witness.RevocationList {
 	witness.InitBigInt = InitBigInt
-	rlSize := witness.MakeUniformRLSizeFromTotal(sessionSize, nymNum)
+	rlSize := witness.MakeUniformRLSizeFromTotal(periodSize, nymNum)
 	return witness.EmptyRevocationList(rlSize)
 }
 
-func EmptyProportionalRevocationList(sessionSize, nymNum int) witness.RevocationList {
+func EmptyProportionalRevocationList(periodSize, nymNum int) witness.RevocationList {
 	witness.InitBigInt = InitBigInt
-	rlSize := witness.MakeProportionalRLSizeFromTotal(sessionSize, nymNum)
+	rlSize := witness.MakeProportionalRLSizeFromTotal(periodSize, nymNum)
 
 	return witness.EmptyRevocationList(rlSize)
 }
 
 const GaussianStandarDeviationDiv = 4
 
-func EmptyGaussianRevocationListSize(sessionSize, nymNum int) witness.RevocationListSize {
+func EmptyGaussianRevocationListSize(periodSize, nymNum int) witness.RevocationListSize {
 	witness.InitBigInt = InitBigInt
-	sd := float64(sessionSize) / GaussianStandarDeviationDiv
-	rlSize := witness.MakeGaussianRLSizeFromTotal(sessionSize, nymNum, sd)
+	sd := float64(periodSize) / GaussianStandarDeviationDiv
+	rlSize := witness.MakeGaussianRLSizeFromTotal(periodSize, nymNum, sd)
 	return rlSize
 }
 
-func EmptyGaussianRevocationList(sessionSize, nymNum int) witness.RevocationList {
+func EmptyGaussianRevocationList(periodSize, nymNum int) witness.RevocationList {
 	witness.InitBigInt = InitBigInt
-	rlSize := EmptyGaussianRevocationListSize(sessionSize, nymNum)
+	rlSize := EmptyGaussianRevocationListSize(periodSize, nymNum)
 	return witness.EmptyRevocationList(rlSize)
 }

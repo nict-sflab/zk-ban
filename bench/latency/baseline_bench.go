@@ -15,24 +15,24 @@ func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
 	baseNym := 30000
-	baseSess := 30 * 10
+	basePeriod := 30
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 
 	if ok {
-		ub.Result["env"]["baseSessionNum"] = int64(baseSess)
+		ub.Result["env"]["basePeriodNum"] = int64(basePeriod)
 		ub.Result["env"]["baseNymNum"] = int64(baseNym)
 	}
 
 	benchmarkBaseline(&params, b)
 
-	rlU := test.EmptyUniformRevocationList(baseSess, baseNym)
+	rlU := test.EmptyUniformRevocationList(basePeriod, baseNym)
 	benchmarkBasicUpdate(rlU, "uniform", &params, b)
 
-	rlP := test.EmptyProportionalRevocationList(baseSess, baseNym)
+	rlP := test.EmptyProportionalRevocationList(basePeriod, baseNym)
 	benchmarkBasicUpdate(rlP, "proportional", &params, b)
 
-	rlG := test.EmptyGaussianRevocationList(baseSess, baseNym)
+	rlG := test.EmptyGaussianRevocationList(basePeriod, baseNym)
 	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
 }
 

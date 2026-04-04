@@ -15,8 +15,8 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-const KAPPA = 300
-const LAMBDA = 1024 * 3
+const KAPPA = 30
+const LAMBDA = 30000
 
 func main() {
 	gnarkserializable.Unsafe = true
@@ -50,9 +50,6 @@ func main() {
 	cred, err := params.GSK.IssueCredential(params.UPK)
 	test.PanicIfErr(err)
 	storage.StoreBufSize("cred", "baseline", "baseline", cred.Signature, result)
-
-	tag := witness.SessionTag(2, now)
-	fmt.Printf("tag: %v\n", len(tag.Bytes()))
 
 	signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 	test.PanicIfErr(err)
@@ -109,11 +106,15 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 	witness.InitBigInt = witness.ZeroInitBigInt
 	rlMakers := []func(int, int) witness.RevocationListSize{
 		witness.MakeUniformRLSizeFromTotal,
-		witness.MakeProportionalRLSizeFromTotal,
-		test.EmptyGaussianRevocationListSize,
+		// witness.MakeProportionalRLSizeFromTotal,
+		// test.EmptyGaussianRevocationListSize,
 	}
 
-	rlMakerTags := []string{"uniform", "proportionl", "gaussian"}
+	rlMakerTags := []string{
+		"uniform",
+		// "proportionl",
+		// "gaussian",
+	}
 	count := 0
 
 	for _, kappa := range kappas {

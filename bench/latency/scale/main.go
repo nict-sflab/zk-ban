@@ -5,13 +5,12 @@ import (
 
 	"github.com/akakou/zk-ban/bench/latency"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
-	"github.com/akakou/zk-ban/load"
 )
 
-const COUNT = 20
+const COUNT = 1
 
 func main() {
-	load.KeyChecked = true
+	latency.OnlyUniform = true
 	bb := usefulbench.New(COUNT)
 	latency.BenchmarkScalability(bb)
 
