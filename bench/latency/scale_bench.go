@@ -50,15 +50,15 @@ func BenchmarkNymScalability(b usefulbench.Benchmarker) {
 	logIfUsefulBenchInScaleBench(b)
 
 	// increase nym
-	BenchmarkOneNymScalability(b, test.EmptyUniformRevocationList)
+	BenchmarkOneNymScalability(b, bench.NYM_INCREASE_UNIFORM, test.EmptyUniformRevocationList)
 	if OnlyUniform {
 		return
 	}
-	BenchmarkOneNymScalability(b, test.EmptyProportionalRevocationList)
-	BenchmarkOneNymScalability(b, test.EmptyGaussianRevocationList)
+	BenchmarkOneNymScalability(b, bench.NYM_INCREASE_PROPORTIONAL, test.EmptyProportionalRevocationList)
+	BenchmarkOneNymScalability(b, bench.NYM_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationList)
 
 }
-func BenchmarkOneNymScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
+func BenchmarkOneNymScalability(b usefulbench.Benchmarker, name string, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	// increase nym
@@ -74,15 +74,15 @@ func BenchmarkOneNymScalability(b usefulbench.Benchmarker, EmptyRevocationList f
 
 func BenchPeriodScalability(b usefulbench.Benchmarker) {
 	// increase periodNumber
-	BenchOnePeriodScalability(b, test.EmptyUniformRevocationList)
+	BenchOnePeriodScalability(b, bench.PERIOD_INCREASE_UNIFORM, test.EmptyUniformRevocationList)
 	if OnlyUniform {
 		return
 	}
-	BenchOnePeriodScalability(b, test.EmptyProportionalRevocationList)
-	BenchOnePeriodScalability(b, test.EmptyUniformRevocationList)
+	BenchOnePeriodScalability(b, bench.PERIOD_INCREASE_PROPORTIONAL, test.EmptyProportionalRevocationList)
+	BenchOnePeriodScalability(b, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationList)
 }
 
-func BenchOnePeriodScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
+func BenchOnePeriodScalability(b usefulbench.Benchmarker, name string, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
@@ -97,15 +97,15 @@ func BenchOnePeriodScalability(b usefulbench.Benchmarker, EmptyRevocationList fu
 
 func BenchMaxSessScalability(b usefulbench.Benchmarker) {
 	// increase periodNumber
-	BenchOneMaxSessScalability(b, test.EmptyUniformRevocationList)
+	BenchOneMaxSessScalability(b, bench.SESS_INCREASE_UNIFORM, test.EmptyUniformRevocationList)
 	if OnlyUniform {
 		return
 	}
-	BenchOneMaxSessScalability(b, test.EmptyProportionalRevocationList)
-	BenchOneMaxSessScalability(b, test.EmptyUniformRevocationList)
+	BenchOneMaxSessScalability(b, bench.SESS_INCREASE_PROPORTIONAL, test.EmptyProportionalRevocationList)
+	BenchOneMaxSessScalability(b, bench.SESS_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationList)
 }
 
-func BenchOneMaxSessScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
+func BenchOneMaxSessScalability(b usefulbench.Benchmarker, name string, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {

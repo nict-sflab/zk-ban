@@ -34,13 +34,13 @@ func main() {
 	result["env"]["default"]["beta"] = int(beta)
 
 	// increase nym
-	BenchOneNymScalability(result, witness.MakeUniformRLSizeFromTotal)
-	BenchOneNymScalability(result, witness.MakeProportionalRLSizeFromTotal)
-	BenchOneNymScalability(result, test.EmptyGaussianRevocationListSize)
+	BenchOneNymScalability(result, bench.NYM_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
+	BenchOneNymScalability(result, bench.NYM_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
+	BenchOneNymScalability(result, bench.NYM_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
 
-	BenchOnePeriodScalability(result, witness.MakeUniformRLSizeFromTotal)
-	BenchOnePeriodScalability(result, witness.MakeProportionalRLSizeFromTotal)
-	BenchOnePeriodScalability(result, test.EmptyGaussianRevocationListSize)
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
 
 	j, err := json.Marshal(result)
 	test.PanicIfErr(err)
@@ -49,23 +49,23 @@ func main() {
 	os.WriteFile("update-storage.json", j, 0644)
 }
 
-func BenchOneNymScalability(result storage.Result, MakeRLSize func(int, int) witness.RevocationListSize) {
+func BenchOneNymScalability(result storage.Result, name string, MakeRLSize func(int, int) witness.RevocationListSize) {
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
 		nymNum := baseNymNum * i * alpha
 		rlSize := witness.MakeUniformRLSizeFromTotal(basePeriodNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
+		benchUpdate(nymNum, name, rlSize, result)
 	}
 }
 
-func BenchOnePeriodScalability(result storage.Result, MakeRLSize func(int, int) witness.RevocationListSize) {
+func BenchOnePeriodScalability(result storage.Result, name string, MakeRLSize func(int, int) witness.RevocationListSize) {
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
 		periodNum := basePeriodNum * i * beta
 		rlSize := MakeRLSize(periodNum, baseNymNum)
-		benchUpdate(periodNum, bench.PERIOD_INCREASE_UNIFORM, rlSize, result)
+		benchUpdate(periodNum, name, rlSize, result)
 	}
 }
 
