@@ -42,9 +42,9 @@ func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 }
 
 func BenchmarkScalability(b usefulbench.Benchmarker) {
+	BenchMaxSessScalability(b)
 	BenchmarkNymScalability(b)
 	BenchPeriodScalability(b)
-	BenchMaxSessScalability(b)
 }
 
 func BenchmarkNymScalability(b usefulbench.Benchmarker) {
@@ -68,7 +68,7 @@ func BenchmarkOneNymScalability(b usefulbench.Benchmarker, name string, EmptyRev
 
 		nymNum := baseNymNum * i * alpha
 		rl := EmptyRevocationList(basePeriodNum, nymNum)
-		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
+		benchmarkUpdate(nymNum, rl, name, b)
 	}
 
 }
@@ -91,7 +91,7 @@ func BenchOnePeriodScalability(b usefulbench.Benchmarker, name string, EmptyRevo
 
 		periodNum := basePeriodNum * i * beta
 		rl := EmptyRevocationList(periodNum, baseNymNum)
-		benchmarkUpdate(periodNum, rl, bench.PERIOD_INCREASE_UNIFORM, b)
+		benchmarkUpdate(periodNum, rl, name, b)
 	}
 
 }
@@ -116,7 +116,7 @@ func BenchOneMaxSessScalability(b usefulbench.Benchmarker, name string, EmptyRev
 		circuit.MaxSession = sessNum
 
 		rl := EmptyRevocationList(baseNymNum, baseNymNum)
-		benchmarkUpdate(sessNum, rl, bench.PERIOD_INCREASE_PROPORTIONAL, b)
+		benchmarkUpdate(sessNum, rl, name, b)
 	}
 
 }
