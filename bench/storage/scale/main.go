@@ -15,11 +15,13 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-var basePeriodNum = 60
-var baseNymNum = 108_000
+var basePeriodNum = 30
+var baseNymNum = 30000
+var baseMaxSess = 10
 
 var alpha = 1
-var beta = 25
+var beta = 10
+var gamma = 10
 var max = 10
 
 func main() {
@@ -37,6 +39,10 @@ func main() {
 	BenchOneNymScalability(result, bench.NYM_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
 	BenchOneNymScalability(result, bench.NYM_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
 	BenchOneNymScalability(result, bench.NYM_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
+
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
 
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
@@ -66,6 +72,16 @@ func BenchOnePeriodScalability(result storage.Result, name string, MakeRLSize fu
 		periodNum := basePeriodNum * i * beta
 		rlSize := MakeRLSize(periodNum, baseNymNum)
 		benchUpdate(periodNum, name, rlSize, result)
+	}
+}
+
+func BenchOneMaxSessScalability(result storage.Result, name string, MakeRLSize func(int, int) witness.RevocationListSize) {
+	for i := 1; i <= max; i++ {
+		runtime.GC()
+
+		maxSess := baseMaxSess * i * gamma
+		rlSize := MakeRLSize(basePeriodNum, baseNymNum)
+		benchUpdate(maxSess, name, rlSize, result)
 	}
 }
 
