@@ -21,11 +21,11 @@ var OnlyUniform = false
 
 var alpha = 1
 var beta = 10
+var gamma = 10
 var max = 10
 
+var baseSessNum = 5
 var basePeriodNum = 300
-
-// var baseNymNum = 108_000 * 50
 var baseNymNum = 30000
 
 func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
@@ -43,6 +43,7 @@ func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 func BenchmarkScalability(b usefulbench.Benchmarker) {
 	BenchmarkNymScalability(b)
 	BenchPeriodScalability(b)
+	BenchMaxSessScalability(b)
 }
 
 func BenchmarkNymScalability(b usefulbench.Benchmarker) {
@@ -90,6 +91,29 @@ func BenchOnePeriodScalability(b usefulbench.Benchmarker, EmptyRevocationList fu
 		periodNum := basePeriodNum * i * beta
 		rl := EmptyRevocationList(periodNum, baseNymNum)
 		benchmarkUpdate(periodNum, rl, bench.PERIOD_INCREASE_UNIFORM, b)
+	}
+
+}
+
+func BenchMaxSessScalability(b usefulbench.Benchmarker) {
+	// increase periodNumber
+	BenchOneMaxSessScalability(b, test.EmptyUniformRevocationList)
+	if OnlyUniform {
+		return
+	}
+	BenchOneMaxSessScalability(b, test.EmptyProportionalRevocationList)
+	BenchOneMaxSessScalability(b, test.EmptyUniformRevocationList)
+}
+
+func BenchOneMaxSessScalability(b usefulbench.Benchmarker, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
+	logIfUsefulBenchInScaleBench(b)
+
+	for i := 1; i <= max; i++ {
+		runtime.GC()
+		sessNum := baseSessNum * i * gamma
+
+		rl := EmptyRevocationList(baseNymNum, baseNymNum)
+		benchmarkUpdate(sessNum, rl, bench.PERIOD_INCREASE_PROPORTIONAL, b)
 	}
 
 }
