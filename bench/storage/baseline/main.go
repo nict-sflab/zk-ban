@@ -109,11 +109,15 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 	witness.InitBigInt = witness.ZeroInitBigInt
 	rlMakers := []func(int, int) witness.RevocationListSize{
 		witness.MakeUniformRLSizeFromTotal,
-		witness.MakeProportionalRLSizeFromTotal,
-		test.EmptyGaussianRevocationListSize,
+		// witness.MakeProportionalRLSizeFromTotal,
+		// test.EmptyGaussianRevocationListSize,
 	}
 
-	rlMakerTags := []string{"uniform", "proportionl", "gaussian"}
+	rlMakerTags := []string{
+		"uniform",
+		// "proportionl",
+		// "gaussian",
+	}
 	count := 0
 
 	for _, kappa := range kappas {
