@@ -18,7 +18,7 @@ import (
 
 var basePeriodNum = 30
 var baseNymNum = 30000
-var baseMaxSess = 10
+var baseMaxSess = 5
 
 var alpha = 1
 var beta = 10
@@ -44,7 +44,7 @@ func main() {
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
-
+	
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
@@ -85,6 +85,8 @@ func BenchOneMaxSessScalability(result storage.Result, name string, MakeRLSize f
 
 		rlSize := MakeRLSize(basePeriodNum, baseNymNum)
 		benchUpdate(maxSess, name, rlSize, result)
+
+		circuit.MaxSession = baseMaxSess
 	}
 }
 

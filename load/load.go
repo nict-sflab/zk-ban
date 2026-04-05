@@ -14,11 +14,6 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-// Loading verifier key safe or unsafe (without checking consistency) when dump
-// format is not supported by the key type.
-// If you are sure about the key correctness, you can set it to false for performance.
-var KeyChecked = false
-
 func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
 	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat)
 	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat)
