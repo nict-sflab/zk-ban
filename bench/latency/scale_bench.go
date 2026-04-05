@@ -21,12 +21,12 @@ var SkipVerify = false
 var OnlyUniform = false
 
 var alpha = 1
-var beta = 10
-var gamma = 10
+var beta = 3
+var gamma = 2
 var max = 10
 
 var baseSessNum = 5
-var basePeriodNum = 300
+var basePeriodNum = 30
 var baseNymNum = 30000
 
 func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
@@ -42,9 +42,9 @@ func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 }
 
 func BenchmarkScalability(b usefulbench.Benchmarker) {
-	BenchMaxSessScalability(b)
 	BenchmarkNymScalability(b)
 	BenchPeriodScalability(b)
+	BenchMaxSessScalability(b)
 }
 
 func BenchmarkNymScalability(b usefulbench.Benchmarker) {
@@ -115,7 +115,7 @@ func BenchOneMaxSessScalability(b usefulbench.Benchmarker, name string, EmptyRev
 
 		circuit.MaxSession = sessNum
 
-		rl := EmptyRevocationList(baseNymNum, baseNymNum)
+		rl := EmptyRevocationList(basePeriodNum, baseNymNum)
 		benchmarkUpdate(sessNum, rl, name, b)
 	}
 
