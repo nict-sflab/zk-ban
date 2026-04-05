@@ -8,8 +8,8 @@ import (
 func BenchmarkCompare(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
-	baseNym := 8192*14 + 16*14
-	basePeriod := 60
+	baseNym := 1024*32 + 16*14
+	basePeriod := 30
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 
@@ -20,7 +20,5 @@ func BenchmarkCompare(b usefulbench.Benchmarker) {
 
 	benchmarkBaseline(&params, b)
 	rlU := test.EmptyUniformRevocationList(basePeriod, baseNym)
-
-	NoParallel = true
 	benchmarkBasicUpdate(rlU, "compare", &params, b)
 }
