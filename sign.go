@@ -1,7 +1,6 @@
 package zkban
 
 import (
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
@@ -11,7 +10,7 @@ import (
 
 type Signature struct {
 	Commit *zkbanw.SignCommit
-	Proof  gnarkserializable.Proof
+	Proof  groth16.Proof
 }
 
 func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*Signature, error) {
@@ -35,7 +34,7 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 
 	signature := Signature{
 		Commit: comm,
-		Proof:  gnarkserializable.Proof{proof},
+		Proof:  proof,
 	}
 	return &signature, nil
 }
@@ -46,6 +45,6 @@ func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, 
 		return err
 	}
 
-	err = groth16.Verify(signature.Proof.Proof, verifyKey, pubWit)
+	err = groth16.Verify(signature.Proof, verifyKey, pubWit)
 	return err
 }

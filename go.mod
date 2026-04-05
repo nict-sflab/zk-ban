@@ -4,15 +4,10 @@ go 1.24.3
 
 replace github.com/akakou/gnark-precomputes => ../gnark-precomputes
 
-replace github.com/akakou/gnark-serializable => ../gnark-serializable
-
 require (
 	github.com/akakou/gnark-precomputes v0.0.0-00010101000000-000000000000
-	github.com/akakou/gnark-serializable v0.0.0-00010101000000-000000000000
 	github.com/consensys/gnark v0.13.0
 	github.com/consensys/gnark-crypto v0.18.0
-	github.com/iden3/go-iden3-crypto v0.0.17
-	github.com/liyue201/gnark-circomlib v0.0.0-20241024021655-892bf7c71a20
 	github.com/stretchr/testify v1.10.0
 )
 

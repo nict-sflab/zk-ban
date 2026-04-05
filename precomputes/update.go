@@ -75,7 +75,7 @@ func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) VerifyPrepare
 		return err
 	}
 
-	err = vk.PreparedVerifyingKey.VerifyPrepared(updateRequest.Proof.Proof, pubWit, prepare)
+	err = vk.PreparedVerifyingKey.VerifyPrepared(updateRequest.Proof, pubWit, prepare)
 	return err
 }
 

@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"time"
 
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/dump"
@@ -19,7 +18,6 @@ const KAPPA = 30
 const LAMBDA = 30000
 
 func main() {
-	gnarkserializable.Unsafe = true
 	params := test.PrepareParams()
 
 	result := make(storage.Result, 0)
@@ -56,7 +54,7 @@ func main() {
 
 	storage.StoreBufSize("sigma", "baseline", "baseline", signature.Commit.Sigma.Bytes(), result)
 	storage.StoreBufSize("nym", "baseline", "baseline", signature.Commit.Nym.Bytes(), result)
-	storage.StoreWritableSize("sign proof", "baseline", "baseline", &signature.Proof, result)
+	storage.StoreWritableSize("sign proof", "baseline", "baseline", signature.Proof, result)
 
 	// baseNym := 108000
 	// baseSess := 60
@@ -90,7 +88,7 @@ func benchBasicUpdate(rl witness.RevocationList, name string, params *test.TestP
 
 	storage.StoreBufSize("upk", n, name, update.PublicKey.Number.Bytes(), result)
 	storage.StoreBufSize(name+"ticket", n, name, update.UpdateTicket.Number.Bytes(), result)
-	storage.StoreWritableSize("-update-proof", n, name, &update.Proof, result)
+	storage.StoreWritableSize("-update-proof", n, name, update.Proof, result)
 }
 
 func benchBasicUpdateCircuit(root string, result storage.Result) {

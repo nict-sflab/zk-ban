@@ -1,10 +1,12 @@
 package primitives
 
 import (
+	"bytes"
+	"encoding/base64"
 	"io"
 	"math/big"
+	"strconv"
 
-	serializable "github.com/akakou/gnark-serializable"
 	"github.com/consensys/gnark-crypto/ecc/bls12-377/fr"
 )
 
@@ -38,7 +40,7 @@ func (bigint *BigInt) ReadFrom(reader io.Reader) (int64, error) {
 }
 
 func (b *BigInt) MarshalJSON() ([]byte, error) {
-	return serializable.WriteTo(b)
+	return WriteTo(b)
 }
 
 func (b *BigInt) UnmarshalJSON(buf []byte) error {
@@ -46,7 +48,7 @@ func (b *BigInt) UnmarshalJSON(buf []byte) error {
 		b = NewBigInt(0)
 	}
 
-	return serializable.ReadFrom(buf, b)
+	return ReadFrom(buf, b)
 }
 
 func NewBigInt(number int64) *BigInt {
@@ -68,4 +70,51 @@ func RandBigInt() *BigInt {
 	res := r.BigInt(&big.Int)
 
 	return &BigInt{*res}
+}
+
+type Writable interface {
+	WriteTo(io.Writer) (int64, error)
+	IsNil() bool
+}
+
+func WriteTo(data Writable) ([]byte, error) {
+	if data.IsNil() {
+		return []byte("null"), nil
+	}
+	var buffer bytes.Buffer
+	_, err := data.WriteTo(&buffer)
+	if err != nil {
+		return nil, err
+	}
+
+	raw := buffer.Bytes()
+	enc := base64.URLEncoding.EncodeToString(raw)
+	res := strconv.Quote(enc)
+
+	return []byte(res), nil
+}
+
+type Readable interface {
+	ReadFrom(io.Reader) (int64, error)
+}
+
+func ReadFrom(buf []byte, data Readable) error {
+	if string(buf) == "null" {
+		return nil
+	}
+
+	unq, err := strconv.Unquote(string(buf))
+	if err != nil {
+		return err
+	}
+
+	raw, err := base64.URLEncoding.DecodeString(unq)
+	if err != nil {
+		return err
+	}
+
+	reader := bytes.NewReader(raw)
+	_, err = data.ReadFrom(reader)
+
+	return err
 }
