@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strconv"
 
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/storage"
 	"github.com/akakou/zk-ban/circuit"
@@ -26,8 +25,6 @@ var gamma = 2
 var max = 10
 
 func main() {
-	gnarkserializable.Unsafe = true
-
 	result := make(storage.Result, 0)
 	result["env"] = make(map[string]map[string]int)
 	result["env"]["default"] = make(map[string]int)
