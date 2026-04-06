@@ -30,10 +30,13 @@ jobs:
         with:
           go-version: "1.24"
 
+      - name: Show workspace
+        run: |
+          pwd
+          ls -la
+          ls -la main
+          ls -la gnark-precomputes
+
       - name: Test
         working-directory: main
         run: go test -v ./test
-
-      - name: Bench
-        working-directory: main
-        run: cd ./bench && go run ./latency/baseline
