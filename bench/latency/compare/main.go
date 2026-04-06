@@ -10,8 +10,6 @@ import (
 const COUNT = 20
 
 func main() {
-	latency.NoParallel = true
-
 	bb := usefulbench.New(COUNT)
 	latency.BenchmarkCompare(bb)
 
