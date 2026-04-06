@@ -9,8 +9,8 @@ import (
 )
 
 func TestRLSize(t *testing.T) {
-	periodNum := 60
-	nymNum := 108_000
+	periodNum := 30
+	nymNum := 30000
 	uRL := EmptyUniformRevocationList(periodNum, nymNum)
 	pRL := EmptyProportionalRevocationList(periodNum, nymNum)
 	gRL := EmptyGaussianRevocationList(periodNum, nymNum)
