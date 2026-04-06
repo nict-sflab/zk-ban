@@ -44,10 +44,10 @@ func main() {
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
 	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
-	
-	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
-	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
-	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
+
+	BenchOneMaxSessScalability(result, bench.SESS_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
+	BenchOneMaxSessScalability(result, bench.SESS_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
+	BenchOneMaxSessScalability(result, bench.SESS_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
 
 	j, err := json.Marshal(result)
 	test.PanicIfErr(err)
