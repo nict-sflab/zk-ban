@@ -7,10 +7,10 @@ import (
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
 )
 
-const COUNT = 1
+const COUNT = 20
 
 func main() {
-	latency.OnlyUniform = true
+	latency.OnlyUniform = false
 	bb := usefulbench.New(COUNT)
 	latency.BenchmarkScalability(bb)
 

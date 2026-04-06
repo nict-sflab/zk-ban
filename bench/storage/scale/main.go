@@ -16,13 +16,13 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-var basePeriodNum = 30
 var baseNymNum = 30000
 var baseMaxSess = 5
+var basePeriodNum = 30
 
 var alpha = 1
-var beta = 10
-var gamma = 10
+var beta = 3
+var gamma = 2
 var max = 10
 
 func main() {
