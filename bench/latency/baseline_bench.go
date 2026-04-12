@@ -74,10 +74,17 @@ func benchmarkBaseline(params *test.TestParams, b usefulbench.Benchmarker) {
 	})
 
 	signature, _ := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
+	vk, err := precomputes.NewAuthVerificationKeyBLS12381(signCircuit.VerifyKey)
+	test.PanicIfErr(err)
+
+	prepared, err := vk.PrecomputeVerify(params.Period, params.GPK)
+	test.PanicIfErr(err)
+
+	test.PanicIfErr(err)
 
 	b.Run("baseline--verify", func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			signature.Verify(params.M, params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
+			err = vk.VerifyPrepared(*prepared, params.M, signature)
 		}
 	})
 
