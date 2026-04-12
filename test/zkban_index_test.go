@@ -46,8 +46,6 @@ func TestAuthIndex(t *testing.T) {
 	pubWit, err := wit.Public()
 	assert.NoError(t, err)
 	fmt.Printf("%v", pubWit.Vector())
-
-	panic("")
 }
 
 func TestUpdateIndex(t *testing.T) {
