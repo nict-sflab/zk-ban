@@ -16,14 +16,12 @@ import (
 	"github.com/consensys/gnark/frontend"
 )
 
-var UpdatePreparableIndex = 4
-
 type UpdateCircuit struct {
 	UpdateCircuit circuit.UpdateCircuit
 }
 
-func (circuit *UpdateCircuit) PreparableIndex() int {
-	return UpdatePreparableIndex
+func (circuit *UpdateCircuit) NonPrecomputables() []int {
+	return []int{0, 2}
 }
 
 func (circuit *UpdateCircuit) Define(api frontend.API) error {
@@ -48,10 +46,11 @@ func NewUpdateVerificationKeyBLS12381(gk groth16.VerifyingKey) (*PreparedUpdateR
 }
 
 func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) PrecomputeVerify(
+	next, current int64,
 	rl zkbanw.RevocationList,
 	gpk *zkbanw.GroupPublicKey,
 ) (*G1Jac, error) {
-	pubWit, err := newPublicPrecomputationUpdateCircuitWitness(rl, gpk)
+	pubWit, err := newPublicPrecomputationUpdateCircuitWitness(next, current, rl, gpk)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +79,12 @@ func (vk *PreparedUpdateRequestVerifyingKey[Vector, G1Jac, Proof]) VerifyPrepare
 }
 
 func newPublicPrecomputationUpdateCircuitWitness(
+	nextPeriod int64,
+	currentPeriod int64,
 	revocationList zkbanw.RevocationList,
 	gpk *zkbanw.GroupPublicKey,
 ) (witness.Witness, error) {
-	wit, err := circuit.NewUpdateCircuitWitness(0,
+	wit, err := circuit.NewUpdateCircuitWitness(nextPeriod,
 		&zkbanw.UserPublicKey{primitives.NewBigInt(0)},
 		&zkbanw.OneTimeTicket{primitives.NewBigInt(0)},
 		&zkbanw.Signer{
@@ -93,7 +94,7 @@ func newPublicPrecomputationUpdateCircuitWitness(
 			Credential: &zkbanw.Credential{
 				Signature: make([]byte, 32),
 			},
-			Period: 0,
+			Period: currentPeriod,
 		}, revocationList, gpk)
 
 	if err != nil {

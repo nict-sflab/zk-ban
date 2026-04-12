@@ -20,9 +20,7 @@ func TestIndex(t *testing.T) {
 
 	rlSize := witness.MakeUniformRLSize(x, y)
 	rl := witness.EmptyRevocationList(rlSize)
-	_, _, updateCircuit := PrepareCircuit(rl)
-
-	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2
+	// _, _, updateCircuit := PrepareCircuit(rl)
 
 	wit, err := frontend.NewWitness(
 		&precomputes.UpdateCircuit{
@@ -31,18 +29,18 @@ func TestIndex(t *testing.T) {
 				UserSecretKey:  1,
 				Credential: eddsa.Signature{
 					R: twistededwards.Point{
-						X: 1,
-						Y: 1,
+						X: 0,
+						Y: 0,
 					},
-					S: 1,
+					S: 0,
 				},
 				NextInfo: circuit.PublicKeyAuthInfo{
 					UserPublicKey: 1,
-					Period:        1,
+					Period:        0,
 				},
 				CurrentInfo: circuit.PublicKeyAuthInfo{
 					UserPublicKey: 1,
-					Period:        1,
+					Period:        0,
 				},
 				GroupPublicKey: eddsa.PublicKey{
 					A: twistededwards.Point{
@@ -58,7 +56,5 @@ func TestIndex(t *testing.T) {
 	pubWit, err := wit.Public()
 	assert.NoError(t, err)
 	fmt.Printf("%v", pubWit.Vector())
-
-	assert.Equal(t, precomputes.UpdatePreparableIndex, index)
 
 }

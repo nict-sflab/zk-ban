@@ -12,8 +12,8 @@ import (
 type UpdateCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
 	Credential     eddsa.Signature   `gnark:",secret"`
-	NextInfo       PublicKeyAuthInfo
 	CurrentInfo    PublicKeyAuthInfo
+	NextInfo       PublicKeyAuthInfo
 	GroupPublicKey eddsa.PublicKey `gnark:",public"`
 	RevocationList RevocationList
 }

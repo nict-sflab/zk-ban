@@ -171,12 +171,12 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 
 	b.Run("precomputes-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			_, err := vk.PrecomputeVerify(rl, params.GPK)
+			_, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 			test.PanicIfErr(err)
 		}
 	})
 
-	prepare, _ := vk.PrecomputeVerify(rl, params.GPK)
+	prepare, _ := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 
 	b.Run("verify-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {

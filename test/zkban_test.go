@@ -66,7 +66,7 @@ func TestAll(t *testing.T) {
 		vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
 		assert.NoError(err)
 
-		prepared, err := vk.PrecomputeVerify(rl, params.GPK)
+		prepared, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 		assert.NoError(err)
 
 		err = vk.VerifyPrepared(*prepared, req, params.NextPeriod, params.Period)
@@ -93,7 +93,7 @@ func TestAll(t *testing.T) {
 			vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
 			assert.NoError(err, proveFailedMessage)
 
-			cache, err := vk.PrecomputeVerify(rl, params.GPK)
+			cache, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 			assert.NoError(err, proveFailedMessage)
 
 			err = vk.VerifyPrepared(*cache, req, params.NextPeriod, params.Period)

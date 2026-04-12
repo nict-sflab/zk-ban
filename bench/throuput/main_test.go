@@ -45,7 +45,7 @@ func BenchmarkHandleParallel2(b *testing.B) {
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(*verifier.VerifyKey)
 	test.PanicIfErr(err)
 
-	prepared, _ := vk.PrecomputeVerify(rl, params.GPK)
+	prepared, _ := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {

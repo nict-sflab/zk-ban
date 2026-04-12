@@ -14,7 +14,7 @@ import (
 func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
-	baseNym := 30000
+	baseNym := 30994
 	basePeriod := 30
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
@@ -123,12 +123,12 @@ func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.T
 
 	b.Run("baseline--update-precomputes-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			_, err = vk.PrecomputeVerify(rl, params.GPK)
+			_, err = vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 			test.PanicIfErr(err)
 		}
 	})
 
-	prepared, _ := vk.PrecomputeVerify(rl, params.GPK)
+	prepared, _ := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 	b.Run("baseline--update-verify-"+name, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			err = vk.VerifyPrepared(*prepared, updateRequest, params.NextPeriod, params.Period)
