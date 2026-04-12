@@ -38,6 +38,19 @@ func TestAll(t *testing.T) {
 		assert.NoError(err)
 	})
 
+	t.Run("sign-precomputes", func(t *testing.T) {
+		signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
+		assert.NoError(err)
+
+		vk, err := precomputes.NewAuthVerificationKeyBLS12381(signCircuit.VerifyKey)
+		assert.NoError(err)
+		prepared, err := vk.PrecomputeVerify(params.Period, params.GPK)
+		assert.NoError(err)
+
+		err = vk.VerifyPrepared(*prepared, params.M, signature)
+		assert.NoError(err)
+	})
+
 	t.Run("sign-fail", func(t *testing.T) {
 		signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 		assert.NoError(err)

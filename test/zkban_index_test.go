@@ -14,7 +14,43 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIndex(t *testing.T) {
+func TestAuthIndex(t *testing.T) {
+	wit, err := frontend.NewWitness(
+		&precomputes.AuthCircuit{
+			circuit.SignCircuit{
+				Credential: eddsa.Signature{
+					R: twistededwards.Point{
+						X: 0,
+						Y: 0,
+					},
+					S: 0,
+				},
+				GroupPublicKey: eddsa.PublicKey{
+					A: twistededwards.Point{
+						X: 0,
+						Y: 0,
+					},
+				},
+				UserSecretKey: 0,
+				Random:        0,
+				Counter:       0,
+				Nym:           1,
+				Signature:     1,
+				Message:       1,
+				Period:        0,
+			},
+		}, ecc.BLS12_381.ScalarField())
+
+	assert.NoError(t, err)
+
+	pubWit, err := wit.Public()
+	assert.NoError(t, err)
+	fmt.Printf("%v", pubWit.Vector())
+
+	panic("")
+}
+
+func TestUpdateIndex(t *testing.T) {
 	x := 10
 	y := 10
 
@@ -26,7 +62,7 @@ func TestIndex(t *testing.T) {
 		&precomputes.UpdateCircuit{
 			circuit.UpdateCircuit{
 				RevocationList: circuit.NewRevocationListAssigned(rl),
-				UserSecretKey:  1,
+				UserSecretKey:  0,
 				Credential: eddsa.Signature{
 					R: twistededwards.Point{
 						X: 0,
