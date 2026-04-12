@@ -13,15 +13,22 @@ import (
 func BenchmarkHandleParallel(b *testing.B) {
 	b.Logf("GOMAXPROCS=%d", runtime.GOMAXPROCS(0))
 	_, signCircuit, _ := test.PrepareCircuit(witness.EmptyRevocationList([]int{}))
+
 	params := test.PrepareParams()
 
-	signature, _ := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
-	var err error
+	signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
+	test.PanicIfErr(err)
+
+	vk, err := precomputes.NewAuthVerificationKeyBLS12381(signCircuit.VerifyKey)
+	test.PanicIfErr(err)
+
+	prepared, err := vk.PrecomputeVerify(params.Period, params.GPK)
+	test.PanicIfErr(err)
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			err = signature.Verify(params.M, params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
+			err = vk.VerifyPrepared(*prepared, params.M, signature)
 			test.PanicIfErr(err)
 		}
 	})
@@ -45,7 +52,7 @@ func BenchmarkHandleParallel2(b *testing.B) {
 	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(*verifier.VerifyKey)
 	test.PanicIfErr(err)
 
-	prepared, _ := vk.PrecomputeVerify(rl, params.GPK)
+	prepared, _ := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {

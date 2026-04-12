@@ -14,8 +14,8 @@ const (
 )
 
 type CredentialAuthInfo struct {
-	Period     frontend.Variable `gnark:",public"`
 	Credential eddsa.Signature   `gnark:",secret"`
+	Period     frontend.Variable `gnark:",public"`
 }
 
 type PublicKeyAuthInfo struct {

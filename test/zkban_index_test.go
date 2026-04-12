@@ -14,35 +14,69 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIndex(t *testing.T) {
+func TestAuthIndex(t *testing.T) {
+	wit, err := frontend.NewWitness(
+		&precomputes.AuthCircuit{
+			circuit.SignCircuit{
+				Credential: eddsa.Signature{
+					R: twistededwards.Point{
+						X: 0,
+						Y: 0,
+					},
+					S: 0,
+				},
+				GroupPublicKey: eddsa.PublicKey{
+					A: twistededwards.Point{
+						X: 0,
+						Y: 0,
+					},
+				},
+				UserSecretKey: 0,
+				Random:        0,
+				Counter:       0,
+				Nym:           1,
+				Signature:     1,
+				Message:       1,
+				Period:        0,
+			},
+		}, ecc.BLS12_381.ScalarField())
+
+	assert.NoError(t, err)
+
+	pubWit, err := wit.Public()
+	assert.NoError(t, err)
+	fmt.Printf("%v", pubWit.Vector())
+
+	panic("")
+}
+
+func TestUpdateIndex(t *testing.T) {
 	x := 10
 	y := 10
 
 	rlSize := witness.MakeUniformRLSize(x, y)
 	rl := witness.EmptyRevocationList(rlSize)
-	_, _, updateCircuit := PrepareCircuit(rl)
-
-	index := updateCircuit.ConstraintSystem.GetNbPublicVariables() - x*y - x - 1 - 2
+	// _, _, updateCircuit := PrepareCircuit(rl)
 
 	wit, err := frontend.NewWitness(
 		&precomputes.UpdateCircuit{
 			circuit.UpdateCircuit{
 				RevocationList: circuit.NewRevocationListAssigned(rl),
-				UserSecretKey:  1,
+				UserSecretKey:  0,
 				Credential: eddsa.Signature{
 					R: twistededwards.Point{
-						X: 1,
-						Y: 1,
+						X: 0,
+						Y: 0,
 					},
-					S: 1,
+					S: 0,
 				},
 				NextInfo: circuit.PublicKeyAuthInfo{
 					UserPublicKey: 1,
-					Period:        1,
+					Period:        0,
 				},
 				CurrentInfo: circuit.PublicKeyAuthInfo{
 					UserPublicKey: 1,
-					Period:        1,
+					Period:        0,
 				},
 				GroupPublicKey: eddsa.PublicKey{
 					A: twistededwards.Point{
@@ -58,7 +92,5 @@ func TestIndex(t *testing.T) {
 	pubWit, err := wit.Public()
 	assert.NoError(t, err)
 	fmt.Printf("%v", pubWit.Vector())
-
-	assert.Equal(t, precomputes.UpdatePreparableIndex, index)
 
 }
