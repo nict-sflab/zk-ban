@@ -12,8 +12,8 @@ import (
 type UpdateCircuit struct {
 	UserSecretKey  frontend.Variable `gnark:",secret"`
 	Credential     eddsa.Signature   `gnark:",secret"`
-	NextInfo       PublicKeyAuthInfo
 	CurrentInfo    PublicKeyAuthInfo
+	NextInfo       PublicKeyAuthInfo
 	GroupPublicKey eddsa.PublicKey `gnark:",public"`
 	RevocationList RevocationList
 }
@@ -34,14 +34,17 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	for _, revokedPerSession := range circuit.RevocationList {
-		nym, err := snark.CircuitHash(api, revokedPerSession.SessionTag, circuit.UserSecretKey)
-		if err != nil {
-			return err
-		}
+	for _, revokedPerPeriod := range circuit.RevocationList {
+		for counter := range MaxSession {
+			sessionTag := SessionTag(api, revokedPerPeriod.Period, counter)
+			nym, err := snark.CircuitHash(api, sessionTag, circuit.UserSecretKey)
+			if err != nil {
+				return err
+			}
 
-		for _, revokedNym := range revokedPerSession.Nyms {
-			api.AssertIsDifferent(nym, revokedNym)
+			for _, revokedNym := range revokedPerPeriod.Nyms {
+				api.AssertIsDifferent(nym, revokedNym)
+			}
 		}
 	}
 
@@ -79,9 +82,9 @@ func NewUpdateCircuitWitness(
 			nyms = append(nyms, nym.Int)
 		}
 
-		rl = append(rl, RevokedNymsPerSession{
-			Nyms:       nyms,
-			SessionTag: rps.SessionTag.Int,
+		rl = append(rl, RevokedNymsPerPeriod{
+			Nyms:   nyms,
+			Period: rps.Period.Int,
 		})
 	}
 

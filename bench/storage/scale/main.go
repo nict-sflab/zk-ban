@@ -7,80 +7,44 @@ import (
 	"runtime"
 	"strconv"
 
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/storage"
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/dump"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
 )
 
+var baseNymNum = 30000
+var baseMaxSess = 5
+var basePeriodNum = 30
+
+var alpha = 1
+var beta = 3
+var gamma = 2
+var max = 10
+
 func main() {
-	gnarkserializable.Unsafe = true
-	max := 10
-
-	baseSessionNum := 60
-	baseNymNum := 108_000
-
-	alpha := 1
-	beta := 25
-
 	result := make(storage.Result, 0)
 	result["env"] = make(map[string]map[string]int)
 	result["env"]["default"] = make(map[string]int)
-	result["env"]["default"]["baseSessionNum"] = int(baseSessionNum)
+	result["env"]["default"]["basePeriodNum"] = int(basePeriodNum)
 	result["env"]["default"]["baseNymNum"] = int(baseNymNum)
 	result["env"]["default"]["alpha"] = int(alpha)
 	result["env"]["default"]["beta"] = int(beta)
 
 	// increase nym
-	for i := 1; i <= max; i++ {
-		runtime.GC()
+	BenchOneNymScalability(result, bench.NYM_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
+	BenchOneNymScalability(result, bench.NYM_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
+	BenchOneNymScalability(result, bench.NYM_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
 
-		nymNum := baseNymNum * i * alpha
-		rlSize := witness.MakeUniformRLSizeFromTotal(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_UNIFORM, rlSize, result)
-	}
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
+	BenchOnePeriodScalability(result, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
 
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rlSize := witness.MakeProportionalRLSizeFromTotal(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_PROPORTIONAL, rlSize, result)
-	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rlSize := test.EmptyGaussianRevocationListSize(baseSessionNum, nymNum)
-		benchUpdate(nymNum, bench.NYM_INCREASE_GAUSSIAN, rlSize, result)
-	}
-
-	// increase sessionNumber
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rlSize := witness.MakeUniformRLSizeFromTotal(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_UNIFORM, rlSize, result)
-	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rlSize := witness.MakeProportionalRLSizeFromTotal(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_PROPORTIONAL, rlSize, result)
-	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rlSize := test.EmptyGaussianRevocationListSize(sessionNum, baseNymNum)
-		benchUpdate(sessionNum, bench.SESS_INCREASE_GAUSSIAN, rlSize, result)
-	}
+	BenchOneMaxSessScalability(result, bench.SESS_INCREASE_UNIFORM, witness.MakeUniformRLSizeFromTotal)
+	BenchOneMaxSessScalability(result, bench.SESS_INCREASE_PROPORTIONAL, witness.MakeProportionalRLSizeFromTotal)
+	BenchOneMaxSessScalability(result, bench.SESS_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationListSize)
 
 	j, err := json.Marshal(result)
 	test.PanicIfErr(err)
@@ -89,14 +53,56 @@ func main() {
 	os.WriteFile("update-storage.json", j, 0644)
 }
 
+func BenchOneNymScalability(result storage.Result, name string, MakeRLSize func(int, int) witness.RevocationListSize) {
+	for i := 1; i <= max; i++ {
+		runtime.GC()
+
+		nymNum := baseNymNum * i * alpha
+		rlSize := witness.MakeUniformRLSizeFromTotal(basePeriodNum, nymNum)
+		benchUpdate(nymNum, name, rlSize, result)
+	}
+}
+
+func BenchOnePeriodScalability(result storage.Result, name string, MakeRLSize func(int, int) witness.RevocationListSize) {
+	for i := 1; i <= max; i++ {
+		runtime.GC()
+
+		periodNum := basePeriodNum * i * beta
+		rlSize := MakeRLSize(periodNum, baseNymNum)
+		benchUpdate(periodNum, name, rlSize, result)
+	}
+}
+
+func BenchOneMaxSessScalability(result storage.Result, name string, MakeRLSize func(int, int) witness.RevocationListSize) {
+	for i := 1; i <= max; i++ {
+		runtime.GC()
+
+		maxSess := baseMaxSess * i * gamma
+		circuit.MaxSession = maxSess
+
+		rlSize := MakeRLSize(basePeriodNum, baseNymNum)
+		benchUpdate(maxSess, name, rlSize, result)
+
+		circuit.MaxSession = baseMaxSess
+	}
+}
+
 func benchUpdate(v int, root string, rlSize witness.RevocationListSize, result storage.Result) {
 	parent := fmt.Sprintf("%v--%d", root, v)
 	vs := strconv.Itoa(v)
 
-	prover, verifier := test.PrepareUpdateKeyCached(rlSize, parent)
-	storage.StoreWritableSize(vs, "cs", root, &prover.ConstraintSystem, result)
-	storage.StoreWritableSize(vs, "pk", root, &prover.ProveKey, result)
-	storage.StoreWritableSize(vs, "vk", root, verifier.VerifyKey, result)
+	test.PrepareUpdateKeyCached(rlSize, parent)
+
+	cs, err := os.Stat(dump.FileName(parent, "update", dump.CircuitFileNameFormat))
+	test.PanicIfErr(err)
+	pk, err := os.Stat(dump.FileName(parent, "update", dump.ProverKeyFileNameFormat))
+	test.PanicIfErr(err)
+	vk, err := os.Stat(dump.FileName(parent, "update", dump.VerifierKeyFileNameFormat))
+	test.PanicIfErr(err)
+
+	storage.StoreSize(vs, "cs", root, int(cs.Size()), result)
+	storage.StoreSize(vs, "pk", root, int(pk.Size()), result)
+	storage.StoreSize(vs, "vk", root, int(vk.Size()), result)
 
 	// params := test.PrepareParams()
 

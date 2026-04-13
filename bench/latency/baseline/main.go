@@ -10,6 +10,7 @@ import (
 const COUNT = 20
 
 func main() {
+
 	bb := usefulbench.New(COUNT)
 	latency.BenchmarkBaseline(bb)
 

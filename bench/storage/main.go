@@ -6,6 +6,7 @@ import (
 
 	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/test"
+	gnarkio "github.com/consensys/gnark/io"
 )
 
 type Result = map[string]map[string]map[string]int
@@ -27,6 +28,14 @@ func StoreBufSize(name, parent, root string, buf []byte, result Result) {
 func StoreWritableSize(name, parent, root string, writer io.WriterTo, result Result) {
 	var buf bytes.Buffer
 	_, err := writer.WriteTo(&buf)
+	test.PanicIfErr(err)
+
+	StoreBufSize(name, parent, root, buf.Bytes(), result)
+}
+
+func StoreRawWritableSize(name, parent, root string, writer gnarkio.WriterRawTo, result Result) {
+	var buf bytes.Buffer
+	_, err := writer.WriteRawTo(&buf)
 	test.PanicIfErr(err)
 
 	StoreBufSize(name, parent, root, buf.Bytes(), result)

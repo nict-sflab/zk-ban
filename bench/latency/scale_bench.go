@@ -7,6 +7,8 @@ import (
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench"
 	"github.com/akakou/zk-ban/bench/latency/utils/usefulbench"
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/load"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/test"
 	zkbanw "github.com/akakou/zk-ban/witness"
@@ -14,20 +16,24 @@ import (
 	// fr_bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381/fr"
 )
 
+var NoParallel = false
+var SkipVerify = false
+var OnlyUniform = false
+
 var alpha = 1
-var beta = 25
+var beta = 3
+var gamma = 2
 var max = 10
 
-var baseSessionNum = 60
-
-// var baseNymNum = 108_000 * 50
-var baseNymNum = 108_000
+var baseSessNum = 5
+var basePeriodNum = 30
+var baseNymNum = 30000
 
 func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 
 	if ok {
-		ub.Result["env"]["baseSessionNum"] = int64(baseSessionNum)
+		ub.Result["env"]["basePeriodNum"] = int64(basePeriodNum)
 		ub.Result["env"]["baseNymNum"] = int64(baseNymNum)
 		ub.Result["env"]["alpha"] = int64(alpha)
 		ub.Result["env"]["beta"] = int64(beta)
@@ -37,10 +43,23 @@ func logIfUsefulBenchInScaleBench(b usefulbench.Benchmarker) {
 
 func BenchmarkScalability(b usefulbench.Benchmarker) {
 	BenchmarkNymScalability(b)
-	BenchSessScalability(b)
+	BenchPeriodScalability(b)
+	BenchMaxSessScalability(b)
 }
 
 func BenchmarkNymScalability(b usefulbench.Benchmarker) {
+	logIfUsefulBenchInScaleBench(b)
+
+	// increase nym
+	BenchmarkOneNymScalability(b, bench.NYM_INCREASE_UNIFORM, test.EmptyUniformRevocationList)
+	if OnlyUniform {
+		return
+	}
+	BenchmarkOneNymScalability(b, bench.NYM_INCREASE_PROPORTIONAL, test.EmptyProportionalRevocationList)
+	BenchmarkOneNymScalability(b, bench.NYM_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationList)
+
+}
+func BenchmarkOneNymScalability(b usefulbench.Benchmarker, name string, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	// increase nym
@@ -48,74 +67,59 @@ func BenchmarkNymScalability(b usefulbench.Benchmarker) {
 		runtime.GC()
 
 		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyUniformRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_UNIFORM, b)
+		rl := EmptyRevocationList(basePeriodNum, nymNum)
+		benchmarkUpdate(nymNum, rl, name, b)
 	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyProportionalRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_PROPORTIONAL, b)
-	}
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		nymNum := baseNymNum * i * alpha
-		rl := test.EmptyGaussianRevocationList(baseSessionNum, nymNum)
-		benchmarkUpdate(nymNum, rl, bench.NYM_INCREASE_GAUSSIAN, b)
-	}
-}
-
-func BenchSessScalability(b usefulbench.Benchmarker) {
-	// increase sessionNumber
-	BenchSessUniformScalability(b)
-	BenchSessProportionalScalability(b)
-	BenchSessGaussScalability(b)
 
 }
 
-func BenchSessUniformScalability(b usefulbench.Benchmarker) {
+func BenchPeriodScalability(b usefulbench.Benchmarker) {
+	// increase periodNumber
+	BenchOnePeriodScalability(b, bench.PERIOD_INCREASE_UNIFORM, test.EmptyUniformRevocationList)
+	if OnlyUniform {
+		return
+	}
+	BenchOnePeriodScalability(b, bench.PERIOD_INCREASE_PROPORTIONAL, test.EmptyProportionalRevocationList)
+	BenchOnePeriodScalability(b, bench.PERIOD_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationList)
+}
+
+func BenchOnePeriodScalability(b usefulbench.Benchmarker, name string, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
 		runtime.GC()
 
-		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyUniformRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_UNIFORM, b)
+		periodNum := basePeriodNum * i * beta
+		rl := EmptyRevocationList(periodNum, baseNymNum)
+		benchmarkUpdate(periodNum, rl, name, b)
 	}
 
 }
 
-func BenchSessProportionalScalability(b usefulbench.Benchmarker) {
+func BenchMaxSessScalability(b usefulbench.Benchmarker) {
+	// increase periodNumber
+	BenchOneMaxSessScalability(b, bench.SESS_INCREASE_UNIFORM, test.EmptyUniformRevocationList)
+	if OnlyUniform {
+		return
+	}
+	BenchOneMaxSessScalability(b, bench.SESS_INCREASE_PROPORTIONAL, test.EmptyProportionalRevocationList)
+	BenchOneMaxSessScalability(b, bench.SESS_INCREASE_GAUSSIAN, test.EmptyGaussianRevocationList)
+}
+
+func BenchOneMaxSessScalability(b usefulbench.Benchmarker, name string, EmptyRevocationList func(int, int) zkbanw.RevocationList) {
 	logIfUsefulBenchInScaleBench(b)
 
 	for i := 1; i <= max; i++ {
 		runtime.GC()
+		sessNum := baseSessNum * i * gamma
 
-		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyProportionalRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_PROPORTIONAL, b)
+		circuit.MaxSession = sessNum
+
+		rl := EmptyRevocationList(basePeriodNum, baseNymNum)
+		benchmarkUpdate(sessNum, rl, name, b)
 	}
+
 }
-
-func BenchSessGaussScalability(b usefulbench.Benchmarker) {
-	logIfUsefulBenchInScaleBench(b)
-
-	for i := 1; i <= max; i++ {
-		runtime.GC()
-
-		sessionNum := baseSessionNum * i * beta
-		rl := test.EmptyGaussianRevocationList(sessionNum, baseNymNum)
-		benchmarkUpdate(sessionNum, rl, bench.SESS_INCREASE_GAUSSIAN, b)
-	}
-}
-
-var NoParallel = false
-var SkipVerify = false
 
 func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
@@ -135,6 +139,13 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 		}
 	}()
 
+	b.Run("load-prove-"+parent, func(b usefulbench.Benchmarker) {
+		for b.Loop() {
+			_, err := load.LoadUserKey(parent, "update")
+			test.PanicIfErr(err)
+		}
+	})
+
 	b.Run("prove-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
 			_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, prover)
@@ -148,17 +159,24 @@ func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulb
 		return
 	}
 
-	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(veirifer.VerifyKey.VerifyingKey)
-	test.PanicIfErr(err)
-
-	b.Run("precomputes-"+parent, func(b usefulbench.Benchmarker) {
+	b.Run("load-verify-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {
-			_, err := vk.PrecomputeVerify(rl, params.GPK)
+			_, err := load.LoadGroupManagerUpdateKey(parent)
 			test.PanicIfErr(err)
 		}
 	})
 
-	prepare, _ := vk.PrecomputeVerify(rl, params.GPK)
+	vk, err := precomputes.NewUpdateVerificationKeyBLS12381(*veirifer.VerifyKey)
+	test.PanicIfErr(err)
+
+	b.Run("precomputes-"+parent, func(b usefulbench.Benchmarker) {
+		for b.Loop() {
+			_, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
+			test.PanicIfErr(err)
+		}
+	})
+
+	prepare, _ := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 
 	b.Run("verify-"+parent, func(b usefulbench.Benchmarker) {
 		for b.Loop() {

@@ -1,6 +1,8 @@
 package witness
 
 import (
+	"encoding/binary"
+
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 )
@@ -39,10 +41,10 @@ func SessionTag(counter int64, period int64) *primitives.BigInt {
 	var counterBuf = [8]byte{}
 	var periodBuf = [8]byte{}
 
-	copy(counterBuf[:], primitives.NewBigInt(counter).Bytes())
-	copy(periodBuf[:], primitives.NewBigInt(period).Bytes())
+	binary.BigEndian.PutUint64(periodBuf[:], uint64(period))
+	binary.BigEndian.PutUint64(counterBuf[:], uint64(counter))
 
-	concated := append(counterBuf[:], periodBuf[:]...)
+	concated := append(periodBuf[:], counterBuf[:]...)
 	return primitives.BigIntFromBytes(concated)
 }
 

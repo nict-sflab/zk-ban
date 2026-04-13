@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	zkban "github.com/akakou/zk-ban"
+	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
-	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/test"
 )
 
@@ -38,12 +38,30 @@ func TestAll(t *testing.T) {
 		assert.NoError(err)
 	})
 
+	t.Run("sign-precomputes", func(t *testing.T) {
+		signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
+		assert.NoError(err)
+
+		vk, err := precomputes.NewAuthVerificationKeyBLS12381(signCircuit.VerifyKey)
+		assert.NoError(err)
+		prepared, err := vk.PrecomputeVerify(params.Period, params.GPK)
+		assert.NoError(err)
+
+		err = vk.VerifyPrepared(*prepared, params.M, signature)
+		assert.NoError(err)
+	})
+
 	t.Run("sign-fail", func(t *testing.T) {
 		signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 		assert.NoError(err)
 
 		err = signature.Verify(primitives.NewBigInt(100000000), params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
 		assert.ErrorContains(err, verifyFailedMessage)
+	})
+
+	t.Run("sign-counter-max-fail", func(t *testing.T) {
+		_, err = zkban.Sign(params.M, int64(circuit.MaxSession), params.Signer(), params.GPK, signCircuit.Prover())
+		assert.ErrorContains(err, proveFailedMessage)
 	})
 
 	t.Run("update", func(t *testing.T) {
@@ -61,7 +79,7 @@ func TestAll(t *testing.T) {
 		vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
 		assert.NoError(err)
 
-		prepared, err := vk.PrecomputeVerify(rl, params.GPK)
+		prepared, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 		assert.NoError(err)
 
 		err = vk.VerifyPrepared(*prepared, req, params.NextPeriod, params.Period)
@@ -70,25 +88,25 @@ func TestAll(t *testing.T) {
 
 	t.Run("update-fail1", func(t *testing.T) {
 		rl := EmptyUniformRevocationList(60, 120)
-		rl[0].SessionTag = witness.SessionTag(params.CNT, params.Period)
+		rl[0].Period = primitives.NewBigInt(params.Period)
 		rl[0].Nyms[0] = signature.Commit.Nym
 		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)
 	})
 
 	t.Run("update-fail2", func(t *testing.T) {
-		test := func(sessIndex, nymIndex int) {
+		test := func(periodIndex, nymIndex int) {
 			rl := EmptyUniformRevocationList(60, 120)
 			req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
 			assert.NoError(err, proveFailedMessage)
 
-			rl[sessIndex].SessionTag = witness.SessionTag(params.CNT, params.Period)
-			rl[sessIndex].Nyms[nymIndex] = signature.Commit.Nym
+			rl[periodIndex].Period = primitives.NewBigInt(params.Period)
+			rl[periodIndex].Nyms[nymIndex] = signature.Commit.Nym
 
 			vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
 			assert.NoError(err, proveFailedMessage)
 
-			cache, err := vk.PrecomputeVerify(rl, params.GPK)
+			cache, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
 			assert.NoError(err, proveFailedMessage)
 
 			err = vk.VerifyPrepared(*cache, req, params.NextPeriod, params.Period)

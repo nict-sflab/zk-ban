@@ -3,7 +3,6 @@ package dump
 import (
 	"encoding/json"
 
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/snark"
@@ -17,14 +16,14 @@ func Prepare[T frontend.Circuit](c T) ([]byte, []byte, error) {
 		return nil, nil, err
 	}
 
-	verifierBuf, err := json.Marshal(&gnarkserializable.VerifyingKey{cc.VerifyKey})
+	verifierBuf, err := json.Marshal(&cc.VerifyKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	prover := snark.SnarkProver{
-		ConstraintSystem: gnarkserializable.ConstraintSystem{cc.ConstraintSystem},
-		ProveKey:         gnarkserializable.ProvingKey{cc.ProveKey},
+		ConstraintSystem: cc.ConstraintSystem,
+		ProveKey:         cc.ProveKey,
 	}
 
 	proverBuf, err := json.Marshal(&prover)
@@ -56,10 +55,8 @@ func MakeUpdateCircuit(rlSize witness.RevocationListSize) ([]byte, []byte, error
 	}
 
 	verifier := snark.SizedSnarkVerifier{
-		VerifyKey: &gnarkserializable.VerifyingKey{
-			cc.VerifyKey,
-		},
-		RLSize: rlSize,
+		VerifyKey: &cc.VerifyKey,
+		RLSize:    rlSize,
 	}
 
 	verifierBuf, err := json.Marshal(&verifier)
@@ -68,8 +65,8 @@ func MakeUpdateCircuit(rlSize witness.RevocationListSize) ([]byte, []byte, error
 	}
 
 	prover := snark.SnarkProver{
-		ConstraintSystem: gnarkserializable.ConstraintSystem{cc.ConstraintSystem},
-		ProveKey:         gnarkserializable.ProvingKey{cc.ProveKey},
+		ConstraintSystem: cc.ConstraintSystem,
+		ProveKey:         cc.ProveKey,
 	}
 
 	proverBuf, err := json.Marshal(&prover)

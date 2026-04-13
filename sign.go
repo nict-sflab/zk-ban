@@ -1,7 +1,6 @@
 package zkban
 
 import (
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
@@ -11,7 +10,7 @@ import (
 
 type Signature struct {
 	Commit *zkbanw.SignCommit
-	Proof  gnarkserializable.Proof
+	Proof  groth16.Proof
 }
 
 func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*Signature, error) {
@@ -23,31 +22,29 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 		return nil, err
 	}
 
-	wit, err := circuit.NewSignWitness(m, r, sessionTag, comm, signer, gpk)
+	wit, err := circuit.NewSignWitness(m, r, counter, comm, signer, gpk)
 	if err != nil {
 		return nil, err
 	}
 
-	proof, err := groth16.Prove(prover.ConstraintSystem.ConstraintSystem, prover.ProveKey.ProvingKey, wit)
+	proof, err := groth16.Prove(prover.ConstraintSystem, prover.ProveKey, wit)
 	if err != nil {
 		return nil, err
 	}
 
 	signature := Signature{
 		Commit: comm,
-		Proof:  gnarkserializable.Proof{proof},
+		Proof:  proof,
 	}
 	return &signature, nil
 }
 
 func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
-	sessionTag := zkbanw.SessionTag(counter, period)
-
-	pubWit, err := circuit.NewPublicSignWitness(m, sessionTag, signature.Commit, period, gpk)
+	pubWit, err := circuit.NewPublicSignWitness(m, counter, signature.Commit, period, gpk)
 	if err != nil {
 		return err
 	}
 
-	err = groth16.Verify(signature.Proof.Proof, verifyKey, pubWit)
+	err = groth16.Verify(signature.Proof, verifyKey, pubWit)
 	return err
 }

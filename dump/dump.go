@@ -1,61 +1,103 @@
 package dump
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/akakou/zk-ban/circuit"
+	"github.com/akakou/zk-ban/precomputes"
+	"github.com/akakou/zk-ban/snark"
 	"github.com/akakou/zk-ban/witness"
 )
 
-func DumpBasicKeys(path string) {
-	joinProver, joinVerify, err := JoinRequestCircuit()
+func DumpKeys(name, protocol string, params *snark.SnarkParams) {
+	proverFileName := FileName(name, protocol, ProverKeyFileNameFormat)
+	csFileName := FileName(name, protocol, CircuitFileNameFormat)
+	verifierFileName := FileName(name, protocol, VerifierKeyFileNameFormat)
+
+	proverKeyFile, err := os.Create(proverFileName)
 	if err != nil {
-		fmt.Printf("failed to dump join keys")
+		log.Fatalf("create pk file: %v", err)
+	}
+	defer proverKeyFile.Close()
+
+	err = params.ProveKey.WriteDump(proverKeyFile)
+	if err != nil {
+		log.Fatalf("write dump pk: %v", err)
 	}
 
-	err = os.WriteFile(path+"/join_prover.key.json", joinProver, 0644)
+	constraintSystemFile, err := os.Create(csFileName)
 	if err != nil {
-		fmt.Printf("failed to dump join keys")
+		log.Fatalf("create cs file: %v", err)
+	}
+	defer constraintSystemFile.Close()
+
+	_, err = params.ConstraintSystem.WriteTo(constraintSystemFile)
+	if err != nil {
+		log.Fatalf("write cs: %v", err)
 	}
 
-	err = os.WriteFile(path+"/join_verifier.key.json", joinVerify, 0644)
+	verifierKeyFile, err := os.Create(verifierFileName)
 	if err != nil {
-		fmt.Printf("failed to dump join keys")
+		log.Fatalf("create vk file: %v", err)
 	}
+	defer verifierKeyFile.Close()
 
-	signProver, signVerifyKey, err := SignCircuit()
+	_, err = params.VerifyKey.WriteRawTo(verifierKeyFile)
 	if err != nil {
-		fmt.Printf("failed to dump sign keys")
-	}
-
-	err = os.WriteFile(path+"/sign_prover.key.json", signProver, 0644)
-	if err != nil {
-		fmt.Printf("failed to dump sign keys")
-	}
-
-	err = os.WriteFile(path+"/sign_verifier.key.json", signVerifyKey, 0644)
-	if err != nil {
-		fmt.Printf("failed to dump sign keys")
+		log.Fatalf("write raw vk: %v", err)
 	}
 
 }
 
-func DumpUpdateKeys(name string, rlSize witness.RevocationListSize, path string) {
-	updateProver, updateVerify, err := MakeUpdateCircuit(rlSize)
+func DumpBasicKeys() {
+	joinParams, err := snark.InitSNARK(&circuit.JoinRequestCircuit{})
 	if err != nil {
-		fmt.Printf("failed to dump update keys")
+		log.Fatalf("init join snark: %v", err)
 	}
 
-	proverFileName := fmt.Sprintf(UpdateProverKeyFileNameFormat, name)
-	verifierFileName := fmt.Sprintf(UpdateVerifierKeyFileNameFormat, name)
-
-	err = os.WriteFile(path+proverFileName, updateProver, 0644)
+	signParams, err := snark.InitSNARK(&circuit.SignCircuit{})
 	if err != nil {
-		fmt.Printf("failed to dump update keys")
+		log.Fatalf("init sign snark: %v", err)
 	}
 
-	err = os.WriteFile(path+verifierFileName, updateVerify, 0644)
+	DumpKeys("", "join", joinParams)
+	DumpKeys("", "sign", signParams)
+}
+
+func DumpMetadata(name string, rlSize witness.RevocationListSize) {
+	verifierMetaFileName := FileName(name, "update", MetaFileNameFormat)
+	metadataFile, err := os.Create(verifierMetaFileName)
 	if err != nil {
-		fmt.Printf("failed to dump update keys")
+		log.Fatalf("create vk metadata file: %v", err)
 	}
+	defer metadataFile.Close()
+
+	v, err := json.Marshal(rlSize)
+	if err != nil {
+		fmt.Printf("failed to marshal rl size")
+	}
+
+	_, err = metadataFile.Write(v)
+	if err != nil {
+		log.Fatalf("write vk metadata: %v", err)
+	}
+}
+
+func DumpUpdateKeys(name string, rlSize witness.RevocationListSize) {
+	rl := witness.EmptyRevocationList(rlSize)
+	params, err := snark.InitSNARK(&precomputes.UpdateCircuit{
+		UpdateCircuit: circuit.UpdateCircuit{
+			RevocationList: circuit.NewRevocationListAssigned(rl),
+		},
+	})
+
+	if err != nil {
+		log.Fatalf("write vk metadata: %v", err)
+	}
+
+	DumpKeys(name, "update", params)
+	DumpMetadata(name, rlSize)
 }

@@ -10,10 +10,10 @@ import (
 // var NewCommitHash = poseidon.NewPoseidon
 // var CommitHash = commit.PoseidonHash
 
-var NewCircuitHash = circuit.NewMIMC
+var NewCircuitHash = circuit.NewPoseidon2
 var NewCommitHash = NewCommitHashBase.New
-var CommitHash = witness.MimcHash(NewCommitHashBase)
+var CommitHash = witness.Hash(NewCommitHashBase)
 
-var NewCommitHashBase = hash.MIMC_BLS12_381
+var NewCommitHashBase = hash.POSEIDON2_BLS12_381
 
 var CircuitHash = circuit.HashMaker(NewCircuitHash)

@@ -7,15 +7,17 @@ import (
 	"runtime"
 	"time"
 
-	gnarkserializable "github.com/akakou/gnark-serializable"
 	zkban "github.com/akakou/zk-ban"
 	"github.com/akakou/zk-ban/bench/storage"
+	"github.com/akakou/zk-ban/dump"
 	"github.com/akakou/zk-ban/test"
 	"github.com/akakou/zk-ban/witness"
 )
 
+const KAPPA = 30
+const LAMBDA = 30000
+
 func main() {
-	gnarkserializable.Unsafe = true
 	params := test.PrepareParams()
 
 	result := make(storage.Result, 0)
@@ -47,15 +49,12 @@ func main() {
 	test.PanicIfErr(err)
 	storage.StoreBufSize("cred", "baseline", "baseline", cred.Signature, result)
 
-	tag := witness.SessionTag(2, now)
-	fmt.Printf("tag: %v\n", len(tag.Bytes()))
-
 	signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 	test.PanicIfErr(err)
 
 	storage.StoreBufSize("sigma", "baseline", "baseline", signature.Commit.Sigma.Bytes(), result)
 	storage.StoreBufSize("nym", "baseline", "baseline", signature.Commit.Nym.Bytes(), result)
-	storage.StoreWritableSize("sign proof", "baseline", "baseline", &signature.Proof, result)
+	storage.StoreWritableSize("sign proof", "baseline", "baseline", signature.Proof, result)
 
 	// baseNym := 108000
 	// baseSess := 60
@@ -89,12 +88,12 @@ func benchBasicUpdate(rl witness.RevocationList, name string, params *test.TestP
 
 	storage.StoreBufSize("upk", n, name, update.PublicKey.Number.Bytes(), result)
 	storage.StoreBufSize(name+"ticket", n, name, update.UpdateTicket.Number.Bytes(), result)
-	storage.StoreWritableSize("-update-proof", n, name, &update.Proof, result)
+	storage.StoreWritableSize("-update-proof", n, name, update.Proof, result)
 }
 
 func benchBasicUpdateCircuit(root string, result storage.Result) {
-	kappas := []int{15, 30, 60, 120}
-	lambdas := []int{27_000, 54_000, 108_000, 216_000}
+	kappas := []int{KAPPA / 2, KAPPA, KAPPA * 2}
+	lambdas := []int{LAMBDA / 2, LAMBDA, LAMBDA * 2}
 
 	// rlMakers := []func(int, int) (witness.RevocationList, witness.RevocationListSize){
 	// 	test.EmptyUniformRevocationList,
@@ -105,11 +104,15 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 	witness.InitBigInt = witness.ZeroInitBigInt
 	rlMakers := []func(int, int) witness.RevocationListSize{
 		witness.MakeUniformRLSizeFromTotal,
-		witness.MakeProportionalRLSizeFromTotal,
-		test.EmptyGaussianRevocationListSize,
+		// witness.MakeProportionalRLSizeFromTotal,
+		// test.EmptyGaussianRevocationListSize,
 	}
 
-	rlMakerTags := []string{"uniform", "proportionl", "gaussian"}
+	rlMakerTags := []string{
+		"uniform",
+		// "proportionl",
+		// "gaussian",
+	}
 	count := 0
 
 	for _, kappa := range kappas {
@@ -121,17 +124,23 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 				tag := rlMakerTags[i]
 				rlSize := rlMaker(kappa, lambda)
 				name := fmt.Sprintf("%d-%d-%s", kappa, lambda, tag)
-				pk, vk := test.PrepareUpdateKeyCached(rlSize, name)
+				test.PrepareUpdateKeyCached(rlSize, name)
 
-				storage.StoreWritableSize(name, "pk", root, pk.ProveKey, result)
-				storage.StoreWritableSize(name, "cs", root, &pk.ConstraintSystem, result)
-				storage.StoreWritableSize(name, "vk", root, vk.VerifyKey, result)
+				cs, err := os.Stat(dump.FileName(name, "update", dump.CircuitFileNameFormat))
+				test.PanicIfErr(err)
+				pk, err := os.Stat(dump.FileName(name, "update", dump.ProverKeyFileNameFormat))
+				test.PanicIfErr(err)
+				vk, err := os.Stat(dump.FileName(name, "update", dump.VerifierKeyFileNameFormat))
+				test.PanicIfErr(err)
+
+				storage.StoreSize(name, "pk", root, int(pk.Size()), result)
+				storage.StoreSize(name, "cs", root, int(cs.Size()), result)
+				storage.StoreSize(name, "vk", root, int(vk.Size()), result)
 
 				j, err := json.Marshal(result)
 				test.PanicIfErr(err)
 				fmt.Printf("result %s\n", j)
-				fmt.Printf("%d/%d is done...", count, 4*4*3)
-
+				fmt.Printf("%d/%d is done...", count, len(kappas)*len(lambdas)*len(rlMakers))
 			}
 		}
 	}

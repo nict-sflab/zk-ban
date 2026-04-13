@@ -18,7 +18,3 @@ func BenchmarkScalabilityRun(b *testing.B) {
 func BenchmarkCompareRun(b *testing.B) {
 	BenchmarkCompare(&usefulbench.StandardBenchMarker{B: b})
 }
-
-func BenchmarkLoadRun(b *testing.B) {
-	BenchmarkLoad(&usefulbench.StandardBenchMarker{B: b})
-}
