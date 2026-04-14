@@ -34,7 +34,7 @@ func TestAll(t *testing.T) {
 		signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 		assert.NoError(err)
 
-		err = signature.Verify(params.M, params.CNT, params.Period, params.GPK, signCircuit.VerifyKey)
+		err = signature.Verify(params.M, params.Period, params.GPK, signCircuit.VerifyKey)
 		assert.NoError(err)
 	})
 
