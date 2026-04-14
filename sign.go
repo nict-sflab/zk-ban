@@ -39,8 +39,8 @@ func Sign(m *primitives.BigInt, counter int64, signer *zkbanw.Signer, gpk *zkban
 	return &signature, nil
 }
 
-func (signature *Signature) Verify(m *primitives.BigInt, counter, period int64, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
-	pubWit, err := circuit.NewPublicSignWitness(m, counter, signature.Commit, period, gpk)
+func (signature *Signature) Verify(m *primitives.BigInt, period int64, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
+	pubWit, err := circuit.NewPublicSignWitness(m, 0, signature.Commit, period, gpk)
 	if err != nil {
 		return err
 	}
