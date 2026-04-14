@@ -11,29 +11,37 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
+var BaseSubRevocation = 30000
+var BasePeriods = 30
+
+var Name = ""
+
 func BenchmarkBaseline(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
-
-	baseNym := 30994
-	basePeriod := 30
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
 
 	if ok {
-		ub.Result["env"]["basePeriodNum"] = int64(basePeriod)
-		ub.Result["env"]["baseNymNum"] = int64(baseNym)
+		ub.Result["env"]["basePeriodNum"] = int64(BasePeriods)
+		ub.Result["env"]["baseNymNum"] = int64(BaseSubRevocation)
 	}
 
-	benchmarkBaseline(&params, b)
+	if !OnlyUpdate {
+		benchmarkBaseline(&params, b)
+	}
 
-	rlU := test.EmptyUniformRevocationList(basePeriod, baseNym)
-	benchmarkBasicUpdate(rlU, "uniform", &params, b)
+	rlU := test.EmptyUniformRevocationList(BasePeriods, BaseSubRevocation)
+	benchmarkBasicUpdate(rlU, Name+"uniform", &params, b)
 
-	rlP := test.EmptyProportionalRevocationList(basePeriod, baseNym)
-	benchmarkBasicUpdate(rlP, "proportional", &params, b)
+	if OnlyUniform {
+		return
+	}
 
-	rlG := test.EmptyGaussianRevocationList(basePeriod, baseNym)
-	benchmarkBasicUpdate(rlG, "gaussian", &params, b)
+	rlP := test.EmptyProportionalRevocationList(BasePeriods, BaseSubRevocation)
+	benchmarkBasicUpdate(rlP, Name+"proportional", &params, b)
+
+	rlG := test.EmptyGaussianRevocationList(BasePeriods, BaseSubRevocation)
+	benchmarkBasicUpdate(rlG, Name+"gaussian", &params, b)
 }
 
 func benchmarkBaseline(params *test.TestParams, b usefulbench.Benchmarker) {
