@@ -19,7 +19,7 @@ import (
 var NoParallel = false
 var SkipVerify = false
 var OnlyUniform = false
-
+var OnlyUpdate = false
 var alpha = 1
 var beta = 3
 var gamma = 2
