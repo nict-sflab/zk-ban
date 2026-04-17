@@ -34,20 +34,11 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	for _, revokedPerPeriod := range circuit.RevocationList {
-		for counter := range MaxSession {
-			sessionTag := SessionTag(api, revokedPerPeriod.Period, counter)
-			nym, err := snark.CircuitHash(api, sessionTag, circuit.UserSecretKey)
-			if err != nil {
-				return err
-			}
-
-			for _, revokedNym := range revokedPerPeriod.Nyms {
-				api.AssertIsDifferent(nym, revokedNym)
-			}
-		}
+	err = circuit.RevocationList.CheckRevocation(circuit.UserSecretKey, api)
+	if err != nil {
+		return err
 	}
-
+	
 	return nil
 }
 

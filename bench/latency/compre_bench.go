@@ -8,7 +8,7 @@ import (
 func BenchmarkCompare(b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
 
-	baseNym := 1024*32 + 16*14
+	baseNym := 1024*32
 	basePeriod := 30
 
 	ub, ok := b.(*usefulbench.UsefulBenchmaker)
