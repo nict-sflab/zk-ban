@@ -1,0 +1,125 @@
+
+[akama@nixos:~/Documents/zk-ban/bench]$ cat README.md
+# Benchmark
+
+### How to work
+#### Latency
+
+```sh
+go run ./latency/baseline
+go run ./latency/scale
+go run ./latency/compare
+
+# if want to use go test
+# go test --bench ^BenchmarkBaselineRun$ . -timeout 0 -benchtime 5x
+# go test --bench ^BenchmarkScalabilityRun$$ . -timeout 0 -benchtime 5x
+```
+
+#### Storage
+
+```
+go run ./storage/baseline
+go run ./storage/scale
+```
+
+[akama@nixos:~/Documents/zk-ban/bench]$ go run ./storage/baseline
+20559
+gsk: 96
+gpk: 32
+12:35:31 INF compiling circuit
+12:35:31 INF parsed circuit inputs nbPublic=2 nbSecret=1
+12:35:31 INF building constraint builder nbConstraints=373
+12:35:31 INF compiling circuit
+12:35:31 INF parsed circuit inputs nbPublic=6 nbSecret=6
+12:35:31 INF building constraint builder nbConstraints=8381
+12:35:31 INF compiling circuit
+12:35:31 INF parsed circuit inputs nbPublic=6 nbSecret=4
+12:35:31 INF building constraint builder nbConstraints=7422
+12:35:32 DBG constraint system solver done nbConstraints=373 took=0.296714
+12:35:32 DBG prover done acceleration=none backend=groth16 curve=bls12_381 nbConstraints=373 took=5.237714
+12:35:32 DBG constraint system solver done nbConstraints=8381 took=5.963635
+12:35:32 DBG prover done acceleration=none backend=groth16 curve=bls12_381 nbConstraints=8381 took=56.657974
+search key at ./update_verifier-15-15000-uniform.meta.json
+compile
+12:35:32 INF compiling circuit
+12:35:32 INF parsed circuit inputs nbPublic=15021 nbSecret=4
+12:35:32 INF building constraint builder nbConstraints=115197
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233},"pk":{"15-15000-uniform":47101511},"vk":{"15-15000-uniform":1442988}}}
+1/9 is done...search key at ./update_verifier-15-30000-uniform.meta.json
+compile
+12:35:35 INF compiling circuit
+12:35:35 INF parsed circuit inputs nbPublic=30021 nbSecret=4
+12:35:35 INF building constraint builder nbConstraints=190197
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744},"pk":{"15-15000-uniform":47101511,"15-30000-uniform":78584423},"vk":{"15-15000-uniform":1442988,"15-30000-uniform":2882988}}
+}
+2/9 is done...search key at ./update_verifier-15-60000-uniform.meta.json
+compile
+12:35:39 INF compiling circuit
+12:35:39 INF parsed circuit inputs nbPublic=60021 nbSecret=4
+12:35:40 INF building constraint builder nbConstraints=340197
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876},"pk":{"15-15000-uniform":47101511,"15-30000-uniform":78584423,"15-60000-uniform":141550247},"vk"
+:{"15-15000-uniform":1442988,"15-30000-uniform":2882988,"15-60000-uniform":5762988}}}
+3/9 is done...search key at ./update_verifier-30-15000-uniform.meta.json
+compile
+12:35:48 INF compiling circuit
+12:35:48 INF parsed circuit inputs nbPublic=15036 nbSecret=4
+12:35:48 INF building constraint builder nbConstraints=147972
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876,"30-15000-uniform":9957897},"pk":{"15-15000-uniform":47101511,"15-30000-uniform":78584423,"15-600
+00-uniform":141550247,"30-15000-uniform":72753053},"vk":{"15-15000-uniform":1442988,"15-30000-uniform":2882988,"15-60000-uniform":5762988,"30-15000-uniform":1444428}}}
+4/9 is done...search key at ./update_verifier-30-30000-uniform.meta.json
+compile
+12:35:52 INF compiling circuit
+12:35:52 INF parsed circuit inputs nbPublic=30036 nbSecret=4
+12:35:52 INF building constraint builder nbConstraints=222972
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876,"30-15000-uniform":9957897,"30-30000-uniform":12727422},"pk":{"15-15000-uniform":47101511,"15-300
+00-uniform":78584423,"15-60000-uniform":141550247,"30-15000-uniform":72753053,"30-30000-uniform":91653053},"vk":{"15-15000-uniform":1442988,"15-30000-uniform":2882988,"15-60000-uniform":5762988,"30-15000-uniform":
+1444428,"30-30000-uniform":2884428}}}
+5/9 is done...search key at ./update_verifier-30-60000-uniform.meta.json
+compile
+12:35:58 INF compiling circuit
+12:35:58 INF parsed circuit inputs nbPublic=60036 nbSecret=4
+12:35:58 INF building constraint builder nbConstraints=372972
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876,"30-15000-uniform":9957897,"30-30000-uniform":12727422,"30-60000-uniform":18085970},"pk":{"15-150
+00-uniform":47101511,"15-30000-uniform":78584423,"15-60000-uniform":141550247,"30-15000-uniform":72753053,"30-30000-uniform":91653053,"30-60000-uniform":154618877},"vk":{"15-15000-uniform":1442988,"15-30000-unifor
+m":2882988,"15-60000-uniform":5762988,"30-15000-uniform":1444428,"30-30000-uniform":2884428,"30-60000-uniform":5764428}}}
+6/9 is done...search key at ./update_verifier-60-15000-uniform.meta.json
+compile
+12:36:07 INF compiling circuit
+12:36:07 INF parsed circuit inputs nbPublic=15066 nbSecret=4
+12:36:07 INF building constraint builder nbConstraints=213522
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876,"30-15000-uniform":9957897,"30-30000-uniform":12727422,"30-60000-uniform":18085970,"60-15000-unif
+orm":17021014},"pk":{"15-15000-uniform":47101511,"15-30000-uniform":78584423,"15-60000-uniform":141550247,"30-15000-uniform":72753053,"30-30000-uniform":91653053,"30-60000-uniform":154618877,"60-15000-uniform":988
+90313},"vk":{"15-15000-uniform":1442988,"15-30000-uniform":2882988,"15-60000-uniform":5762988,"30-15000-uniform":1444428,"30-30000-uniform":2884428,"30-60000-uniform":5764428,"60-15000-uniform":1447308}}}
+7/9 is done...search key at ./update_verifier-60-30000-uniform.meta.json
+compile
+12:36:13 INF compiling circuit
+12:36:13 INF parsed circuit inputs nbPublic=30066 nbSecret=4
+12:36:14 INF building constraint builder nbConstraints=288522
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876,"30-15000-uniform":9957897,"30-30000-uniform":12727422,"30-60000-uniform":18085970,"60-15000-unif
+orm":17021014,"60-30000-uniform":19789086},"pk":{"15-15000-uniform":47101511,"15-30000-uniform":78584423,"15-60000-uniform":141550247,"30-15000-uniform":72753053,"30-30000-uniform":91653053,"30-60000-uniform":1546
+18877,"60-15000-uniform":98890313,"60-30000-uniform":142956137},"vk":{"15-15000-uniform":1442988,"15-30000-uniform":2882988,"15-60000-uniform":5762988,"30-15000-uniform":1444428,"30-30000-uniform":2884428,"30-6000
+0-uniform":5764428,"60-15000-uniform":1447308,"60-30000-uniform":2887308}}}
+8/9 is done...search key at ./update_verifier-60-60000-uniform.meta.json
+compile
+12:36:23 INF compiling circuit
+12:36:23 INF parsed circuit inputs nbPublic=60066 nbSecret=4
+12:36:24 INF building constraint builder nbConstraints=438522
+result {"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216979,"vk
+":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876,"30-15000-uniform":9957897,"30-30000-uniform":12727422,"30-60000-uniform":18085970,"60-15000-unif
+orm":17021014,"60-30000-uniform":19789086,"60-60000-uniform":25129294},"pk":{"15-15000-uniform":47101511,"15-30000-uniform":78584423,"15-60000-uniform":141550247,"30-15000-uniform":72753053,"30-30000-uniform":9165
+3053,"30-60000-uniform":154618877,"60-15000-uniform":98890313,"60-30000-uniform":142956137,"60-60000-uniform":180756137},"vk":{"15-15000-uniform":1442988,"15-30000-uniform":2882988,"15-60000-uniform":5762988,"30-1
+5000-uniform":1444428,"30-30000-uniform":2884428,"30-60000-uniform":5764428,"60-15000-uniform":1447308,"60-30000-uniform":2887308,"60-60000-uniform":5767308}}}
+9/9 is done...{"baseline":{"baseline":{"cred":64,"gpk":32,"gsk":96,"join proof":244,"nym":32,"sigma":32,"sign proof":244,"upk: ":32,"usk: ":32},"join":{"cs":42136,"pk":97641,"vk":588},"sign":{"cs":370653,"pk":2216
+979,"vk":780}},"baseline-circuit":{"cs":{"15-15000-uniform":6429233,"15-30000-uniform":9203744,"15-60000-uniform":14547876,"30-15000-uniform":9957897,"30-30000-uniform":12727422,"30-60000-uniform":18085970,"60-150
+00-uniform":17021014,"60-30000-uniform":19789086,"60-60000-uniform":25129294},"pk":{"15-15000-uniform":47101511,"15-30000-uniform":78584423,"15-60000-uniform":141550247,"30-15000-uniform":72753053,"30-30000-unifor
+m":91653053,"30-60000-uniform":154618877,"60-15000-uniform":98890313,"60-30000-uniform":142956137,"60-60000-uniform":180756137},"vk":{"15-15000-uniform":1442988,"15-30000-uniform":2882988,"15-60000-uniform":576298
+8,"30-15000-uniform":1444428,"30-30000-uniform":2884428,"30-60000-uniform":5764428,"60-15000-uniform":1447308,"60-30000-uniform":2887308,"60-60000-uniform":5767308}}}
+[akama@nixos:~/Documents/zk-ban/bench]$
