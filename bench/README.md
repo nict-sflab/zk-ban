@@ -18,4 +18,5 @@ go run ./latency/compare
 ```
 go run ./storage/baseline
 go run ./storage/scale
+go run ./storage/compare
 ```
