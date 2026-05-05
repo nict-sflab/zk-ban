@@ -12,6 +12,8 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
+const EXPORT = "export"
+
 type DumpKeys func(name, protocol string, params *snark.SnarkParams)
 
 func dumpKeys(name, protocol string, params *snark.SnarkParams, secure bool) {
@@ -20,7 +22,7 @@ func dumpKeys(name, protocol string, params *snark.SnarkParams, secure bool) {
 
 	var export *string = nil
 	if secure {
-		tmp := "export"
+		tmp := EXPORT
 		export = &tmp
 	}
 

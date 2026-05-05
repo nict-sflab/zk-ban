@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -13,6 +14,33 @@ import (
 	"github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/backend/groth16"
 )
+
+func ReDumpUserKey(name, protocol string) {
+	export := dump.EXPORT
+	inputFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat, &export)
+	outputFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat, nil)
+
+	inputFile, err := os.ReadFile(inputFileName)
+	if err != nil {
+		log.Fatalf("open pk file: %v", err)
+	}
+
+	inputKey := groth16.NewProvingKey(snark.EcCurve)
+	_, err = inputKey.ReadFrom(bytes.NewReader(inputFile))
+	if err != nil {
+		log.Fatalf("read pk file: %v", err)
+	}
+
+	outputFile, err := os.Create(outputFileName)
+	if err != nil {
+		log.Fatalf("create pk file: %v", err)
+	}
+	defer outputFile.Close()
+	err = inputKey.WriteDump(outputFile)
+	if err != nil {
+		log.Fatalf("write dump pk: %v", err)
+	}
+}
 
 func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
 	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat, nil)
