@@ -15,8 +15,8 @@ import (
 )
 
 func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
-	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat)
-	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat)
+	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat, nil)
+	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat, nil)
 
 	pkBin, err := os.ReadFile(keyFileName)
 	if err != nil {
@@ -86,7 +86,7 @@ func LoadGroupManagerUpdateKeys() ([]*snark.SizedSnarkVerifier, error) {
 }
 
 func LoadGroupManagerMetadata(name string) (*witness.RevocationListSize, error) {
-	metaDataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat)
+	metaDataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat, nil)
 
 	metadataFile, err := os.ReadFile(metaDataFileName)
 	if err != nil {
@@ -127,7 +127,7 @@ func LoadBasicGroupManagerKey(protocol string) (*groth16.VerifyingKey, error) {
 }
 
 func LoadGroupManagerKey(name, protocol string) (*groth16.VerifyingKey, error) {
-	keyFileName := dump.FileName(name, protocol, dump.VerifierKeyFileNameFormat)
+	keyFileName := dump.FileName(name, protocol, dump.VerifierKeyFileNameFormat, nil)
 
 	vkBin, err := os.ReadFile(keyFileName)
 	if err != nil {

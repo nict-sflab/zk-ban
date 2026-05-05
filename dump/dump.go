@@ -12,10 +12,19 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-func DumpKeys(name, protocol string, params *snark.SnarkParams) {
-	proverFileName := FileName(name, protocol, ProverKeyFileNameFormat)
-	csFileName := FileName(name, protocol, CircuitFileNameFormat)
-	verifierFileName := FileName(name, protocol, VerifierKeyFileNameFormat)
+type DumpKeys func(name, protocol string, params *snark.SnarkParams)
+
+func dumpKeys(name, protocol string, params *snark.SnarkParams, secure bool) {
+	csFileName := FileName(name, protocol, CircuitFileNameFormat, nil)
+	verifierFileName := FileName(name, protocol, VerifierKeyFileNameFormat, nil)
+
+	var export *string = nil
+	if secure {
+		tmp := "export"
+		export = &tmp
+	}
+
+	proverFileName := FileName(name, protocol, ProverKeyFileNameFormat, export)
 
 	proverKeyFile, err := os.Create(proverFileName)
 	if err != nil {
@@ -23,9 +32,16 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 	}
 	defer proverKeyFile.Close()
 
-	err = params.ProveKey.WriteDump(proverKeyFile)
-	if err != nil {
-		log.Fatalf("write dump pk: %v", err)
+	if secure {
+		_, err = params.ProveKey.WriteTo(proverKeyFile)
+		if err != nil {
+			log.Fatalf("write dump pk: %v", err)
+		}
+	} else {
+		err = params.ProveKey.WriteDump(proverKeyFile)
+		if err != nil {
+			log.Fatalf("write dump pk: %v", err)
+		}
 	}
 
 	constraintSystemFile, err := os.Create(csFileName)
@@ -49,10 +65,17 @@ func DumpKeys(name, protocol string, params *snark.SnarkParams) {
 	if err != nil {
 		log.Fatalf("write raw vk: %v", err)
 	}
-
 }
 
-func DumpBasicKeys() {
+func DumpUnsafeKeys(name, protocol string, params *snark.SnarkParams) {
+	dumpKeys(name, protocol, params, false)
+}
+
+func DumpSafeKeys(name, protocol string, params *snark.SnarkParams) {
+	dumpKeys(name, protocol, params, true)
+}
+
+func DumpBasicKeys(dumpKey DumpKeys) {
 	joinParams, err := snark.InitSNARK(&circuit.JoinRequestCircuit{})
 	if err != nil {
 		log.Fatalf("init join snark: %v", err)
@@ -63,12 +86,12 @@ func DumpBasicKeys() {
 		log.Fatalf("init sign snark: %v", err)
 	}
 
-	DumpKeys("", "join", joinParams)
-	DumpKeys("", "sign", signParams)
+	dumpKey("", "join", joinParams)
+	dumpKey("", "sign", signParams)
 }
 
 func DumpMetadata(name string, rlSize witness.RevocationListSize) {
-	verifierMetaFileName := FileName(name, "update", MetaFileNameFormat)
+	verifierMetaFileName := FileName(name, "update", MetaFileNameFormat, nil)
 	metadataFile, err := os.Create(verifierMetaFileName)
 	if err != nil {
 		log.Fatalf("create vk metadata file: %v", err)
@@ -86,7 +109,7 @@ func DumpMetadata(name string, rlSize witness.RevocationListSize) {
 	}
 }
 
-func DumpUpdateKeys(name string, rlSize witness.RevocationListSize) {
+func DumpUpdateKeys(name string, rlSize witness.RevocationListSize, dumpKeys DumpKeys) {
 	rl := witness.EmptyRevocationList(rlSize)
 	params, err := snark.InitSNARK(&precomputes.UpdateCircuit{
 		UpdateCircuit: circuit.UpdateCircuit{
@@ -98,6 +121,6 @@ func DumpUpdateKeys(name string, rlSize witness.RevocationListSize) {
 		log.Fatalf("write vk metadata: %v", err)
 	}
 
-	DumpKeys(name, "update", params)
+	dumpKeys(name, "update", params)
 	DumpMetadata(name, rlSize)
 }

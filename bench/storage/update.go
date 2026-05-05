@@ -13,11 +13,11 @@ import (
 func BenchUpdate(rlSize witness.RevocationListSize, root, itemName, fileName string, result Result) {
 	test.PrepareUpdateKeyCached(rlSize, fileName)
 
-	cs, err := os.Stat(dump.FileName(fileName, "update", dump.CircuitFileNameFormat))
+	cs, err := os.Stat(dump.FileName(fileName, "update", dump.CircuitFileNameFormat, nil))
 	test.PanicIfErr(err)
-	pk, err := os.Stat(dump.FileName(fileName, "update", dump.ProverKeyFileNameFormat))
+	pk, err := os.Stat(dump.FileName(fileName, "update", dump.ProverKeyFileNameFormat, nil))
 	test.PanicIfErr(err)
-	vk, err := os.Stat(dump.FileName(fileName, "update", dump.VerifierKeyFileNameFormat))
+	vk, err := os.Stat(dump.FileName(fileName, "update", dump.VerifierKeyFileNameFormat, nil))
 	test.PanicIfErr(err)
 
 	StoreSize(itemName, "pk", root, int(pk.Size()), result)
