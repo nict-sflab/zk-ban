@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -14,9 +15,36 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
+func ReDumpUserKey(name, protocol string) {
+	export := dump.EXPORT
+	inputFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat, &export)
+	outputFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat, nil)
+
+	inputFile, err := os.ReadFile(inputFileName)
+	if err != nil {
+		log.Fatalf("open pk file: %v", err)
+	}
+
+	inputKey := groth16.NewProvingKey(snark.EcCurve)
+	_, err = inputKey.ReadFrom(bytes.NewReader(inputFile))
+	if err != nil {
+		log.Fatalf("read pk file: %v", err)
+	}
+
+	outputFile, err := os.Create(outputFileName)
+	if err != nil {
+		log.Fatalf("create pk file: %v", err)
+	}
+	defer outputFile.Close()
+	err = inputKey.WriteDump(outputFile)
+	if err != nil {
+		log.Fatalf("write dump pk: %v", err)
+	}
+}
+
 func LoadUserKey(name, protocol string) (*snark.SnarkProver, error) {
-	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat)
-	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat)
+	csFileName := dump.FileName(name, protocol, dump.CircuitFileNameFormat, nil)
+	keyFileName := dump.FileName(name, protocol, dump.ProverKeyFileNameFormat, nil)
 
 	pkBin, err := os.ReadFile(keyFileName)
 	if err != nil {
@@ -86,7 +114,7 @@ func LoadGroupManagerUpdateKeys() ([]*snark.SizedSnarkVerifier, error) {
 }
 
 func LoadGroupManagerMetadata(name string) (*witness.RevocationListSize, error) {
-	metaDataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat)
+	metaDataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat, nil)
 
 	metadataFile, err := os.ReadFile(metaDataFileName)
 	if err != nil {
@@ -127,7 +155,7 @@ func LoadBasicGroupManagerKey(protocol string) (*groth16.VerifyingKey, error) {
 }
 
 func LoadGroupManagerKey(name, protocol string) (*groth16.VerifyingKey, error) {
-	keyFileName := dump.FileName(name, protocol, dump.VerifierKeyFileNameFormat)
+	keyFileName := dump.FileName(name, protocol, dump.VerifierKeyFileNameFormat, nil)
 
 	vkBin, err := os.ReadFile(keyFileName)
 	if err != nil {
