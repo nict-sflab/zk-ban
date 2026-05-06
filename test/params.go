@@ -90,13 +90,13 @@ func PrepareUpdateKey(rlSize witness.RevocationListSize, _ string) (*snark.Snark
 func PrepareKeyIfNotExist(rlSize witness.RevocationListSize, name string) {
 	dump.KeyPath = TestKeyPath
 
-	metadataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat)
+	metadataFileName := dump.FileName(name, "update", dump.MetaFileNameFormat, nil)
 
 	fmt.Printf("search key at %s\n", metadataFileName)
 	_, err := os.Stat(metadataFileName)
 	if err != nil {
 		fmt.Println("compile")
-		dump.DumpUpdateKeys(name, rlSize)
+		dump.DumpUpdateKeys(name, rlSize, nil)
 	} else {
 		fmt.Println("compile skip")
 	}

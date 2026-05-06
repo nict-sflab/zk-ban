@@ -2,13 +2,19 @@ package dump
 
 import "fmt"
 
-var ProverKeyFileNameFormat = "%s_prover-%s.bin"
-var CircuitFileNameFormat = "%s_circuit-%s.bin"
-var VerifierKeyFileNameFormat = "%s_verifier-%s.bin"
-var MetaFileNameFormat = "%s_verifier-%s.meta.json"
+var ProverKeyFileNameFormat = "%s%s_prover-%s.bin"
+var CircuitFileNameFormat = "%s%s_circuit-%s.bin"
+var VerifierKeyFileNameFormat = "%s%s_verifier-%s.bin"
+var MetaFileNameFormat = "%s%s_verifier-%s.meta.json"
 
 var KeyPath = "./"
 
-func FileName(name, protocol string, format string) string {
-	return KeyPath + fmt.Sprintf(format, protocol, name)
+func FileName(name, protocol string, format string, option *string) string {
+	if option == nil {
+		tmp := ""
+		option = &tmp
+	} else {
+		*option = *option + "_"
+	}
+	return KeyPath + fmt.Sprintf(format, *option, protocol, name)
 }
