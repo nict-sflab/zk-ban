@@ -44,6 +44,7 @@ func BenchmarkHandleParallel2(b *testing.B) {
 	name := "throuput"
 	cacheName := "baseline-" + name
 	rl := test.EmptyUniformRevocationList(30, 30000)
+	rl = test.AuthenticateRevocationList(params.GSK, rl)
 	prover, verifier := test.PrepareUpdateKeyCached(rl.Sizes(), cacheName)
 
 	var err error

@@ -13,6 +13,7 @@ type UpdateRequest struct {
 	Proof        groth16.Proof
 }
 
+// RequestUpdate expects rl to have been authenticated with GroupSecretKey.AuthenticateRevocationList.
 func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, prover *snark.SnarkProver) (*UpdateRequest, error) {
 	ticket, err := signer.UserSecretKey.OneTimeTicket(signer.Period)
 	if err != nil {
@@ -43,6 +44,7 @@ func RequestUpdate(nextPeriod int64, signer *zkbanw.Signer, rl zkbanw.Revocation
 	return &updateReq, nil
 }
 
+// Verify uses only rl's public period vector; revoked nyms, bounds, and interval signatures remain private.
 func (request *UpdateRequest) Verify(nextPeriod int64, lastPeriod int64, rl zkbanw.RevocationList, gpk *zkbanw.GroupPublicKey, verifyKey groth16.VerifyingKey) error {
 	pubWit, err := circuit.NewPublicUpdateCircuitWitness(nextPeriod, request.PublicKey, request.UpdateTicket, lastPeriod, rl, gpk)
 	if err != nil {

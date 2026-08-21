@@ -9,4 +9,3 @@ This repository is for the core cryptographic protocol in zk-bAN.
 ## Benchmark
 
 You can benchmark with [this instruction](./bench/README.md).
-

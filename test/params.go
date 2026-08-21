@@ -43,6 +43,12 @@ func (params *TestParams) Signer() *witness.Signer {
 	return &signer
 }
 
+func AuthenticateRevocationList(gsk *witness.GroupSecretKey, rl witness.RevocationList) witness.RevocationList {
+	authenticated, err := gsk.AuthenticateRevocationList(rl)
+	PanicIfErr(err)
+	return authenticated
+}
+
 func PrepareCircuit(rl witness.RevocationList) (*snark.SnarkParams, *snark.SnarkParams, *snark.SnarkParams) {
 	var err error
 	var joinSnark *snark.SnarkParams = nil

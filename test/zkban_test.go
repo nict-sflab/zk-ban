@@ -7,6 +7,7 @@ import (
 	"github.com/akakou/zk-ban/circuit"
 	"github.com/akakou/zk-ban/precomputes"
 	"github.com/akakou/zk-ban/primitives"
+	zkbanw "github.com/akakou/zk-ban/witness"
 	"github.com/consensys/gnark/test"
 )
 
@@ -17,7 +18,8 @@ func TestAll(t *testing.T) {
 	proveFailedMessage := " is not satisfied:"
 	verifyFailedMessage := "pairing doesn't match"
 
-	rl := EmptyUniformRevocationList(60, 120)
+	rawRL := EmptyUniformRevocationList(2, 4)
+	rl := AuthenticateRevocationList(params.GSK, rawRL)
 
 	joinCircuit, signCircuit, updateCircuit := PrepareCircuit(rl)
 
@@ -31,7 +33,7 @@ func TestAll(t *testing.T) {
 	})
 
 	t.Run("sign", func(t *testing.T) {
-		signature, err := zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
+		signature, err = zkban.Sign(params.M, params.CNT, params.Signer(), params.GPK, signCircuit.Prover())
 		assert.NoError(err)
 
 		err = signature.Verify(params.M, params.Period, params.GPK, signCircuit.VerifyKey)
@@ -86,34 +88,62 @@ func TestAll(t *testing.T) {
 		assert.NoError(err)
 	})
 
-	t.Run("update-fail1", func(t *testing.T) {
-		rl := EmptyUniformRevocationList(60, 120)
-		rl[0].Period = primitives.NewBigInt(params.Period)
-		rl[0].Nyms[0] = signature.Commit.Nym
-		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
+	t.Run("update-revoked-fail", func(t *testing.T) {
+		revokedRL := EmptyUniformRevocationList(2, 4)
+		revokedRL[0].Period = primitives.NewBigInt(params.Period)
+		revokedRL[0].Nyms[0] = signature.Commit.Nym
+		revokedRL = AuthenticateRevocationList(params.GSK, revokedRL)
+
+		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), revokedRL, params.GPK, updateCircuit.Prover())
+		assert.ErrorContains(err, zkbanw.ErrRevokedNym.Error())
+	})
+
+	t.Run("update-invalid-interval-signature-fail", func(t *testing.T) {
+		tamperedRL := tamperIntervalSignatures(rl)
+		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), tamperedRL, params.GPK, updateCircuit.Prover())
 		assert.ErrorContains(err, proveFailedMessage)
 	})
 
-	t.Run("update-fail2", func(t *testing.T) {
-		test := func(periodIndex, nymIndex int) {
-			rl := EmptyUniformRevocationList(60, 120)
-			req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
-			assert.NoError(err, proveFailedMessage)
+	t.Run("update-signed-period-mismatch-fail", func(t *testing.T) {
+		wrongPeriodRL := append(zkbanw.RevocationList(nil), rl...)
+		wrongPeriodRL[0].Period = primitives.NewBigInt(rl[0].Period.Int64() + 1)
 
-			rl[periodIndex].Period = primitives.NewBigInt(params.Period)
-			rl[periodIndex].Nyms[nymIndex] = signature.Commit.Nym
-
-			vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
-			assert.NoError(err, proveFailedMessage)
-
-			cache, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, rl, params.GPK)
-			assert.NoError(err, proveFailedMessage)
-
-			err = vk.VerifyPrepared(*cache, req, params.NextPeriod, params.Period)
-			assert.ErrorContains(err, verifyFailedMessage)
-		}
-
-		test(0, 0)
-		test(59, 1)
+		_, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), wrongPeriodRL, params.GPK, updateCircuit.Prover())
+		assert.ErrorContains(err, proveFailedMessage)
 	})
+
+	t.Run("update-public-period-vector-fail", func(t *testing.T) {
+		req, err := zkban.RequestUpdate(params.NextPeriod, params.Signer(), rl, params.GPK, updateCircuit.Prover())
+		assert.NoError(err)
+
+		wrongPeriodRL := append(zkbanw.RevocationList(nil), rl...)
+		wrongPeriodRL[0].Period = primitives.NewBigInt(rl[0].Period.Int64() + 1)
+
+		err = req.Verify(params.NextPeriod, params.Period, wrongPeriodRL, params.GPK, updateCircuit.VerifyKey)
+		assert.ErrorContains(err, verifyFailedMessage)
+
+		vk, err := precomputes.NewUpdateVerificationKeyBLS12381(updateCircuit.VerifyKey)
+		assert.NoError(err)
+		prepared, err := vk.PrecomputeVerify(params.NextPeriod, params.Period, wrongPeriodRL, params.GPK)
+		assert.NoError(err)
+
+		err = vk.VerifyPrepared(*prepared, req, params.NextPeriod, params.Period)
+		assert.ErrorContains(err, verifyFailedMessage)
+	})
+}
+
+func tamperIntervalSignatures(rl zkbanw.RevocationList) zkbanw.RevocationList {
+	result := make(zkbanw.RevocationList, len(rl))
+	for periodIndex, revokedPerPeriod := range rl {
+		result[periodIndex] = revokedPerPeriod
+		result[periodIndex].SignedIntervals = make([]zkbanw.SignedInterval, len(revokedPerPeriod.SignedIntervals))
+		for intervalIndex, interval := range revokedPerPeriod.SignedIntervals {
+			result[periodIndex].SignedIntervals[intervalIndex] = interval
+			result[periodIndex].SignedIntervals[intervalIndex].Signature = append([]byte(nil), interval.Signature...)
+			if len(result[periodIndex].SignedIntervals[intervalIndex].Signature) > 0 {
+				result[periodIndex].SignedIntervals[intervalIndex].Signature[len(result[periodIndex].SignedIntervals[intervalIndex].Signature)-1] ^= 1
+			}
+		}
+	}
+	return result
 }

@@ -84,24 +84,14 @@ func newPublicPrecomputationUpdateCircuitWitness(
 	revocationList zkbanw.RevocationList,
 	gpk *zkbanw.GroupPublicKey,
 ) (witness.Witness, error) {
-	wit, err := circuit.NewUpdateCircuitWitness(nextPeriod,
-		&zkbanw.UserPublicKey{primitives.NewBigInt(0)},
-		&zkbanw.OneTimeTicket{primitives.NewBigInt(0)},
-		&zkbanw.Signer{
-			UserSecretKey: &zkbanw.UserSecretKey{
-				primitives.NewBigInt(0),
-			},
-			Credential: &zkbanw.Credential{
-				Signature: make([]byte, 32),
-			},
-			Period: currentPeriod,
-		}, revocationList, gpk)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return wit.Public()
+	return circuit.NewPublicUpdateCircuitWitness(
+		nextPeriod,
+		&zkbanw.UserPublicKey{Number: primitives.NewBigInt(0)},
+		&zkbanw.OneTimeTicket{Number: primitives.NewBigInt(0)},
+		currentPeriod,
+		revocationList,
+		gpk,
+	)
 }
 
 func newPublicPreparedUpdateCircuitWitness(
@@ -110,23 +100,16 @@ func newPublicPreparedUpdateCircuitWitness(
 	updateTicket *zkbanw.OneTimeTicket,
 	lastPeriod int64,
 ) (witness.Witness, error) {
-	wit, err := circuit.NewUpdateCircuitWitness(nextPeriod, nextPublicKey, updateTicket, &zkbanw.Signer{
-		UserSecretKey: &zkbanw.UserSecretKey{
-			primitives.NewBigInt(0),
+	return circuit.NewPublicUpdateCircuitWitness(
+		nextPeriod,
+		nextPublicKey,
+		updateTicket,
+		lastPeriod,
+		zkbanw.EmptyRevocationList([]int{}),
+		&zkbanw.GroupPublicKey{
+			PublicKey: &eddsa.PublicKey{
+				A: twistededwards.NewPointAffine([4]uint64{}, [4]uint64{}),
+			},
 		},
-		Credential: &zkbanw.Credential{
-			Signature: make([]byte, 32),
-		},
-		Period: lastPeriod,
-	}, zkbanw.EmptyRevocationList([]int{}), &zkbanw.GroupPublicKey{
-		PublicKey: &eddsa.PublicKey{
-			A: twistededwards.NewPointAffine([4]uint64{}, [4]uint64{}),
-		},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return wit.Public()
+	)
 }

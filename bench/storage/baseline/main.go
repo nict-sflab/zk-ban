@@ -80,18 +80,18 @@ func benchBasicUpdateCircuit(root string, result storage.Result) {
 	count := 0
 
 	for _, kappa := range kappas {
-		for _, lambda := range lambdas {
-			for i, rlMaker := range rlMakers {
-				runtime.GC()
+		// for _, lambda := range lambdas {
+		for i, rlMaker := range rlMakers {
+			runtime.GC()
 
-				count++
-				tag := rlMakerTags[i]
-				rlSize := rlMaker(kappa, lambda)
-				name := fmt.Sprintf("%d-%d-%s", kappa, lambda, tag)
+			count++
+			tag := rlMakerTags[i]
+			rlSize := rlMaker(kappa, 60)
+			name := fmt.Sprintf("%d-%d-%s", kappa, 1, tag)
 
-				storage.BenchUpdate(rlSize, root, name, name, result)
-				fmt.Printf("%d/%d is done...", count, len(kappas)*len(lambdas)*len(rlMakers))
-			}
+			storage.BenchUpdate(rlSize, root, name, name, result)
+			fmt.Printf("%d/%d is done...", count, len(kappas)*len(lambdas)*len(rlMakers))
+			// }
 		}
 	}
 }

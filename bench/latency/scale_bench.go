@@ -123,6 +123,7 @@ func BenchOneMaxSessScalability(b usefulbench.Benchmarker, name string, EmptyRev
 
 func benchmarkUpdate(param int, rl zkbanw.RevocationList, name string, b usefulbench.Benchmarker) {
 	params := test.PrepareParams()
+	rl = test.AuthenticateRevocationList(params.GSK, rl)
 
 	var err error
 

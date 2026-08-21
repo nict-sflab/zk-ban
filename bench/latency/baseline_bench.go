@@ -11,8 +11,8 @@ import (
 	"github.com/akakou/zk-ban/witness"
 )
 
-var BaseSubRevocation = 30000
-var BasePeriods = 30
+var BaseSubRevocation = 748
+var BasePeriods = 13
 
 var Name = ""
 
@@ -102,6 +102,7 @@ func benchmarkBaseline(params *test.TestParams, b usefulbench.Benchmarker) {
 }
 
 func benchmarkBasicUpdate(rl witness.RevocationList, name string, params *test.TestParams, b usefulbench.Benchmarker) {
+	rl = test.AuthenticateRevocationList(params.GSK, rl)
 	cacheName := "baseline-" + name
 	prover, verifier := test.PrepareUpdateKeyCached(rl.Sizes(), cacheName)
 

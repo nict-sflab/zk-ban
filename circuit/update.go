@@ -1,6 +1,8 @@
 package circuit
 
 import (
+	"fmt"
+
 	"github.com/akakou/zk-ban/primitives"
 	"github.com/akakou/zk-ban/snark"
 	zkbanw "github.com/akakou/zk-ban/witness"
@@ -34,11 +36,11 @@ func (circuit *UpdateCircuit) Define(api frontend.API) error {
 		return err
 	}
 
-	err = circuit.RevocationList.CheckRevocation(circuit.UserSecretKey, api)
+	err = circuit.RevocationList.CheckRevocation(circuit.UserSecretKey, circuit.GroupPublicKey, api)
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -50,6 +52,76 @@ func NewUpdateCircuitWitness(
 	revocationList zkbanw.RevocationList,
 	gpk *zkbanw.GroupPublicKey,
 ) (witness.Witness, error) {
+	assign, err := newUpdateCircuitAssignment(nextPeriod, nextPublicKey, ticket, signer, gpk)
+	if err != nil {
+		return nil, err
+	}
+
+	proofList, err := revocationList.NonMembershipProofs(signer, MaxSession)
+	if err != nil {
+		return nil, err
+	}
+	assign.RevocationList, err = NewRevocationProofAssigned(proofList)
+	if err != nil {
+		return nil, err
+	}
+
+	return frontend.NewWitness(assign, snark.EcCurve.ScalarField())
+}
+
+func NewPublicUpdateCircuitWitness(
+	nextPeriod int64,
+	nextPublicKey *zkbanw.UserPublicKey,
+	updateTicket *zkbanw.OneTimeTicket,
+	lastPeriod int64,
+	revocationList zkbanw.RevocationList,
+	gpk *zkbanw.GroupPublicKey,
+) (witness.Witness, error) {
+	assign, err := newUpdateCircuitAssignment(nextPeriod, nextPublicKey, updateTicket, &zkbanw.Signer{
+		UserSecretKey: &zkbanw.UserSecretKey{
+			Number: primitives.NewBigInt(0),
+		},
+		Credential: &zkbanw.Credential{
+			Signature: make([]byte, 32),
+		},
+		Period: lastPeriod,
+	}, gpk)
+	if err != nil {
+		return nil, err
+	}
+
+	// Bounds and signatures are secret and are discarded by Public(). Concrete
+	// zero placeholders are sufficient; only the period vector is public.
+	assign.RevocationList = NewRevocationListAssigned(revocationList)
+
+	wit, err := frontend.NewWitness(assign, snark.EcCurve.ScalarField())
+	if err != nil {
+		return nil, err
+	}
+
+	return wit.Public()
+}
+
+func newUpdateCircuitAssignment(
+	nextPeriod int64,
+	nextPublicKey *zkbanw.UserPublicKey,
+	ticket *zkbanw.OneTimeTicket,
+	signer *zkbanw.Signer,
+	gpk *zkbanw.GroupPublicKey,
+) (*UpdateCircuit, error) {
+	if nextPublicKey == nil || nextPublicKey.Number == nil {
+		return nil, fmt.Errorf("missing next public key")
+	}
+	if ticket == nil || ticket.Number == nil {
+		return nil, fmt.Errorf("missing update ticket")
+	}
+	if signer == nil || signer.UserSecretKey == nil || signer.UserSecretKey.Number == nil || signer.Credential == nil {
+		return nil, fmt.Errorf("missing signer witness")
+	}
+	if gpk == nil || gpk.PublicKey == nil {
+		return nil, fmt.Errorf("missing group public key")
+	}
+
 	assign := &UpdateCircuit{
 		UserSecretKey: signer.UserSecretKey.Number.Int,
 		CurrentInfo: PublicKeyAuthInfo{
@@ -65,46 +137,5 @@ func NewUpdateCircuitWitness(
 	assign.GroupPublicKey.Assign(snark.TwistededwardsCurve, gpk.Bytes())
 	assign.Credential.Assign(snark.TwistededwardsCurve, signer.Credential.Signature)
 
-	rl := RevocationList{}
-
-	for _, rps := range revocationList {
-		nyms := []frontend.Variable{}
-		for _, nym := range rps.Nyms {
-			nyms = append(nyms, nym.Int)
-		}
-
-		rl = append(rl, RevokedNymsPerPeriod{
-			Nyms:   nyms,
-			Period: rps.Period.Int,
-		})
-	}
-
-	assign.RevocationList = rl
-
-	return frontend.NewWitness(assign, snark.EcCurve.ScalarField())
-}
-
-func NewPublicUpdateCircuitWitness(
-	nextPeriod int64,
-	nextPublicKey *zkbanw.UserPublicKey,
-	updateTicket *zkbanw.OneTimeTicket,
-	lastPeriod int64,
-	revocationList zkbanw.RevocationList,
-	gpk *zkbanw.GroupPublicKey,
-) (witness.Witness, error) {
-	wit, err := NewUpdateCircuitWitness(nextPeriod, nextPublicKey, updateTicket, &zkbanw.Signer{
-		UserSecretKey: &zkbanw.UserSecretKey{
-			primitives.NewBigInt(0),
-		},
-		Credential: &zkbanw.Credential{
-			Signature: make([]byte, 32),
-		},
-		Period: lastPeriod,
-	}, revocationList, gpk)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return wit.Public()
+	return assign, nil
 }
