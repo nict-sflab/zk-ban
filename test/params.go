@@ -96,7 +96,7 @@ func PrepareKeyIfNotExist(rlSize witness.RevocationListSize, name string) {
 	_, err := os.Stat(metadataFileName)
 	if err != nil {
 		fmt.Println("compile")
-		dump.DumpUpdateKeys(name, rlSize, nil)
+		dump.DumpUpdateKeys(name, rlSize, dump.DumpUnsafeKeys)
 	} else {
 		fmt.Println("compile skip")
 	}
